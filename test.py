@@ -1,4 +1,3 @@
-from ctypes.wintypes import _SMALL_RECT
 import cv2
 import numpy as np
 import FeatureLoader
