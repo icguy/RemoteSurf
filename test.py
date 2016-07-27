@@ -143,8 +143,6 @@ def main():
         print("new")
         cv2.waitKey()
 
-
-
 if __name__ == "__main__":
 
     all_levels = main()
