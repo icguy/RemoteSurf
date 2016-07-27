@@ -136,7 +136,6 @@ def loadMat(filename):
         return retval
     return None
 
-
 if __name__ == "__main__":
     fn = "imgs/005.jpg"
     print loadMat(fn)
