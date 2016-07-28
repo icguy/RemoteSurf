@@ -20,7 +20,7 @@ def extract_full(graph, max_num):
     all_levels = [triplets]
     while num < max_num:
         cliques = add_level(graph, cliques)
-        all_levels.append(cliques)
+        all_levels.append(list(cliques))
         num += 1
     return all_levels
 
@@ -86,8 +86,8 @@ def main():
         for j in range(num):
             if i == j: continue
             for m in matches[i][j]:
-                id1 = i * cst + m.queryIdx
-                id2 = j * cst + m.trainIdx
+                id1 = (i, m.queryIdx)
+                id2 = (j, m.trainIdx)
                 if id1 not in graph:
                     graph[id1] = set()
                 graph[id1].add(id2)
@@ -124,12 +124,13 @@ def main():
     print(list(all_levels[-2]))
 
 #draw
-    for m in all_levels[-2]:
-        for i in range(1, len(m)):
-            img_idx1 = m[0] / cst
-            img_idx2 = m[i] / cst
-            kpt_idx1 = m[0] % cst
-            kpt_idx2 = m[i] % cst
+    for i in range(len(all_levels[-2])):
+        m = all_levels[-2][i]
+        for j in range(1, len(m)):
+            img_idx1 = m[0][0]
+            img_idx2 = m[j][0]
+            kpt_idx1 = m[0][1]
+            kpt_idx2 = m[j][1]
             print(img_idx1, img_idx2, kpt_idx1, kpt_idx2)
 
             img1 = imgs[img_idx1]
@@ -139,12 +140,11 @@ def main():
             pt2 = kpts[img_idx2][0][kpt_idx2].pt
             Utils.drawMatch(img1, img2, pt1, pt2, scale=4)
             cv2.waitKey()
-        print(m)
+        print(i, m)
         print("new")
         cv2.waitKey()
 
 if __name__ == "__main__":
-
     all_levels = main()
     exit()
 

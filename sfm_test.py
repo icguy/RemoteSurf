@@ -19,6 +19,35 @@ def getRandTrf():
     tx, ty, tz = tuple(np.random.random(3) * 100 - 50)
     return getTransform(r, p, y, tx, ty, tz)
 
+
+def solve_sfm(img_pts, projs):
+    num_imgs = len(img_pts)
+
+    G = np.zeros((num_imgs * 2, 3), np.float64)
+    b = np.zeros((num_imgs * 2, 1), np.float64)
+    for i in range(num_imgs):
+        ui = img_pts[i][0]
+        vi = img_pts[i][1]
+        p1i = projs[i][0, :3]
+        p2i = projs[i][1, :3]
+        p3i = projs[i][2, :3]
+        a1i = projs[i][0, 3]
+        a2i = projs[i][1, 3]
+        a3i = projs[i][2, 3]
+        idx1 = i * 2
+        idx2 = idx1 + 1
+
+        G[idx1, :] = ui * p3i - p1i
+        G[idx2, :] = vi * p3i - p2i
+        b[idx1] = a1i - a3i * ui
+        b[idx2] = a2i - a3i * vi
+    x = np.dot(np.linalg.pinv(G), b)
+    return x, G, b
+
+
+#img_pts[img_idx] == img_point[3]
+#projs[img_idx] = proj[3x4]
+
 if __name__ == "__main__":
     # num_imgs = 20
     # num_pts = 20
@@ -54,27 +83,7 @@ if __name__ == "__main__":
         img_pts[i][0] /= w
         img_pts[i][1] /= w
         img_pts[i][2] /= w
-
-    G = np.zeros((num_imgs * 2, 3), np.float64)
-    b = np.zeros((num_imgs * 2, 1), np.float64)
-    for i in range(num_imgs):
-        ui = img_pts[i][0]
-        vi = img_pts[i][1]
-        p1i = projs[i][0,:3]
-        p2i = projs[i][1,:3]
-        p3i = projs[i][2,:3]
-        a1i = projs[i][0,3]
-        a2i = projs[i][1,3]
-        a3i = projs[i][2,3]
-        idx1 = i * 2
-        idx2 = idx1 + 1
-
-        G[idx1,:] = ui*p3i - p1i
-        G[idx2,:] = vi*p3i - p2i
-        b[idx1] = a1i - a3i * ui
-        b[idx2] = a2i - a3i * vi
-
-    x = np.dot(linalg.pinv(G), b)
+    x, G, b = solve_sfm(img_pts[:][:2], projs)
     print(matNorm(np.dot(G, x) - b))
     print(matNorm(np.dot(G, obj_pt[:3,:]) - b))
 
