@@ -101,7 +101,7 @@ class CorrespondenceSolver:
         kp1, des1 = self.features[idx1]
         kp2, des2 = self.features[idx2]
         ml = ML()
-        matches = ml.loadMatches(self.files[idx1], self.files[idx2], des1, des2, "surf", MATCHER_FLANN_RATIO_07)
+        matches = ml.matchFLANNRatio(self.files[idx1], self.files[idx2], des1, des2, "surf", 0.7, "07")
         return matches
     
     def handleNewGoodMatch(self, goodmatches, i, j, k):

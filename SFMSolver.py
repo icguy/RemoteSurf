@@ -6,7 +6,6 @@ import Utils
 import MarkerDetect
 from pprint import pprint
 
-
 class CliqueExtractor:
     def getCliques(self, graph, max_num):
         triplets = []
@@ -45,22 +44,12 @@ class CliqueExtractor:
                 return False
         return True
 
-SOLVER_SETTINGS_MASKING = {
-    "useMasks" : True,
-    "matcherVer" : "masks"
-}
-
 class SFMSolver:
     def __init__(self, filenames, masks, **settings):
         self.filenames = filenames
         self.masks = masks
+        self.detector = "surf"
         assert masks is None or len(filenames) == len(masks)
-
-#settings
-        self.detector = settings.get("detector", "surf")
-        self.useMasks = settings.get("useMasks", False)
-        self.matcher = settings.get("matcher", MatchLoader.MATCHER_BF_CROSS)
-        self.matcherVer = settings.get("matcherVer", "0")
 
     def getMatches(self):
         print("-- load features --")
@@ -82,6 +71,9 @@ class SFMSolver:
             print(i)
             for j in range(num):
                 if i == j: continue
+
+                MatchLoader.kpt1 = kpts[i][0]
+                MatchLoader.kpt2 = kpts[j][0]
                 matches[i][j] = ml.loadMatches(
                     files[i], files[j], kpts[i][1], kpts[j][1], self.detector, self.matcher, self.matcherVer)
         return matches, kpts
@@ -209,7 +201,7 @@ class SFMSolver:
         return point
 
 
-                #todo: matching mased on epipolar lines
+                #todo: matching based on epipolar lines
                 #todo: calculate p4d from all inliers (see sfm_test.py), store num inliers, error in res
                 #todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
                 #todo: test pose solving by running the finished algorithm on a pic with known pose.
@@ -274,7 +266,7 @@ def test():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
     imgs = [cv2.imread(f) for f in files]
     masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
-    sfm = SFMSolver(files, masks, **SOLVER_SETTINGS_MASKING)
+    sfm = SFMSolver(files, masks)
     matches, kpts = sfm.getMatches()
     graph, cnst = sfm.getGraph(matches, kpts)
     all_levels = sfm.extractCliques(graph)

@@ -54,7 +54,7 @@ if __name__ == '__main__':
     fl = FL.FeatureLoader()
     kpts = [fl.loadFeatures(f, "surf") for f in files]
     ml = ML.MatchLoader()
-    matches = ml.loadMatches(files[0], files[1], None, None, "surf", ML.MATCHER_BF_CROSS, "mask")
+    matches = ml.matchBFCross(files[0], files[1], kpts[0][1], kpts[1][1], "surf", "mask")
 
     img1 = imgs[0]
     img2 = imgs[1]
@@ -82,8 +82,8 @@ if __name__ == '__main__':
         pt1_h[0] = pt1[0]
         pt1_h[1] = pt1[1]
         pt1_h = pt1_h.T
-        n = np.dot(pt1_h, F.T)
-        nx, ny, nz = n[0, 0], n[0, 1], n[0, 2]
+        n = np.dot(pt1_h, F.T).T
+        nx, ny, nz = n[0], n[1], n[2]
 
         u1 = 0
         u2 = w

@@ -77,8 +77,8 @@ def main():
     for i in range(num):
         for j in range(num):
             if i == j: continue
-            matches[i][j] = ml.loadMatches(
-                files[i], files[j], kpts[i][1], kpts[j][1], "surf", MatchLoader.MATCHER_BF_CROSS, version="mask")
+            matches[i][j] = ml.matchBFCross(
+                files[i], files[j], kpts[i][1], kpts[j][1], "surf", version="mask")
 #graph
     print("graph")
     graph = {}
@@ -168,8 +168,7 @@ if __name__ == "__main__":
         for j in range(num):
             if i == j: continue
             print(i,j)
-            matches[i][j] = ml.loadMatches(
-                files[i], files[j], kpts[i][1], kpts[j][1], "surf", MatchLoader.MATCHER_BF_CROSS)
+            matches[i][j] = ml.matchBFCross(files[i], files[j], kpts[i][1], kpts[j][1], "surf")
 
     for m in level4:
         for i in range(1, len(m)):
