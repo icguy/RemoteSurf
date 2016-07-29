@@ -99,4 +99,7 @@ if __name__ == '__main__':
         out = cv2.pyrDown(out)
 
         cv2.imshow("match", out)
-        cv2.waitKey()
+
+        print "dist from epiline", np.sqrt((nx*pt2[0] + ny*pt2[1] + nz) ** 2 / (nx * nx + ny * ny))
+        if cv2.waitKey() == 27:
+            break
