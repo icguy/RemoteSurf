@@ -69,7 +69,6 @@ if __name__ == '__main__':
         out[:, :w, :] = img1
         out[:, w:, :] = img2
 
-        color = (255, 255, 0)  # cyan
 
         kpt1 = kpts[0][0][m.queryIdx]
         kpt2 = kpts[1][0][m.trainIdx]
@@ -90,6 +89,7 @@ if __name__ == '__main__':
         v1 = int((-nz-nx*u1)/ny)
         v2 = int((-nz-nx*u2)/ny)
 
+        color = (255, 255, 0)  # cyan
         thk = 8
         cv2.circle(out, p1, 40, color, thk)
         cv2.circle(out, p2, 40, color, thk)
