@@ -97,6 +97,7 @@ class SFMSolver:
                         kp.pop(j)
                         des.pop(j)
             print(len(kpts[0][1]))
+        return kpts
 
     def getGraph(self, matches, kpts):
 # graph
