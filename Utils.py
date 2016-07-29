@@ -101,6 +101,12 @@ def getTransform(roll,  pitch,  yaw,  tx,  ty,  tz):
         [-s2,   c2*s3,          c2*c3,          tz]
     ])
 
+def drawMatchesOneByOne(img1, img2, kpt1, kpt2, matches):
+    cv2.namedWindow("match")
+    for match in matches:
+        drawMatch(img1, img2, kpt1[match.queryIdx].pt, kpt2[match.trainIdx].pt, scale=4)
+        if 27 == cv2.waitKey():
+            break
 
 def getCrossMat(t):
     tx = t[0]
