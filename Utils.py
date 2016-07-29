@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from numpy.linalg import inv
 
 camMtx = np.array([[2241.45, 0., 1295.5],
                    [0., 2241.45, 727.5,],
@@ -40,33 +41,33 @@ def test_reproj(imgpts, objpts, tmat, cmat):
     print("avg_err: ", avg_err)
 
 def drawMatch(img1, img2, pt1, pt2, good = True, scale = 2):
-        realscale = 2
+    realscale = 2
+    img1 = cv2.pyrDown(img1)
+    img2 = cv2.pyrDown(img2)
+    if scale == 4:
+        realscale = 4
         img1 = cv2.pyrDown(img1)
         img2 = cv2.pyrDown(img2)
-        if scale == 4:
-            realscale = 4
-            img1 = cv2.pyrDown(img1)
-            img2 = cv2.pyrDown(img2)
 
-        h, w, c = img1.shape
-        out = np.zeros((h, w * 2, 3), np.uint8)
-        out[:,:w,:] = img1
-        out[:,w:,:] = img2
+    h, w, c = img1.shape
+    out = np.zeros((h, w * 2, 3), np.uint8)
+    out[:,:w,:] = img1
+    out[:,w:,:] = img2
 
-        color = (255, 255, 0) # cyan
-        if good == False:
-            color = (0, 0, 255)
-        elif good == True:
-            color = (0, 255, 0)
+    color = (255, 255, 0) # cyan
+    if good == False:
+        color = (0, 0, 255)
+    elif good == True:
+        color = (0, 255, 0)
 
-        p1 = (int(pt1[0] / realscale), int(pt1[1] / realscale))
-        p2 = (int(pt2[0] / realscale + w), int(pt2[1] / realscale))
-        text = "pt1(%d, %d), pt2(%d, %d)" % (int(pt1[0]), int(pt1[1]), int(pt2[0]), int(pt2[1]))
-        cv2.putText(out, text, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
-        cv2.circle(out, p1, 10, color, 1)
-        cv2.circle(out, p2, 10, color, 1)
-        cv2.line(out, p1, p2, color, 1)
-        cv2.imshow("match", out)
+    p1 = (int(pt1[0] / realscale), int(pt1[1] / realscale))
+    p2 = (int(pt2[0] / realscale + w), int(pt2[1] / realscale))
+    text = "pt1(%d, %d), pt2(%d, %d)" % (int(pt1[0]), int(pt1[1]), int(pt2[0]), int(pt2[1]))
+    cv2.putText(out, text, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
+    cv2.circle(out, p1, 10, color, 1)
+    cv2.circle(out, p2, 10, color, 1)
+    cv2.line(out, p1, p2, color, 1)
+    cv2.imshow("match", out)
 
 def rpy(mat):
     r = np.arctan2(mat[1,0], mat[0,0])
@@ -99,6 +100,36 @@ def getTransform(roll,  pitch,  yaw,  tx,  ty,  tz):
         [s1*c2, s1*s2*s3+c1*c3, s1*s2*c3-c1*s3, ty],
         [-s2,   c2*s3,          c2*c3,          tz]
     ])
+
+
+def getCrossMat(t):
+    tx = t[0]
+    ty = t[1]
+    tz = t[2]
+    return np.array(
+        [[0, -tz, ty],
+         [tz, 0, -tx],
+         [-ty, tx, 0]])
+
+# img_pt1 = [u1, v1, 1]
+# np.dot(im_pt2.T, np.dot(F, im_pt1)) == 0
+def calcEssentialFundamentalMat(cam1, cam2, trf1, trf2):
+    A1 = np.eye(4)
+    A2 = np.eye(4)
+    A1[:3, :4] = trf1
+    A2[:3, :4] = trf2
+
+    trf = np.dot(A1, inv(A2))
+
+    R = trf[:3, :3].T
+    t = trf[:3, 3]
+
+    tx = getCrossMat(t)
+    E = np.dot(R, tx)
+    F = np.dot(np.dot(inv(cam2.T), E), inv(cam1))
+
+    return E, F
+
 
 if __name__ == '__main__':
     print getObjPtMarkerHomogeneous()

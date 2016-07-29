@@ -91,7 +91,7 @@ class CorrespondenceSolver:
         fl = FL()
         detector = cv2.SURF()
         dType = "SURF"
-        kp, des = fl.getFeatures(self.files[idx], detector, dType)
+        kp, des = fl.loadFeatures(self.files[idx], detector, dType)
         return kp, des
     
     #return good
@@ -101,7 +101,7 @@ class CorrespondenceSolver:
         kp1, des1 = self.features[idx1]
         kp2, des2 = self.features[idx2]
         ml = ML()
-        matches = ml.getMatches(self.files[idx1], self.files[idx2], des1, des2, "surf", MATCHER_FLANN_RATIO_07)
+        matches = ml.loadMatches(self.files[idx1], self.files[idx2], des1, des2, "surf", MATCHER_FLANN_RATIO_07)
         return matches
     
     def handleNewGoodMatch(self, goodmatches, i, j, k):

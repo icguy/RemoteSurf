@@ -67,12 +67,28 @@ class SFMSolver:
         files = self.filenames
         num = len(files)
 
-        masks = self.masks
         fl = FeatureLoader.FeatureLoader()
         ml = MatchLoader.MatchLoader()
-        kpts = [fl.getFeatures(f, self.detector) for f in files]
+        kpts = [fl.loadFeatures(f, self.detector) for f in files]
 
 # masking
+        kpts = self.maskKeypoints(kpts, num)
+
+# match
+        print("-- matching --")
+        print("num imgs: %d" % num)
+        matches = [[None] * num for i in range(num)]
+        for i in range(num):
+            print(i)
+            for j in range(num):
+                if i == j: continue
+                matches[i][j] = ml.loadMatches(
+                    files[i], files[j], kpts[i][1], kpts[j][1], self.detector, self.matcher, self.matcherVer)
+        return matches, kpts
+
+    def maskKeypoints(self, kpts):
+        num = len(self.filenames)
+        masks = self.masks
         if masks is not None:
             print("-- masking --")
             print(len(kpts[0][1]))
@@ -89,18 +105,6 @@ class SFMSolver:
                         kp.pop(j)
                         des.pop(j)
             print(len(kpts[0][1]))
-
-# matching
-        print("-- matching --")
-        print("num imgs: %d" % num)
-        matches = [[None] * num for i in range(num)]
-        for i in range(num):
-            print(i)
-            for j in range(num):
-                if i == j: continue
-                matches[i][j] = ml.getMatches(
-                    files[i], files[j], kpts[i][1], kpts[j][1], self.detector, self.matcher, self.matcherVer)
-        return matches, kpts
 
     def getGraph(self, matches, kpts):
 # graph
@@ -205,7 +209,7 @@ class SFMSolver:
         return point
 
 
-
+                #todo: matching mased on epipolar lines
                 #todo: calculate p4d from all inliers (see sfm_test.py), store num inliers, error in res
                 #todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
                 #todo: test pose solving by running the finished algorithm on a pic with known pose.
@@ -246,8 +250,29 @@ class SFMSolver:
 
         return p4d
 
+def draw(clique, imgs, kpts):
+    m = clique
+    print "-- draw --"
+    print m
+    for j in range(1, len(m)):
+        img_idx1 = m[0][0]
+        img_idx2 = m[j][0]
+        kpt_idx1 = m[0][1]
+        kpt_idx2 = m[j][1]
+        print(img_idx1, img_idx2, kpt_idx1, kpt_idx2)
+
+        img1 = imgs[img_idx1]
+        img2 = imgs[img_idx2]
+
+        pt1 = kpts[img_idx1][0][kpt_idx1].pt
+        pt2 = kpts[img_idx2][0][kpt_idx2].pt
+        Utils.drawMatch(img1, img2, pt1, pt2, scale=4)
+        cv2.waitKey()
+    cv2.waitKey()
+
 def test():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
+    imgs = [cv2.imread(f) for f in files]
     masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
     sfm = SFMSolver(files, masks, **SOLVER_SETTINGS_MASKING)
     matches, kpts = sfm.getMatches()
@@ -255,8 +280,14 @@ def test():
     all_levels = sfm.extractCliques(graph)
     tmats = [MarkerDetect.loadMat(f) for f in files]
     # print sfm.getCliquePosRANSAC(all_levels[1][0], kpts, tmats)
+    points = []
     for c in all_levels[1]:
-        pprint(sfm.getCliquePosRANSAC(c, kpts, tmats))
+        point = sfm.getCliquePosRANSAC(c, kpts, tmats)
+        if point is not None:
+            points.append((c, point))
+    for c, p in points:
+        print p
+        draw(c, imgs, kpts)
     return all_levels, cnst, graph
 
 if __name__ == '__main__':

@@ -52,7 +52,7 @@ def main():
     masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
     fl = FeatureLoader.FeatureLoader()
     ml = MatchLoader.MatchLoader()
-    kpts = [fl.getFeatures(f, "surf") for f in files]
+    kpts = [fl.loadFeatures(f, "surf") for f in files]
 
 #masking
     print("masking")
@@ -77,7 +77,7 @@ def main():
     for i in range(num):
         for j in range(num):
             if i == j: continue
-            matches[i][j] = ml.getMatches(
+            matches[i][j] = ml.loadMatches(
                 files[i], files[j], kpts[i][1], kpts[j][1], "surf", MatchLoader.MATCHER_BF_CROSS, version="mask")
 #graph
     print("graph")
@@ -162,13 +162,13 @@ if __name__ == "__main__":
     imgs = [cv2.imread(f) for f in files]
     fl = FeatureLoader.FeatureLoader()
     ml = MatchLoader.MatchLoader()
-    kpts = [fl.getFeatures(f, "surf") for f in files]
+    kpts = [fl.loadFeatures(f, "surf") for f in files]
     matches = [[None] * num for i in range(num)]
     for i in range(num):
         for j in range(num):
             if i == j: continue
             print(i,j)
-            matches[i][j] = ml.getMatches(
+            matches[i][j] = ml.loadMatches(
                 files[i], files[j], kpts[i][1], kpts[j][1], "surf", MatchLoader.MATCHER_BF_CROSS)
 
     for m in level4:

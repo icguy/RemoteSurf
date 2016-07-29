@@ -3,24 +3,7 @@ import Utils as util
 import sfm_test as sfm
 from pprint import pprint
 from numpy.linalg import inv
-
-def getCrossMat(t):
-    tx = t[0]
-    ty = t[1]
-    tz = t[2]
-    return np.array(
-        [[0, -tz, ty],
-         [tz, 0, -tx],
-         [-ty, tx, 0]])
-
-def getEssentialMat(R, t):
-    tx = getCrossMat(t)
-    E = np.dot(R, tx)
-    return E
-
-def getFundamentalMat(E, A1, A2):
-    F = np.dot(np.dot(inv(A2.T), E), inv(A1))
-    return F
+from Utils import calcEssentialFundamentalMat
 
 def normalize(vec):
     return vec / vec[-1]
@@ -30,20 +13,27 @@ def test_epip():
     cam2 = sfm.getRandCam()
     trf1 = sfm.getRandTrf()
     trf2 = sfm.getRandTrf()
-    # trf1 = util.getTransform(0, 0, 0,  1,3, 4)
-    # trf2 = util.getTransform(10, 0, 0,  5, 6, 7)
-    A1 = np.eye(4)
-    A2 = np.eye(4)
-    A1[:3, :4] = trf1
-    A2[:3, :4] = trf2
+
+    E, F = calcEssentialFundamentalMat(cam1, cam2, trf1, trf2)
 
     obj_pt = np.random.rand(4, 1) * 20 - 10
     obj_pt[3] = 1
     obj_pt = np.array([10, 0, 0, 1]).T
 
+    cam_pt1, cam_pt2, im_pt1, im_pt2 = calc_test_points(cam1, cam2, obj_pt, trf1, trf2)
+
+    print np.dot(im_pt2.T, np.dot(F, im_pt1))
+    print np.dot(cam_pt2.T, np.dot(E, cam_pt1))
+
+def calc_test_points(cam1, cam2, obj_pt, trf1, trf2):
+    A1 = np.eye(4)
+    A2 = np.eye(4)
+    A1[:3, :4] = trf1
+    A2[:3, :4] = trf2
+
     cam_pt1 = np.dot(A1, obj_pt)
     cam_pt1 = normalize(cam_pt1)[:3]
-    print "cam_pt1\r\n",cam_pt1
+    print "cam_pt1\r\n", cam_pt1
     im_pt1 = np.dot(cam1, cam_pt1)
     im_pt1 = normalize(im_pt1)
 
@@ -53,42 +43,35 @@ def test_epip():
     im_pt2 = np.dot(cam2, cam_pt2)
     im_pt2 = normalize(im_pt2)
 
-    trf = np.dot(A2, inv(A1))
-    trf = np.dot(A1, inv(A2))
-    # trf = np.dot(inv(A2), (A1))
-    # trf = np.dot(inv(A1), (A2))
-    #
-    # trf = inv(np.dot(A2, inv(A1)))
-    # trf = inv(np.dot(A1, inv(A2)))
-    # trf = inv(np.dot(inv(A2), (A1)))
-    # trf = inv(np.dot(inv(A1), (A2)))
-
-
-    R = trf[:3, :3].T
-    t = trf[:3, 3]
-    print "---"
-    print t
-    print R
-
-    E = getEssentialMat(R, t)
-    F = getFundamentalMat(E, cam1, cam2)
-
-
-    print np.dot(im_pt2.T, np.dot(F, im_pt1))
-    print np.dot(cam_pt2.T, np.dot(E, cam_pt1))
-
+    return cam_pt1, cam_pt2, im_pt1, im_pt2
 
 if __name__ == '__main__':
-
-    # obj_pt = np.random.rand(4, 1) * 20 - 10
-    # obj_pt[3] = 1
-    # obj_pt2 = np.random.rand(4, 1) * 20 - 10
-    # obj_pt2[3] = 1
-    # print getCrossMat(obj_pt2).dot(obj_pt[:3]).T - np.cross(obj_pt2[:3].T, obj_pt[:3].T)
-    #
-    # obj_pt = np.random.rand(4, 1) * 20 - 10
-    # obj_pt[3] = 1
-
     test_epip()
-    # for i in range(20):
-    #     test_epip()
+
+    import cv2, FeatureLoader as FL, MarkerDetect as MD
+    files = ["imgs/005.jpg", "imgs/006.jpg"]
+    imgs = [cv2.imread(f) for f in files]
+    fl = FL.FeatureLoader()
+    kpts = [fl.loadFeatures(f, "surf") for f in files]
+    kpt_list = kpts[0]
+
+    img1 = cv2.pyrDown(imgs[0])
+    img2 = cv2.pyrDown(imgs[1])
+
+    tmats = [MD.loadMat(f) for f in files]
+    
+
+    for kpt in kpt_list:
+        realscale = 2
+
+        h, w, c = img1.shape
+        out = np.zeros((h, w * 2, 3), np.uint8)
+        out[:, :w, :] = img1
+        out[:, w:, :] = img2
+
+        color = (255, 255, 0)  # cyan
+
+        pt1 = kpt.pt
+        p1 = (int(pt1[0] / realscale), int(pt1[1] / realscale))
+        cv2.circle(out, p1, 10, color, 1)
+        cv2.imshow("match", out)

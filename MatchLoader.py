@@ -73,7 +73,7 @@ class MatchLoader:
         fn2 = fn2[fn2.rindex("/") + 1:]
         return "detect/match_%s.%s.%s.%s.%s.p" % (fn1, fn2, dType, mType, version)
 
-    def getMatches(self, filename1, filename2, des1, des2, detectorType, matcherType, version = "0" ):
+    def loadMatches(self, filename1, filename2, des1, des2, detectorType, matcherType, version ="0"):
         detectorType = detectorType.lower()
         matcherType = matcherType.lower()
 
@@ -116,12 +116,12 @@ if __name__ == "__main__":
     fn2 = "imgs/005.jpg"
     img1 = cv2.imread(fn1)
     img2 = cv2.imread(fn2)
-    kp, des = fl.getFeatures(fn1, "SURF")
-    kp2, des2 = fl.getFeatures(fn2, "SURF")
+    kp, des = fl.loadFeatures(fn1, "SURF")
+    kp2, des2 = fl.loadFeatures(fn2, "SURF")
     print(len(des), len(des2))
 
     ml = MatchLoader()
-    m = ml.getMatches(fn1, fn2, des, des2, "surf", MATCHER_FLANN_RATIO_07)
+    m = ml.loadMatches(fn1, fn2, des, des2, "surf", MATCHER_FLANN_RATIO_07)
     print len(m)
     print([(g.trainIdx, g.queryIdx) for g in m])
 

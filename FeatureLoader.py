@@ -24,7 +24,7 @@ class FeatureLoader:
     """
     :returns kp, des
     """
-    def getFeatures(self, filename, detectorType):
+    def loadFeatures(self, filename, detectorType):
         detectorType = detectorType.lower()
         detector = getDetector(detectorType)
         fname = self.getFileName(filename, detectorType)
@@ -65,13 +65,13 @@ if __name__ == "__main__":
 
     fn = "imgs/001.jpg"
     print("1")
-    kp, des = fl.getFeatures(fn, "SURF")
+    kp, des = fl.loadFeatures(fn, "SURF")
     kpd = fl.serializeKeyPoints(kp, des)
     idxs = [random.randint(0, len(kp)) for i in range(20)]
     print_rand(kpd, idxs)
 
     print("2")
-    kp, des = fl.getFeatures(fn, "SURF")
+    kp, des = fl.loadFeatures(fn, "SURF")
     kpd = fl.serializeKeyPoints(kp, des)
     print_rand(kpd, idxs)
     print("3")
