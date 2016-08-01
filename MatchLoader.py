@@ -78,6 +78,8 @@ class MatchLoader:
         if matches is not None and not noload:
             return matches
 
+        assert False #implementetion not finished
+
         # img1 = cv2.imread(filename1)
         # img2 = cv2.imread(filename2)
         # h, w, c = img1.shape
@@ -88,7 +90,7 @@ class MatchLoader:
         allmatches = []
         num1, num2 = len(kpts1), len(kpts2)
         cam = util.camMtx
-        E, F = util.calcEssentialFundamentalMat(cam, cam, tmat1, tmat2)
+        E, F = util.calcEssentialFundamentalMat(tmat1, tmat2)
 
         dist_thr = 20 ** 2 #distance threshold from epiline
 
@@ -222,7 +224,6 @@ class MatchLoader:
         return [
             cv2.DMatch(_queryIdx = m[2], _trainIdx = m[3], _imgIdx = m[1], _distance = m[0])
             for m in serd]
-
 
 def print_rand(arr, idxs):
     sel = [arr[idx] for idx in idxs]

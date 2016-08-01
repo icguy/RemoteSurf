@@ -101,9 +101,10 @@ def getTransform(roll,  pitch,  yaw,  tx,  ty,  tz):
         [-s2,   c2*s3,          c2*c3,          tz]
     ])
 
-def drawMatchesOneByOne(img1, img2, kpt1, kpt2, matches):
+def drawMatchesOneByOne(img1, img2, kpt1, kpt2, matches, step = 1):
     cv2.namedWindow("match")
-    for match in matches:
+    for i in range(0, len(matches), step):
+        match = matches[i]
         drawMatch(img1, img2, kpt1[match.queryIdx].pt, kpt2[match.trainIdx].pt, scale=4)
         if 27 == cv2.waitKey():
             break
@@ -119,7 +120,7 @@ def getCrossMat(t):
 
 # img_pt1 = [u1, v1, 1]
 # np.dot(im_pt2.T, np.dot(F, im_pt1)) == 0
-def calcEssentialFundamentalMat(cam1, cam2, trf1, trf2):
+def calcEssentialFundamentalMat(trf1, trf2, cam1 = camMtx, cam2 = camMtx):
     A1 = np.eye(4)
     A2 = np.eye(4)
     A1[:3, :4] = trf1
@@ -135,6 +136,35 @@ def calcEssentialFundamentalMat(cam1, cam2, trf1, trf2):
     F = np.dot(np.dot(inv(cam2.T), E), inv(cam1))
 
     return E, F
+
+def getDistSqFromEpipolarLine(imPt1, imPt2, F):
+    pt1 = np.ones((3, 1))
+    pt1[0] = imPt1[0]
+    pt1[1] = imPt1[1]
+    pt1 = pt1.T
+    n = np.dot(pt1, F.T).T
+    nx, ny, nz = n[0], n[1], n[2]
+
+    pt2 = imPt2
+    dist_sq = (nx * pt2[0] + ny * pt2[1] + nz) ** 2 / (nx * nx + ny * ny)
+    return dist_sq
+
+
+def filterMatchesByEpiline(matches, kpts1, kpts2, F):
+    bad_matches = []
+    good_matches = []
+    i = 0
+    while i < len(matches):
+        match = matches[i]
+        imPt1 = kpts1[match.queryIdx].pt
+        imPt2 = kpts2[match.trainIdx].pt
+        dsq = getDistSqFromEpipolarLine(imPt1, imPt2, F)
+        if dsq > 20 ** 2:
+            bad_matches.append(matches.pop(i))
+        else:
+            good_matches.append(matches.pop(i))
+            i += 1
+    return good_matches, bad_matches
 
 
 if __name__ == '__main__':

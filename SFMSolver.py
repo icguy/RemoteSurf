@@ -201,7 +201,7 @@ class SFMSolver:
         point =  self.solve_sfm(sfmImgPoints, sfmProjs)
         return point
 
-
+                #todo: speed up epipole-based matching
                 #todo: matching based on epipolar lines
                 #todo: calculate p4d from all inliers (see sfm_test.py), store num inliers, error in res
                 #todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])

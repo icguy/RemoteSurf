@@ -14,7 +14,7 @@ def test_epip():
     trf1 = sfm.getRandTrf()
     trf2 = sfm.getRandTrf()
 
-    E, F = calcEssentialFundamentalMat(cam1, cam2, trf1, trf2)
+    E, F = calcEssentialFundamentalMat(trf1, trf2, cam1, cam2)
 
     obj_pt = np.random.rand(4, 1) * 20 - 10
     obj_pt[3] = 1
@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     tmats = [MD.loadMat(f) for f in files]
     cam = util.camMtx
-    E, F = util.calcEssentialFundamentalMat(cam, cam, tmats[0], tmats[1])
+    E, F = util.calcEssentialFundamentalMat(tmats[0], tmats[1])
 
     for m in matches:
         h, w, c = img1.shape
@@ -101,5 +101,6 @@ if __name__ == '__main__':
         cv2.imshow("match", out)
 
         print "dist from epiline", np.sqrt((nx*pt2[0] + ny*pt2[1] + nz) ** 2 / (nx * nx + ny * ny))
+        print "dist from epiline", np.sqrt(util.getDistSqFromEpipolarLine(kpt1.pt, kpt2.pt, F))
         if cv2.waitKey() == 27:
             break

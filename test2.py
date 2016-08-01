@@ -62,10 +62,23 @@ def test():
         for j in range(num):
             if i == j: continue
             print(i,j)
-            matches[i][j] = ml.matchBFCrossTmats(
-                files[i], files[j], kpts[i][1], kpts[j][1], kpts[i][0], kpts[j][0], tmats[i], tmats[j], "surf", version="0", nosave=True)
-            # Utils.drawMatchesOneByOne(imgs[i], imgs[j], kpts[i][0], kpts[j][0], matches[i][j])
+            # matches[i][j] = ml.matchBFCrossTmats(
+            #     files[i], files[j], kpts[i][1], kpts[j][1], kpts[i][0], kpts[j][0], tmats[i], tmats[j], "surf", version="0", nosave=True)
+            # # Utils.drawMatchesOneByOne(imgs[i], imgs[j], kpts[i][0], kpts[j][0], matches[i][j])
+            curr_matches = ml.matchBFCross(
+                files[i], files[j], kpts[i][1], kpts[j][1], "surf", version="mask")
+            matches[i][j] = curr_matches
+
+            E, F = Utils.calcEssentialFundamentalMat(tmats[i], tmats[j])
+            good_matches, bad_matches = Utils.filterMatchesByEpiline(curr_matches, kpts[i][0], kpts[j][0], F)
+            print "len good:", len(good_matches)
+            print "len bad:", len(bad_matches)
+            Utils.drawMatchesOneByOne(imgs[i], imgs[j], kpts[i][0], kpts[j][0], good_matches, 10)
+            print "bad"
+            Utils.drawMatchesOneByOne(imgs[i], imgs[j], kpts[i][0], kpts[j][0], bad_matches, 10)
             return
 
 if __name__ == '__main__':
+    test()
+    exit()
     cProfile.run('test()')
