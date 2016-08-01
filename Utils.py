@@ -153,17 +153,15 @@ def getDistSqFromEpipolarLine(imPt1, imPt2, F):
 def filterMatchesByEpiline(matches, kpts1, kpts2, F):
     bad_matches = []
     good_matches = []
-    i = 0
-    while i < len(matches):
-        match = matches[i]
+    while 0 < len(matches):
+        match = matches[-1]
         imPt1 = kpts1[match.queryIdx].pt
         imPt2 = kpts2[match.trainIdx].pt
         dsq = getDistSqFromEpipolarLine(imPt1, imPt2, F)
         if dsq > 20 ** 2:
-            bad_matches.append(matches.pop(i))
+            bad_matches.append(matches.pop())
         else:
-            good_matches.append(matches.pop(i))
-            i += 1
+            good_matches.append(matches.pop())
     return good_matches, bad_matches
 
 

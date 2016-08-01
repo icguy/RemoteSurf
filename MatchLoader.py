@@ -74,7 +74,7 @@ class MatchLoader:
 
     def matchBFCrossTmats(self, filename1, filename2, des1, des2, kpts1, kpts2,
                           tmat1, tmat2, detectorType, version = "0", noload = False, nosave = False):
-        fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_RATIO_07, version)
+        fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_CROSS_TMATS, version)
         if matches is not None and not noload:
             return matches
 
