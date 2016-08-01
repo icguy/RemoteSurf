@@ -7,7 +7,8 @@ import Utils as util
 MATCHER_FLANN_RATIO_07 = "flann_ratio"
 MATCHER_BF_RATIO_07 = "bf_ratio"
 MATCHER_BF_CROSS = "bf_cross"
-MATCHER_BF_CROSS_TMATS = "bf_cross_tmats"
+MATCHER_BF_CROSS_EPILINES = "bf_cross_epilines"
+MATCHER_BF_CROSS_EPILINES_AFTER = "bf_cross_epilines_after"
 
 # dump file name: "detect/filename.detectorType.matcherType.version.p"
 class MatchLoader:
@@ -72,31 +73,23 @@ class MatchLoader:
 
         return good
 
-    def matchBFCrossTmats(self, filename1, filename2, des1, des2, kpts1, kpts2,
-                          tmat1, tmat2, detectorType, version = "0", noload = False, nosave = False):
-        fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_CROSS_TMATS, version)
+    def matchBFCrossEpilines(self, filename1, filename2, des1, des2, kpts1, kpts2,
+                             tmat1, tmat2, detectorType, version = "0", noload = False, nosave = False):
+        fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_CROSS_EPILINES, version)
         if matches is not None and not noload:
             return matches
 
-        assert False #implementetion not finished
+        # assert False #implementetion not finished
 
-        # img1 = cv2.imread(filename1)
-        # img2 = cv2.imread(filename2)
-        # h, w, c = img1.shape
-        # out = np.zeros((h, w * 2, 3), np.uint8)
-        # out[:, :w, :] = img1
-        # out[:, w:, :] = img2
-
-        allmatches = []
         num1, num2 = len(kpts1), len(kpts2)
-        cam = util.camMtx
         E, F = util.calcEssentialFundamentalMat(tmat1, tmat2)
 
-        dist_thr = 20 ** 2 #distance threshold from epiline
+        dist_thr = 10 ** 2 #distance threshold from epiline
 
         step = 40
-        # step = 1
+        step = 1
 
+        match1 = []
         # match img1 against img2
         for i in range(0, num1, step):
             if i % 10 == 0: print i, num1
@@ -119,26 +112,22 @@ class MatchLoader:
             des_list1 = [des1[i]]
             des_list2 = [des2[j] for j in idx_list]
 
-            bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=True)
-            good = bf.match(
-                np.asarray(des_list1, np.float32), np.asarray(des_list2, np.float32))
+            good = []
+            if len(des_list2) > 0:
+                bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+                good = bf.match(
+                    np.asarray(des_list1, np.float32), np.asarray(des_list2, np.float32))
 
-            allmatches.extend([cv2.DMatch(
+            match1.extend([cv2.DMatch(
                 _queryIdx=i,
                 _trainIdx=idx_list[gmatch.trainIdx],
                 _imgIdx=0,
                 _distance=gmatch.distance) for gmatch in good])
 
-        # img1 = cv2.imread(filename1)
-        # img2 = cv2.imread(filename2)
-        # h, w, c = img1.shape
-        # out = np.zeros((h, w * 2, 3), np.uint8)
-        # out[:, :w, :] = img2
-        # out[:, w:, :] = img1
-
+        match2 = []
         # match img2 against img1
         for i in range(0, num2, step):
-            if i % 10 == 0: print i, num1
+            if i % 10 == 0: print i, num2
             pt2 = kpts2[i].pt
             idx_list = []
             # out2 = np.copy(out)
@@ -155,39 +144,59 @@ class MatchLoader:
                 dist_sq = (nx * pt1[0] + ny * pt1[1] + nz) ** 2 / (nx * nx + ny * ny)
                 if dist_sq < dist_thr:
                     idx_list.append(j)
-                    
-            # color = (155, 155, 0)  # cyan
-            # thk = 8
-            # cv2.circle(out2, tuple(map(int, pt2)), 40, color, thk)
-            # for idx in idx_list:
-            #     pt1 = kpts1[idx].pt
-            #     cv2.circle(out2, (int(pt1[0] + w), int(pt1[1])), 40, color, thk)
-            # cv2.line(out2, (u2 + w, v2), (u1 + w, v1), color, thk)
-
-            # out2 = cv2.pyrDown(out2)
-            # out2 = cv2.pyrDown(out2)
-            # cv2.imshow("out", out2)
-            # cv2.waitKey()
 
             des_list2 = [des2[i]]
             des_list1 = [des1[j] for j in idx_list]
 
-            bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
-            good = bf.match(
-                np.asarray(des_list2, np.float32), np.asarray(des_list1, np.float32))
+            good = []
+            if len(des_list1) > 0:
+                bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=False)
+                good = bf.match(
+                    np.asarray(des_list2, np.float32), np.asarray(des_list1, np.float32))
 
-            allmatches.extend([cv2.DMatch(
-                _queryIdx=i,
-                _trainIdx=idx_list[gmatch.trainIdx],
+            match2.extend([cv2.DMatch(
+                _queryIdx=idx_list[gmatch.trainIdx],
+                _trainIdx=i,
                 _imgIdx=0,
                 _distance=gmatch.distance) for gmatch in good])
 
+        #cross-check
+        match1 = [(m.queryIdx, m.trainIdx) for m in match1]
+        match2 = [(m.queryIdx, m.trainIdx) for m in match2]
+        s1 = set(match1)
+        s2 = set(match2)
+        isec = s1.intersection(s2)
+
+        all_matches = [cv2.DMatch(
+                    _queryIdx=gmatch[0],
+                    _trainIdx=gmatch[1],
+                    _imgIdx=0,
+                    _distance=-1) for gmatch in isec]
+
         if not nosave:
             f = open(fname, "wb")
-            pickle.dump(self.serializeMatches(allmatches), f, 2)
+            pickle.dump(self.serializeMatches(all_matches), f, 2)
             f.close()
 
-        return allmatches
+        return all_matches
+
+    def matchBFCrossEpilinesAfter(self, filename1, filename2, des1, des2, kpts1, kpts2,
+                             tmat1, tmat2, detectorType, dist_thr = 20, version="0", noload=False, nosave=False):
+        fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_CROSS_EPILINES_AFTER, version)
+        if matches is not None and not noload:
+            return matches
+
+        E, F = util.calcEssentialFundamentalMat(tmat1, tmat2)
+        matches = self.matchBFCross(filename1, filename2, des1, des2, detectorType, version)
+        good, bad = util.filterMatchesByEpiline(matches, kpts1, kpts2, F, dist_thr)
+
+        if not nosave:
+            f = open(fname, "wb")
+            pickle.dump(self.serializeMatches(good), f, 2)
+            f.close()
+
+        return good
+
 
     def matchFLANNRatio(self, filename1, filename2, des1, des2, detectorType, ratio = 0.7, version = "0", noload = False, nosave = False):
         fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_RATIO_07, version)

@@ -59,9 +59,10 @@ class SFMSolver:
         fl = FeatureLoader.FeatureLoader()
         ml = MatchLoader.MatchLoader()
         kpts = [fl.loadFeatures(f, self.detector) for f in files]
+        tmats = [MarkerDetect.loadMat(f) for f in files]
 
 # masking
-        kpts = self.maskKeypoints(kpts, num)
+        kpts = self.maskKeypoints(kpts)
 
 # match
         print("-- matching --")
@@ -72,10 +73,17 @@ class SFMSolver:
             for j in range(num):
                 if i == j: continue
 
-                MatchLoader.kpt1 = kpts[i][0]
-                MatchLoader.kpt2 = kpts[j][0]
-                matches[i][j] = ml.loadMatches(
-                    files[i], files[j], kpts[i][1], kpts[j][1], self.detector, self.matcher, self.matcherVer)
+                matches[i][j] = ml.matchBFCrossEpilinesAfter(
+                    self.filenames[i],
+                    self.filenames[j],
+                    kpts[i][1],
+                    kpts[j][1],
+                    kpts[i][0],
+                    kpts[j][0],
+                    tmats[i],
+                    tmats[j],
+                    "surf"
+                )
         return matches, kpts
 
     def maskKeypoints(self, kpts):

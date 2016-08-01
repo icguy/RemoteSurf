@@ -149,8 +149,7 @@ def getDistSqFromEpipolarLine(imPt1, imPt2, F):
     dist_sq = (nx * pt2[0] + ny * pt2[1] + nz) ** 2 / (nx * nx + ny * ny)
     return dist_sq
 
-
-def filterMatchesByEpiline(matches, kpts1, kpts2, F):
+def filterMatchesByEpiline(matches, kpts1, kpts2, F, dist_thr = 20):
     bad_matches = []
     good_matches = []
     while 0 < len(matches):
@@ -158,12 +157,30 @@ def filterMatchesByEpiline(matches, kpts1, kpts2, F):
         imPt1 = kpts1[match.queryIdx].pt
         imPt2 = kpts2[match.trainIdx].pt
         dsq = getDistSqFromEpipolarLine(imPt1, imPt2, F)
-        if dsq > 20 ** 2:
+        if dsq > dist_thr ** 2:
             bad_matches.append(matches.pop())
         else:
             good_matches.append(matches.pop())
     return good_matches, bad_matches
 
+def maskKeypoints(masks, kpts):
+    num = len(masks)
+    print("-- masking --")
+    print([len(kpl[1]) for kpl in kpts])
+    for i in range(num):
+        kp, des = kpts[i]
+        j = 0
+        while j < len(kp):
+            pt = kp[j].pt
+            x = int(pt[0])
+            y = int(pt[1])
+            if masks[i][y, x] > 100:
+                j += 1
+            else:
+                kp.pop(j)
+                des.pop(j)
+    print([len(kpl[1]) for kpl in kpts])
+    return kpts
 
 if __name__ == '__main__':
     print getObjPtMarkerHomogeneous()
