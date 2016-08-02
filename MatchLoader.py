@@ -89,7 +89,7 @@ class MatchLoader:
         step = 10
 
         match1 = self.match_epilines_inner(F, des1, des2, dist_thr, kpts1, kpts2, step)
-        match2 = self.match_epilines_inner2(F, des1, des2, dist_thr, kpts1, kpts2, step)
+        match2 = self.match_epilines_inner2(F.T, des2, des1, dist_thr, kpts2, kpts1, step)
 
         #cross-check
         match1 = [(m.queryIdx, m.trainIdx) for m in match1]
@@ -111,7 +111,7 @@ class MatchLoader:
 
         return all_matches
 
-    def match_epilines_inner2(self, F, des2, des1, dist_thr, kpts2, kpts1, step):
+    def match_epilines_inner2(self, F, des1, des2, dist_thr, kpts1, kpts2, step):
         num1, num2 = len(kpts1), len(kpts2)
         match1 = []
         for i in range(0, num1, step):
@@ -123,7 +123,7 @@ class MatchLoader:
             pt1_h[0] = pt1[0]
             pt1_h[1] = pt1[1]
             pt1_h = pt1_h.T
-            n = np.dot(pt1_h, F).T
+            n = np.dot(pt1_h, F.T).T
             nx, ny, nz = n[0], n[1], n[2]
 
             for j in range(num2):
