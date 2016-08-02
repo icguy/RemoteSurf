@@ -74,7 +74,7 @@ class MatchLoader:
         return good
 
     def matchBFCrossEpilines(self, filename1, filename2, des1, des2, kpts1, kpts2,
-                             tmat1, tmat2, detectorType, version = "0", noload = False, nosave = False):
+                             tmat1, tmat2, detectorType, step = 1, version = "0", noload = False, nosave = False):
         fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_CROSS_EPILINES, version)
         if matches is not None and not noload:
             return matches
@@ -85,8 +85,6 @@ class MatchLoader:
         E, F = util.calcEssentialFundamentalMat(tmat1, tmat2)
 
         dist_thr = 10 ** 2 #distance threshold from epiline
-
-        step = 10
 
         match1 = self.match_epilines_inner(F, des1, des2, dist_thr, kpts1, kpts2, step)
         match2 = self.match_epilines_inner(F.T, des2, des1, dist_thr, kpts2, kpts1, step, reverse=True)
@@ -168,7 +166,6 @@ class MatchLoader:
             f.close()
 
         return good
-
 
     def matchFLANNRatio(self, filename1, filename2, des1, des2, detectorType, ratio = 0.7, version = "0", noload = False, nosave = False):
         fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_RATIO_07, version)
