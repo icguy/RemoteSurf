@@ -132,14 +132,14 @@ class MatchLoader:
                 if dist_sq < dist_thr:
                     idx_list.append(j)
 
-            des_list2 = [des1[i]]
-            des_list1 = [des2[j] for j in idx_list]
+            des_list1 = [des1[i]]
+            des_list2 = [des2[j] for j in idx_list]
 
             good = []
-            if len(des_list1) > 0:
+            if len(des_list2) > 0:
                 bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
                 good = bf.match(
-                    np.asarray(des_list2, np.float32), np.asarray(des_list1, np.float32))
+                    np.asarray(des_list1, np.float32), np.asarray(des_list2, np.float32))
 
             match1.extend([cv2.DMatch(
                 _queryIdx=idx_list[gmatch.trainIdx],
