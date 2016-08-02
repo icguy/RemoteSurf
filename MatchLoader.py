@@ -139,7 +139,7 @@ class MatchLoader:
 
             good = []
             if len(des_list1) > 0:
-                bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=False)
+                bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
                 good = bf.match(
                     np.asarray(des_list2, np.float32), np.asarray(des_list1, np.float32))
 
