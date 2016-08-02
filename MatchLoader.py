@@ -86,44 +86,33 @@ class MatchLoader:
 
         dist_thr = 10 ** 2 #distance threshold from epiline
 
-        step = 40
-        step = 1
+        step = 10
 
-        match1 = []
-        # match img1 against img2
-        for i in range(0, num1, step):
-            if i % 10 == 0: print i, num1
-            pt1 = kpts1[i].pt
-            idx_list = []
+        match1 = self.match_epilines_inner(F, des1, des2, dist_thr, kpts1, kpts2, step)
+        match2 = self.match_epilines_inner2(F, des1, des2, dist_thr, kpts1, kpts2, step)
 
-            pt1_h = np.ones((3, 1))
-            pt1_h[0] = pt1[0]
-            pt1_h[1] = pt1[1]
-            pt1_h = pt1_h.T
-            n = np.dot(pt1_h, F.T).T
-            nx, ny, nz = n[0], n[1], n[2]
+        #cross-check
+        match1 = [(m.queryIdx, m.trainIdx) for m in match1]
+        match2 = [(m.queryIdx, m.trainIdx) for m in match2]
+        s1 = set(match1)
+        s2 = set(match2)
+        isec = s1.intersection(s2)
 
-            for j in range(num2):
-                pt2 = kpts2[j].pt
-                dist_sq = (nx * pt2[0] + ny * pt2[1] + nz) ** 2 / (nx * nx + ny * ny)
-                if dist_sq < dist_thr:
-                    idx_list.append(j)
+        all_matches = [cv2.DMatch(
+                    _queryIdx=gmatch[0],
+                    _trainIdx=gmatch[1],
+                    _imgIdx=0,
+                    _distance=-1) for gmatch in isec]
 
-            des_list1 = [des1[i]]
-            des_list2 = [des2[j] for j in idx_list]
+        if not nosave:
+            f = open(fname, "wb")
+            pickle.dump(self.serializeMatches(all_matches), f, 2)
+            f.close()
 
-            good = []
-            if len(des_list2) > 0:
-                bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
-                good = bf.match(
-                    np.asarray(des_list1, np.float32), np.asarray(des_list2, np.float32))
+        return all_matches
 
-            match1.extend([cv2.DMatch(
-                _queryIdx=i,
-                _trainIdx=idx_list[gmatch.trainIdx],
-                _imgIdx=0,
-                _distance=gmatch.distance) for gmatch in good])
-
+    def match_epilines_inner2(self, F, des1, des2, dist_thr, kpts1, kpts2, step):
+        num1, num2 = len(kpts1), len(kpts2)
         match2 = []
         # match img2 against img1
         for i in range(0, num2, step):
@@ -160,25 +149,45 @@ class MatchLoader:
                 _imgIdx=0,
                 _distance=gmatch.distance) for gmatch in good])
 
-        #cross-check
-        match1 = [(m.queryIdx, m.trainIdx) for m in match1]
-        match2 = [(m.queryIdx, m.trainIdx) for m in match2]
-        s1 = set(match1)
-        s2 = set(match2)
-        isec = s1.intersection(s2)
+        return match2
 
-        all_matches = [cv2.DMatch(
-                    _queryIdx=gmatch[0],
-                    _trainIdx=gmatch[1],
-                    _imgIdx=0,
-                    _distance=-1) for gmatch in isec]
+    def match_epilines_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step):
+        num1, num2 = len(kpts1), len(kpts2)
+        match1 = []
+        # match img1 against img2
+        for i in range(0, num1, step):
+            if i % 10 == 0: print i, num1
+            pt1 = kpts1[i].pt
+            idx_list = []
 
-        if not nosave:
-            f = open(fname, "wb")
-            pickle.dump(self.serializeMatches(all_matches), f, 2)
-            f.close()
+            pt1_h = np.ones((3, 1))
+            pt1_h[0] = pt1[0]
+            pt1_h[1] = pt1[1]
+            pt1_h = pt1_h.T
+            n = np.dot(pt1_h, F.T).T
+            nx, ny, nz = n[0], n[1], n[2]
 
-        return all_matches
+            for j in range(num2):
+                pt2 = kpts2[j].pt
+                dist_sq = (nx * pt2[0] + ny * pt2[1] + nz) ** 2 / (nx * nx + ny * ny)
+                if dist_sq < dist_thr:
+                    idx_list.append(j)
+
+            des_list1 = [des1[i]]
+            des_list2 = [des2[j] for j in idx_list]
+
+            good = []
+            if len(des_list2) > 0:
+                bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+                good = bf.match(
+                    np.asarray(des_list1, np.float32), np.asarray(des_list2, np.float32))
+
+            match1.extend([cv2.DMatch(
+                _queryIdx=i,
+                _trainIdx=idx_list[gmatch.trainIdx],
+                _imgIdx=0,
+                _distance=gmatch.distance) for gmatch in good])
+        return match1
 
     def matchBFCrossEpilinesAfter(self, filename1, filename2, des1, des2, kpts1, kpts2,
                              tmat1, tmat2, detectorType, dist_thr = 20, version="0", noload=False, nosave=False):
