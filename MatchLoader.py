@@ -117,7 +117,6 @@ class MatchLoader:
         for i in range(0, num1, step):
             if i % 10 == 0: print i, num1
             pt1 = kpts1[i].pt
-            idx_list = []
 
             pt1_h = np.ones((3, 1))
             pt1_h[0] = pt1[0]
@@ -126,8 +125,9 @@ class MatchLoader:
             n = np.dot(pt1_h, F.T).T
             nx, ny, nz = n[0], n[1], n[2]
 
-            idx_list = [j for j in range(num2) if (nx * kpts2[j].pt[0] + ny * kpts2[j].pt[1] + nz) ** 2 / (nx * nx + ny * ny) < dist_thr]
-            
+            thr = (nx * nx + ny * ny) * dist_thr
+            idx_list = [j for j in range(num2) if (nx * kpts2[j].pt[0] + ny * kpts2[j].pt[1] + nz) ** 2 < thr]
+
             des_list1 = [des1[i]]
             des_list2 = [des2[j] for j in idx_list]
 
