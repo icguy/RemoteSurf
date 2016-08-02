@@ -111,31 +111,29 @@ class MatchLoader:
 
         return all_matches
 
-    def match_epilines_inner2(self, F, des1, des2, dist_thr, kpts1, kpts2, step):
+    def match_epilines_inner2(self, F, des2, des1, dist_thr, kpts2, kpts1, step):
         num1, num2 = len(kpts1), len(kpts2)
-        match2 = []
-        # match img2 against img1
-        for i in range(0, num2, step):
-            if i % 10 == 0: print i, num2
-            pt2 = kpts2[i].pt
+        match1 = []
+        for i in range(0, num1, step):
+            if i % 10 == 0: print i, num1
+            pt1 = kpts1[i].pt
             idx_list = []
-            # out2 = np.copy(out)
 
-            pt2_h = np.ones((3, 1))
-            pt2_h[0] = pt2[0]
-            pt2_h[1] = pt2[1]
-            pt2_h = pt2_h.T
-            n = np.dot(pt2_h, F).T
+            pt1_h = np.ones((3, 1))
+            pt1_h[0] = pt1[0]
+            pt1_h[1] = pt1[1]
+            pt1_h = pt1_h.T
+            n = np.dot(pt1_h, F).T
             nx, ny, nz = n[0], n[1], n[2]
 
-            for j in range(num1):
-                pt1 = kpts1[j].pt
-                dist_sq = (nx * pt1[0] + ny * pt1[1] + nz) ** 2 / (nx * nx + ny * ny)
+            for j in range(num2):
+                pt2 = kpts2[j].pt
+                dist_sq = (nx * pt2[0] + ny * pt2[1] + nz) ** 2 / (nx * nx + ny * ny)
                 if dist_sq < dist_thr:
                     idx_list.append(j)
 
-            des_list2 = [des2[i]]
-            des_list1 = [des1[j] for j in idx_list]
+            des_list2 = [des1[i]]
+            des_list1 = [des2[j] for j in idx_list]
 
             good = []
             if len(des_list1) > 0:
@@ -143,18 +141,17 @@ class MatchLoader:
                 good = bf.match(
                     np.asarray(des_list2, np.float32), np.asarray(des_list1, np.float32))
 
-            match2.extend([cv2.DMatch(
+            match1.extend([cv2.DMatch(
                 _queryIdx=idx_list[gmatch.trainIdx],
                 _trainIdx=i,
                 _imgIdx=0,
                 _distance=gmatch.distance) for gmatch in good])
 
-        return match2
+        return match1
 
     def match_epilines_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step):
         num1, num2 = len(kpts1), len(kpts2)
         match1 = []
-        # match img1 against img2
         for i in range(0, num1, step):
             if i % 10 == 0: print i, num1
             pt1 = kpts1[i].pt
