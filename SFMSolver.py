@@ -155,12 +155,12 @@ class SFMSolver:
 
         return all_levels
 
-    def getCliquePosRANSAC(self, clique, kpts, tmats, min_inliers = 3, err_thresh = 200):
+    def getCliquePosRANSAC(self, clique, kpts, tmats, min_inliers=3, err_thresh=200):
         num = len(clique)
         pos = [[None] * num for n in clique]
         projMats = [np.dot(Utils.camMtx, tmat) for tmat in tmats]
         imgPts = [np.array(kpts[imgidx][0][kptidx].pt)
-                        for imgidx, kptidx in clique]
+                  for imgidx, kptidx in clique]
         res = [[None] * num for n in clique]
 
         best = None
@@ -170,18 +170,18 @@ class SFMSolver:
                 p4d = self.triangulate(
                     projMats[i], projMats[j], imgPts[i], imgPts[i])
                 pos[i][j] = p4d
-                #pos[j,i] = pos[i,j]
+                # pos[j,i] = pos[i,j]
 
-                res[i][j] = 0 #inliers
+                res[i][j] = 0  # inliers
                 inliers = []
                 for k in range(num):
-                    #reproj
+                    # reproj
                     repr = np.dot(projMats[k], p4d)
                     repr[0] /= repr[2]
                     repr[1] /= repr[2]
                     repr = repr[:2]
 
-                    #err calc
+                    # err calc
                     diff = repr.T - imgPts[k]
                     err = np.linalg.norm(diff, 2)
                     # pprint(repr)
@@ -208,10 +208,39 @@ class SFMSolver:
         point = self.solve_sfm(sfmImgPoints, sfmProjs)
         return point, inliers
 
-                #todo: manually add some inliers to ransac solve
-                #todo: speed up epipole-based matching (c++ maybeh?)
-                #todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
-                #todo: test pose solving by running the finished algorithm on a pic with known pose.
+        # todo: manually add some inliers to ransac solve
+        # todo: speed up epipole-based matching (c++ maybeh?)
+        # todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
+        # todo: test pose solving by running the finished algorithm on a pic with known pose.
+
+    def getCliquePosSimple(self, clique, kpts, tmats, avg_err_thresh=20, max_err_thresh = 30):
+        num = len(clique)
+        projMats = [np.dot(Utils.camMtx, tmat) for tmat in tmats]
+        imgPts = [np.array(kpts[imgidx][0][kptidx].pt)
+                  for imgidx, kptidx in clique]
+
+        point = self.solve_sfm(imgPts, projMats)
+
+        #reproj
+        point_h = np.ones((4, 1), dtype=np.float32)
+        point_h[:3,:] = point
+        repr_pts = [projMat.dot(point_h).reshape(3) for projMat in projMats]
+        errs = np.zeros((num,), dtype = np.float32)
+        for i in range(num):
+            repr_pt = repr_pts[i]
+            repr_pt /= repr_pt[2]
+            img_pt = imgPts[i]
+            repr_pt = repr_pt[:2]
+            err = np.linalg.norm(repr_pt - img_pt)
+            errs[i] = err
+
+        avg_err = np.average(errs)
+        max_err = np.max(errs)
+        if avg_err < avg_err_thresh and max_err < max_err_thresh:
+            return point, avg_err, max_err
+        else:
+            return None, None, None
+
 
     def solve_sfm(self, img_pts, projs):
         num_imgs = len(img_pts)
@@ -299,17 +328,33 @@ def test():
     tmats = [MarkerDetect.loadMat(f) for f in files]
     # print sfm.getCliquePosRANSAC(all_levels[1][0], kpts, tmats)
     points = []
+
+    # for c in all_levels[0]:
+    #     point, inliers = sfm.getCliquePosRANSAC(c, kpts, tmats, err_thresh=100)
+    #     if point is not None:
+    #         points.append((c, point, inliers))
+    # print "num points: ", len(points)
+    # for c, p, inl in points:
+    #     print "--- new clique ---"
+    #     # print p
+    #     # calc_repr_err(c, p, inl, tmats, kpts)
+    #     if draw(c, imgs, kpts) == 27:
+    #         return
+
     for c in all_levels[0]:
-        point, inliers = sfm.getCliquePosRANSAC(c, kpts, tmats, err_thresh=100)
+        point, avg_err, max_err = sfm.getCliquePosSimple(c, kpts, tmats, avg_err_thresh=5, max_err_thresh=10)
         if point is not None:
-            points.append((c, point, inliers))
+            points.append((c, point, avg_err, max_err))
     print "num points: ", len(points)
-    for c, p, inl in points:
+    for c, p, a, m in points:
         print "--- new clique ---"
-        # print p
-        # calc_repr_err(c, p, inl, tmats, kpts)
-        if draw(c, imgs, kpts) == 27:
-            return
+        print p
+        print "error (avg, max): ", a, m
+        if p[2] > -1.5:
+            if draw(c, imgs, kpts) == 27:
+                return
+
+
     return all_levels, graph
 
 if __name__ == '__main__':
