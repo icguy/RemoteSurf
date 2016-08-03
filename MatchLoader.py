@@ -112,6 +112,12 @@ class MatchLoader:
     def match_epilines_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step, reverse=False):
         num1, num2 = len(kpts1), len(kpts2)
         match1 = []
+
+        kpt2_mat = np.ones((3, num2))
+        for i in range(num2):
+            kpt2_mat[0, i] = kpts2[i].pt[0]
+            kpt2_mat[1, i] = kpts2[i].pt[1]
+
         for i in range(0, num1, step):
             if i % 10 == 0: print i, num1
             pt1 = kpts1[i].pt
@@ -123,8 +129,9 @@ class MatchLoader:
             n = np.dot(pt1_h, F.T).T
             nx, ny, nz = n[0], n[1], n[2]
 
-            thr = (nx * nx + ny * ny) * dist_thr
-            idx_list = [j for j in range(num2) if (nx * kpts2[j].pt[0] + ny * kpts2[j].pt[1] + nz) ** 2 < thr]
+            thr = np.sqrt((nx * nx + ny * ny) * dist_thr)
+            distances = np.abs(n.T.dot(kpt2_mat))
+            idx_list = [j for j in range(num2) if distances[0, j] < thr]
 
             des_list1 = [des1[i]]
             des_list2 = [des2[j] for j in idx_list]
