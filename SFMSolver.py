@@ -73,7 +73,7 @@ class SFMSolver:
             for j in range(num):
                 if i == j: continue
 
-                matches[i][j] = ml.matchBFCrossEpilinesAfter(
+                matches[i][j] = ml.matchBFCrossEpilines(
                     self.filenames[i],
                     self.filenames[j],
                     kpts[i][1],
@@ -112,7 +112,6 @@ class SFMSolver:
         print("-- graph --")
         num = len(self.filenames)
         graph = {}
-        cnst = np.max([len(kpt_list[0]) for kpt_list in kpts])
 
         for i in range(num):
             for j in range(num):
@@ -144,7 +143,7 @@ class SFMSolver:
             i += 1
             if total == len(graph):
                 break
-        return graph, cnst
+        return graph
 
     def extractCliques(self, graph, maxlevel = 5):
         print("levels")
@@ -253,6 +252,7 @@ def draw(clique, imgs, kpts):
     m = clique
     print "-- draw --"
     print m
+    c = None
     for j in range(1, len(m)):
         img_idx1 = m[0][0]
         img_idx2 = m[j][0]
@@ -266,8 +266,8 @@ def draw(clique, imgs, kpts):
         pt1 = kpts[img_idx1][0][kpt_idx1].pt
         pt2 = kpts[img_idx2][0][kpt_idx2].pt
         Utils.drawMatch(img1, img2, pt1, pt2, scale=4)
-        cv2.waitKey()
-    cv2.waitKey()
+        c = cv2.waitKey()
+    return c
 
 def calc_repr_err(c, p, inl, tmats, kpts):
     errs = [0] * len(inl)
@@ -294,7 +294,7 @@ def test():
     masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
     sfm = SFMSolver(files, masks)
     matches, kpts = sfm.getMatches()
-    graph, cnst = sfm.getGraph(matches, kpts)
+    graph = sfm.getGraph(matches, kpts)
     all_levels = sfm.extractCliques(graph)
     tmats = [MarkerDetect.loadMat(f) for f in files]
     # print sfm.getCliquePosRANSAC(all_levels[1][0], kpts, tmats)
@@ -306,10 +306,11 @@ def test():
     print "num points: ", len(points)
     for c, p, inl in points:
         print "--- new clique ---"
-        print p
-        calc_repr_err(c, p, inl, tmats, kpts)
-        #draw(c, imgs, kpts)
-    return all_levels, cnst, graph
+        # print p
+        # calc_repr_err(c, p, inl, tmats, kpts)
+        if draw(c, imgs, kpts) == 27:
+            return
+    return all_levels, graph
 
 if __name__ == '__main__':
     test()
