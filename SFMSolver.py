@@ -198,7 +198,7 @@ class SFMSolver:
 
         inliers = res[best[0]][best[1]]
         if len(inliers) < min_inliers:
-            return None
+            return None, None
 
         sfmImgPoints = []
         sfmProjs = []
@@ -206,15 +206,13 @@ class SFMSolver:
             sfmImgPoints.append(imgPts[inl])
             sfmProjs.append(projMats[inl])
 
-        point =  self.solve_sfm(sfmImgPoints, sfmProjs)
-        return point
+        point = self.solve_sfm(sfmImgPoints, sfmProjs)
+        return point, inliers
 
-                #todo: speed up epipole-based matching
-                #todo: matching based on epipolar lines
-                #todo: calculate p4d from all inliers (see sfm_test.py), store num inliers, error in res
+                #todo: manually add some inliers to ransac solve
+                #todo: speed up epipole-based matching (c++ maybeh?)
                 #todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
                 #todo: test pose solving by running the finished algorithm on a pic with known pose.
-                # asdasfsdg
 
     def solve_sfm(self, img_pts, projs):
         num_imgs = len(img_pts)
@@ -271,6 +269,25 @@ def draw(clique, imgs, kpts):
         cv2.waitKey()
     cv2.waitKey()
 
+def calc_repr_err(c, p, inl, tmats, kpts):
+    errs = [0] * len(inl)
+    p4d = np.ones((4,1))
+    p4d[:3,:] = p
+    for i in range(len(inl)):
+        inlier = inl[i]
+        img_idx, kpt_idx = c[inlier]
+        kpt = np.array(kpts[img_idx][0][kpt_idx].pt, dtype=np.float32)
+
+        tmat = tmats[img_idx]
+        cmat = Utils.camMtx
+        reproj = cmat.dot(tmat).dot(p4d)
+        reproj /= reproj[2, 0]
+        errs[i] = np.linalg.norm(reproj.T[0,:2] - kpt)
+        print errs[i]
+    max_err = max(errs)
+    avg_err = np.average(np.array(errs))
+    print max_err, avg_err
+
 def test():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
     imgs = [cv2.imread(f) for f in files]
@@ -282,13 +299,16 @@ def test():
     tmats = [MarkerDetect.loadMat(f) for f in files]
     # print sfm.getCliquePosRANSAC(all_levels[1][0], kpts, tmats)
     points = []
-    for c in all_levels[1]:
-        point = sfm.getCliquePosRANSAC(c, kpts, tmats)
+    for c in all_levels[0]:
+        point, inliers = sfm.getCliquePosRANSAC(c, kpts, tmats, err_thresh=100)
         if point is not None:
-            points.append((c, point))
-    for c, p in points:
+            points.append((c, point, inliers))
+    print "num points: ", len(points)
+    for c, p, inl in points:
+        print "--- new clique ---"
         print p
-        draw(c, imgs, kpts)
+        calc_repr_err(c, p, inl, tmats, kpts)
+        #draw(c, imgs, kpts)
     return all_levels, cnst, graph
 
 if __name__ == '__main__':
