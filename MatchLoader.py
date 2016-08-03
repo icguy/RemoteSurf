@@ -119,7 +119,7 @@ class MatchLoader:
             kpt2_mat[1, i] = kpts2[i].pt[1]
 
         for i in range(0, num1, step):
-            if i % 10 == 0: print i, num1
+            if i % 100 == 0: print i, num1
             pt1 = kpts1[i].pt
 
             pt1_h = np.ones((3, 1))
