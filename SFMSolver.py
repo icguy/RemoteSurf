@@ -155,6 +155,40 @@ class SFMSolver:
 
         return all_levels
 
+    def extendCliques(self, graph, cliques, max_missing = 1):
+        for clique in cliques:
+            clique = set(clique)
+            num = len(clique)
+            for node in clique:     #for each node
+                missing = []
+                num_connected = 0
+                for k in list(graph[node]):   #for each neighbor k of node
+                    if k in clique:
+                        continue
+                    missing = clique - graph[k]
+                    if len(missing) <= max_missing:
+                        #add missing edges to k's neigh list
+                        graph[k].update(missing)
+                        for n in clique:
+                            graph[n].add(k)
+
+    def print_graph(self, graph, node, depth):
+        nodes = self._get_subgraph(graph, node, depth)
+        for n in nodes:
+            print n, graph[n]
+
+    def _get_subgraph(self, graph, node, depth):
+        if depth == 0:
+            return [node]
+
+        nodes = set()
+        nodes.add(node)
+        for neigh in graph[node]:
+            nnodes = self._get_subgraph(graph, neigh, depth - 1)
+            for n in nnodes:
+                nodes.add(n)
+        return list(nodes)
+
     def getCliquePosRANSAC(self, clique, kpts, tmats, min_inliers=3, err_thresh=200):
         num = len(clique)
         pos = [[None] * num for n in clique]
@@ -167,7 +201,7 @@ class SFMSolver:
         besterr = 0
         for i in range(num):
             for j in range(i + 1, num):
-                p4d = self.triangulate(
+                p4d = self._triangulate(
                     projMats[i], projMats[j], imgPts[i], imgPts[i])
                 pos[i][j] = p4d
                 # pos[j,i] = pos[i,j]
@@ -241,7 +275,6 @@ class SFMSolver:
         else:
             return None, None, None
 
-
     def solve_sfm(self, img_pts, projs):
         num_imgs = len(img_pts)
 
@@ -266,7 +299,7 @@ class SFMSolver:
         x = np.dot(np.linalg.pinv(G), b)
         return x
 
-    def triangulate(self, projMat1, projMat2, imgPts1, imgPts2):
+    def _triangulate(self, projMat1, projMat2, imgPts1, imgPts2):
         p4d = cv2.triangulatePoints(projMat1, projMat2, imgPts1, imgPts2)
 
         for i in range(0, p4d.shape[1]):
@@ -324,7 +357,14 @@ def test():
     sfm = SFMSolver(files, masks)
     matches, kpts = sfm.getMatches()
     graph = sfm.getGraph(matches, kpts)
+    print "---"
+    #sfm.print_graph(graph, graph.keys()[0], 2)
     all_levels = sfm.extractCliques(graph)
+    sfm.extendCliques(graph, all_levels[0], 1)
+    all_levels = sfm.extractCliques(graph)
+    # sfm.extendCliques(graph, all_levels[0], 1)
+    # all_levels = sfm.extractCliques(graph)
+    # exit()
     tmats = [MarkerDetect.loadMat(f) for f in files]
     # print sfm.getCliquePosRANSAC(all_levels[1][0], kpts, tmats)
     points = []
@@ -341,7 +381,9 @@ def test():
     #     if draw(c, imgs, kpts) == 27:
     #         return
 
-    for c in all_levels[0]:
+    for i in range(len(all_levels[0])):
+        if i % 1000 == 0: print i, len(all_levels[0]), len(points)
+        c = all_levels[0][i]
         point, avg_err, max_err = sfm.getCliquePosSimple(c, kpts, tmats, avg_err_thresh=5, max_err_thresh=10)
         if point is not None:
             points.append((c, point, avg_err, max_err))
@@ -358,4 +400,5 @@ def test():
     return all_levels, graph
 
 if __name__ == '__main__':
-    test()
+    import cProfile
+    cProfile.run("test()")
