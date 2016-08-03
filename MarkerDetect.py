@@ -141,4 +141,4 @@ if __name__ == "__main__":
     print loadMat(fn)
     for i in range(5, 10):
         fn = "imgs/00%d.jpg" % i
-        tmat = getParams(fn)
+        saveMat(fn)
