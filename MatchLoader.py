@@ -131,7 +131,8 @@ class MatchLoader:
 
             thr = np.sqrt((nx * nx + ny * ny) * dist_thr)
             distances = np.abs(n.T.dot(kpt2_mat))
-            idx_list = [j for j in range(num2) if distances[0, j] < thr]
+            distances = distances.reshape(num2)
+            idx_list = np.where(distances < thr)[0]
 
             des_list1 = [des1[i]]
             des_list2 = [des2[j] for j in idx_list]
