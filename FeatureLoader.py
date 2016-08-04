@@ -12,14 +12,14 @@ def getDetector(name):
 
     return cv2.SURF()
 
-# dump file name: "detect/filename.detectorType.p"
+# dump file name: "cache/filename.detectorType.p"
 class FeatureLoader:
     def __init__(self):
         pass
 
     def getFileName(self, filename, dType):
         filename = filename[filename.rindex("/") + 1:]
-        return "detect/feature_%s.%s.p" % (filename, dType)
+        return "cache/feature_%s.%s.p" % (filename, dType)
 
     """
     :returns kp, des

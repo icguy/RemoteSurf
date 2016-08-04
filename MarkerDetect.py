@@ -114,7 +114,7 @@ def getParams(filename):
 
 def getFilenameMat(filename):
     fn = filename[filename.rindex("/") + 1:]
-    fn = "detect/tmat_" + fn + ".p"
+    fn = "cache/tmat_" + fn + ".p"
     return fn
 
 def saveMat(filename):
@@ -126,7 +126,7 @@ def saveMat(filename):
     f.close()
     return tmat
 
-def loadMat(filename):
+def loadMat(filename, noload = True):
     from os.path import isfile
     fn = getFilenameMat(filename)
     if isfile(fn):
@@ -134,9 +134,15 @@ def loadMat(filename):
         retval = pickle.load(f)
         f.close()
         return retval
-    return None
+    if noload:
+        return None
+    else:
+        return saveMat(filename)
 
 if __name__ == "__main__":
+    saveMat("imgs/004.jpg")
+    exit()
+
     fn = "imgs/005.jpg"
     print loadMat(fn)
     for i in range(5, 10):

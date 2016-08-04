@@ -10,12 +10,12 @@ MATCHER_BF_CROSS = "bf_cross"
 MATCHER_BF_CROSS_EPILINES = "bf_cross_epilines"
 MATCHER_BF_CROSS_EPILINES_AFTER = "bf_cross_epilines_after"
 
-# dump file name: "detect/filename.detectorType.matcherType.version.p"
+# dump file name: "cache/filename.detectorType.matcherType.version.p"
 class MatchLoader:
     def getFileName(self, fn1, fn2, dType, mType, version):
         fn1 = fn1[fn1.rindex("/") + 1:]
         fn2 = fn2[fn2.rindex("/") + 1:]
-        return "detect/match_%s.%s.%s.%s.%s.p" % (fn1, fn2, dType, mType, version)
+        return "cache/match_%s.%s.%s.%s.%s.p" % (fn1, fn2, dType, mType, version)
 
     def loadMatches(self, filename1, filename2, detectorType, matcherType, version):
         detectorType = detectorType.lower()
