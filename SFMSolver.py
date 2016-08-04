@@ -350,43 +350,50 @@ def calc_repr_err(c, p, inl, tmats, kpts):
     avg_err = np.average(np.array(errs))
     print max_err, avg_err
 
+def match_to_img(file, data):
+    img = cv2.imread(file)
+    data_des, data_pts = zip(*data)
+
+    fl = FeatureLoader.FeatureLoader()
+    kp, des = fl.loadFeatures(file, "surf")
+    ml = MatchLoader.MatchLoader()
+    matches = ml.matchBFCross(file, "asd/nope.avi", des, data_des, "surf", nosave=True, noload=True)
+    img_pts = []
+    obj_pts = []
+    for m in matches:
+        img_pts.append(kp[m.queryIdx].pt)
+        obj_pts.append(data_pts[m.trainIdx])
+
+    rvec, tvec, inliers = cv2.solvePnPRansac(
+        np.asarray(obj_pts, np.float32),
+        np.asarray(img_pts, np.float32),
+        Utils.camMtx,
+        None,
+        reprojectionError=10)
+    rmat = cv2.Rodrigues(rvec)[0]
+
+    tmat_load = MarkerDetect.loadMat(file, False)
+    tmat = np.zeros((3,4))
+    tmat[:3,:3] = rmat
+    tmat[:3,3] = tvec.T
+    tmat4x4 = np.eye(4)
+    tmat4x4[:3,:] = tmat
+    print "num data, img pts", len(data_des), len(des)
+    print "num matches:", len(matches)
+    print "num inliers: ", len(inliers)
+    print "rmat", rmat
+    print "tvec", tvec
+    print "tmat load", tmat_load
+    print "combined trf diff", tmat_load.dot(np.linalg.inv(tmat4x4))
+
+
 def test():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
-    imgs = [cv2.imread(f) for f in files]
-    masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
-    sfm = SFMSolver(files, masks)
-    matches, kpts = sfm.getMatches()
-    graph = sfm.getGraph(matches, kpts)
-    print "---"
-    #sfm.print_graph(graph, graph.keys()[0], 2)
-    all_levels = sfm.extractCliques(graph)
-    sfm.extendCliques(graph, all_levels[0], 1)
-    all_levels = sfm.extractCliques(graph)
-    # sfm.extendCliques(graph, all_levels[0], 1)
-    # all_levels = sfm.extractCliques(graph)
-    # exit()
-    tmats = [MarkerDetect.loadMat(f) for f in files]
-    # print sfm.getCliquePosRANSAC(all_levels[1][0], kpts, tmats)
-    points = []
+    imgs, kpts, points, data = calc_data_from_files(files)
 
-    # for c in all_levels[0]:
-    #     point, inliers = sfm.getCliquePosRANSAC(c, kpts, tmats, err_thresh=100)
-    #     if point is not None:
-    #         points.append((c, point, inliers))
-    # print "num points: ", len(points)
-    # for c, p, inl in points:
-    #     print "--- new clique ---"
-    #     # print p
-    #     # calc_repr_err(c, p, inl, tmats, kpts)
-    #     if draw(c, imgs, kpts) == 27:
-    #         return
+    match_to_img("imgs/003.jpg", data)
+    exit()
 
-    for i in range(len(all_levels[0])):
-        if i % 1000 == 0: print i, len(all_levels[0]), len(points)
-        c = all_levels[0][i]
-        point, avg_err, max_err = sfm.getCliquePosSimple(c, kpts, tmats, avg_err_thresh=5, max_err_thresh=10)
-        if point is not None:
-            points.append((c, point, avg_err, max_err))
     print "num points: ", len(points)
     for c, p, a, m in points:
         print "--- new clique ---"
@@ -396,9 +403,59 @@ def test():
             if draw(c, imgs, kpts) == 27:
                 return
 
+# pointData is list of tuple: (des, p3d)
+def calc_data_from_files(files):
+    imgs = [cv2.imread(f) for f in files]
+    masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
+    sfm = SFMSolver(files, masks)
+    matches, kpts = sfm.getMatches()
 
-    return all_levels, graph
+    import DataCache as DC
+    data = DC.getData(DC.POINTS4D)
+    if data is None:
+        graph = sfm.getGraph(matches, kpts)
+        all_levels = sfm.extractCliques(graph, maxlevel=3)
+        sfm.extendCliques(graph, all_levels[0], 1)
+        all_levels = sfm.extractCliques(graph, maxlevel=3)
+        # sfm.extendCliques(graph, all_levels[0], 1)
+        # all_levels = sfm.extractCliques(graph)
+        tmats = [MarkerDetect.loadMat(f) for f in files]
+        points = []
+
+        # for c in all_levels[0]:
+        #     point, inliers = sfm.getCliquePosRANSAC(c, kpts, tmats, err_thresh=100)
+        #     if point is not None:
+        #         points.append((c, point, inliers))
+        # print "num points: ", len(points)
+        # for c, p, inl in points:
+        #     print "--- new clique ---"
+        #     # print p
+        #     # calc_repr_err(c, p, inl, tmats, kpts)
+        #     if draw(c, imgs, kpts) == 27:
+        #         return
+
+        for i in range(len(all_levels[0])):
+            if i % 1000 == 0: print i, len(all_levels[0]), len(points)
+            c = all_levels[0][i]
+            point, avg_err, max_err = sfm.getCliquePosSimple(c, kpts, tmats, avg_err_thresh=5, max_err_thresh=10)
+            if point is not None:
+                points.append((c, point, avg_err, max_err))
+
+        pointData = []
+        for c, p, a, m in points:
+            for node in c:
+                img_idx, kpt_idx = node
+                pointData.append((kpts[img_idx][1][kpt_idx], p))
+
+        DC.saveData(DC.POINTS4D, (points, pointData))
+    else:
+        points, pointData = data
+
+    return imgs, kpts, points, pointData
 
 if __name__ == '__main__':
+    test()
+    exit()
+
     import cProfile
     cProfile.run("test()")

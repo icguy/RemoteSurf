@@ -42,26 +42,8 @@ def connected_to_all(graph, node, clique):
             return False
     return True
 
-
-num = 1000  * 1000
-def forloop():
-    asd = []
-    for i in range(num):
-        asd.append(duty(i))
-    return asd
-
-
-def duty(i):
-    i += 2
-    return i
-
-def gen():
-    return [duty(i) for i in range(num)]
-
-def test():
-    forloop()
-    gen()
-
 if __name__ == '__main__':
-
-    print cProfile.run("test()")
+    a = (1, 2, 3)
+    b = (4, 5, 6)
+    c = [aa - bb for aa, bb in zip(a, b)]
+    print c
