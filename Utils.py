@@ -118,6 +118,11 @@ def getCrossMat(t):
          [tz, 0, -tx],
          [-ty, tx, 0]])
 
+def invTrf(tmat):
+    tmat4x4 = np.eye(4)
+    tmat4x4[:3,:]=tmat
+    return inv(tmat4x4)[:3,:]
+
 # img_pt1 = [u1, v1, 1]
 # np.dot(im_pt2.T, np.dot(F, im_pt1)) == 0
 def calcEssentialFundamentalMat(trf1, trf2, cam1 = camMtx, cam2 = camMtx):
