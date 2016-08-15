@@ -2,6 +2,7 @@ import cPickle as pickle
 from os.path import isfile
 
 POINTS4D = "cache/points4d.p"
+POINTS4D_MULTIPLE_MATCH = "cache/points4d_multiple.p"
 
 def getData(filename):
     if isfile(filename):

@@ -9,6 +9,7 @@ MATCHER_BF_RATIO_07 = "bf_ratio"
 MATCHER_BF_CROSS = "bf_cross"
 MATCHER_BF_CROSS_EPILINES = "bf_cross_epilines"
 MATCHER_BF_CROSS_EPILINES_AFTER = "bf_cross_epilines_after"
+MATCHER_BF_MULTIPLE = "bf_multiple"
 
 # dump file name: "cache/filename.detectorType.matcherType.version.p"
 class MatchLoader:
@@ -72,6 +73,95 @@ class MatchLoader:
             f.close()
 
         return good
+
+    def matchBFCrossEpilinesMultiple(self, filename1, filename2, des1, des2, kpts1, kpts2,
+                             tmat1, tmat2, detectorType, match_per_point = 4, step = 1, version = "0", noload = False, nosave = False):
+        fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_MULTIPLE, version)
+        if matches is not None and not noload:
+            return matches
+
+        # assert False #implementetion not finished
+
+        num1, num2 = len(kpts1), len(kpts2)
+        E, F = util.calcEssentialFundamentalMat(tmat1, tmat2)
+
+        dist_thr = 10 ** 2 #distance threshold from epiline
+
+        match1 = self.match_epilines_multiple_inner(F, des1, des2, dist_thr, kpts1, kpts2, step, match_per_point)
+        match2 = self.match_epilines_multiple_inner(F.T, des2, des1, dist_thr, kpts2, kpts1, step, match_per_point, reverse=True)
+
+        #cross-check
+        match1 = [(m.queryIdx, m.trainIdx) for m in match1]
+        match2 = [(m.queryIdx, m.trainIdx) for m in match2]
+        s1 = set(match1)
+        s2 = set(match2)
+        isec = s1.intersection(s2)
+
+        all_matches = [cv2.DMatch(
+                    _queryIdx=gmatch[0],
+                    _trainIdx=gmatch[1],
+                    _imgIdx=0,
+                    _distance=-1) for gmatch in isec]
+
+        if not nosave:
+            f = open(fname, "wb")
+            pickle.dump(self.serializeMatches(all_matches), f, 2)
+            f.close()
+
+        return all_matches
+
+    def match_epilines_multiple_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step, match_per_point, reverse=False):
+        num1, num2 = len(kpts1), len(kpts2)
+        match1 = []
+
+        kpt2_mat = np.ones((3, num2))
+        for i in range(num2):
+            kpt2_mat[0, i] = kpts2[i].pt[0]
+            kpt2_mat[1, i] = kpts2[i].pt[1]
+
+        for i in range(0, num1, step):
+            if i % 100 == 0: print i, num1
+            pt1 = kpts1[i].pt
+
+            pt1_h = np.ones((3, 1))
+            pt1_h[0] = pt1[0]
+            pt1_h[1] = pt1[1]
+            pt1_h = pt1_h.T
+            n = np.dot(pt1_h, F.T).T
+            nx, ny, nz = n[0], n[1], n[2]
+
+            thr = np.sqrt((nx * nx + ny * ny) * dist_thr)
+            distances = np.abs(n.T.dot(kpt2_mat))
+            distances = distances.reshape(num2)
+            idx_list = np.where(distances < thr)[0]
+
+            des_list1 = [des1[i]]
+            des_list2 = [des2[j] for j in idx_list]
+
+            good = []
+            if len(des_list2) > 0:
+                bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+                matches = bf.knnMatch(np.asarray(des_list1, np.float32), np.asarray(des_list2, np.float32), k=match_per_point)
+
+                good = []
+                for m in matches:
+                    good.extend(list(m))
+
+            if not reverse:
+                match1.extend([cv2.DMatch(
+                    _queryIdx=i,
+                    _trainIdx=idx_list[gmatch.trainIdx],
+                    _imgIdx=0,
+                    _distance=gmatch.distance) for gmatch in good])
+            else:
+                match1.extend([cv2.DMatch(
+                    _queryIdx=idx_list[gmatch.trainIdx],
+                    _trainIdx=i,
+                    _imgIdx=0,
+                    _distance=gmatch.distance) for gmatch in good])
+
+        return match1
+
 
     def matchBFCrossEpilines(self, filename1, filename2, des1, des2, kpts1, kpts2,
                              tmat1, tmat2, detectorType, step = 1, version = "0", noload = False, nosave = False):
