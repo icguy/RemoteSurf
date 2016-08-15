@@ -313,7 +313,7 @@ class SFMSolver:
 
         return p4d
 
-def draw(clique, imgs, kpts):
+def draw_clique(clique, imgs, kpts):
     m = clique
     print "-- draw --"
     print m
@@ -390,8 +390,8 @@ def match_multiple_imgs(file1, file2, data):
     # print o2
     print ow1
     print ow2
+    print tmreal1.dot(np.array([[0, 0, 0, 1.0]]).T)
     print calc_midpoint(o1, o2, ow1-o1, ow2-o2)
-
 
 def calc_midpoint(p1, p2, v1, v2):
     v1_ = v1.reshape((3,))
@@ -465,7 +465,7 @@ def test():
         print p
         print "error (avg, max): ", a, m
         if p[2] > -1.5:
-            if draw(c, imgs, kpts) == 27:
+            if draw_clique(c, imgs, kpts) == 27:
                 return
 
 def test_two_lines():
