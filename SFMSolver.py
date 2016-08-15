@@ -369,38 +369,35 @@ def draw_real_coords(img, img_pts, obj_pts):
     cv2.waitKey()
 
 def match_multiple_imgs(file1, file2, data):
-    tmat1, tmreal1 = match_to_img(file1, data, False)
-    tmat2, tmreal2 = match_to_img(file2, data, False)
-
-    print tmreal2
+    tmat1, tmreal1 = match_to_img(file1, data)
+    tmat2, tmreal2 = match_to_img(file2, data)
 
     tmat1 = Utils.cvt_3x4_to_4x4(tmat1)
     tmat2 = Utils.cvt_3x4_to_4x4(tmat2)
     tmreal1 = Utils.cvt_3x4_to_4x4(tmreal1)
     tmreal2 = Utils.cvt_3x4_to_4x4(tmreal2)
-    print tmreal2
-    c2c1 = np.linalg.inv(tmreal2).dot(tmreal1)
+    c2c1 = tmreal1.dot(np.linalg.inv(tmreal2))
 
     # o1 o2 are the origins of the camera coord systems.
     # ow1, ow2 are the estimated positions of the origin of the object (world) coord sys.
     # all coords in camera1 coord sys (so o1 is zero vector)
 
-    o1 = np.array([[0, 0, 0, 1.0]]).T
-    o2 = c2c1.dot(np.array([[0, 0, 0, 1.0]]).T)
-    ow1 = tmat1.dot(np.array([[0, 0, 0, 1.0]]).T)
-    ow2 = c2c1.dot(tmat2.dot(np.array([[0, 0, 0, 1.0]]).T))
-    print o1
-    print o2
+    o1 = np.array([[0, 0, 0, 1.0]]).T[:3,:]
+    o2 = c2c1.dot(np.array([[0, 0, 0, 1.0]]).T)[:3,:]
+    ow1 = tmat1.dot(np.array([[0, 0, 0, 1.0]]).T)[:3,:]
+    ow2 = c2c1.dot(tmat2.dot(np.array([[0, 0, 0, 1.0]]).T))[:3,:]
+    # print o1
+    # print o2
     print ow1
     print ow2
+    print calc_midpoint(o1, o2, ow1-o1, ow2-o2)
+
 
 def calc_midpoint(p1, p2, v1, v2):
     v1_ = v1.reshape((3,))
     v2_ = v2.reshape((3,))
     n = np.cross(v1_, v2_).reshape((3,1))
     A = np.array([v2, -v1, n]).reshape((3,3)).T
-    print v2, -v1, n
-    print A
     b = p1 - p2
     x = np.linalg.inv(A).dot(b)
     u, t, lbd = x[0,0], x[1,0], x[2,0]
@@ -475,7 +472,7 @@ def test_two_lines():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
     imgs, kpts, points, data = calc_data_from_files(files)
 
-    match_multiple_imgs("imgs/004.jpg", "imgs/003.jpg", data)
+    match_multiple_imgs("imgs/003.jpg", "imgs/005.jpg", data)
     exit()
 
 
