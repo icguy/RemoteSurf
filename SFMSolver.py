@@ -156,7 +156,9 @@ class SFMSolver:
         return all_levels
 
     def extendCliques(self, graph, cliques, max_missing = 1):
-        for clique in cliques:
+        for i in range(len(cliques)):
+            if i % 1000 == 0: print i, len(cliques)
+            clique = cliques[i]
             clique = set(clique)
             num = len(clique)
             for node in clique:     #for each node
@@ -243,9 +245,10 @@ class SFMSolver:
         return point, inliers
 
         # todo: manually add some inliers to ransac solve
-        # todo: speed up epipole-based matching (c++ maybeh?)
         # todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
-        # todo: test pose solving by running the finished algorithm on a pic with known pose.
+        # todo: compute pos from multiple images taken, each defining a ray to the position
+        # todo: multiple matches per feature point, each considered good?
+        # todo compare results by multiple match and by simple match+extension
 
     def getCliquePosSimple(self, clique, kpts, tmats, avg_err_thresh=20, max_err_thresh = 30):
         num = len(clique)
@@ -350,7 +353,61 @@ def calc_repr_err(c, p, inl, tmats, kpts):
     avg_err = np.average(np.array(errs))
     print max_err, avg_err
 
-def match_to_img(file, data):
+def draw_real_coords(img, img_pts, obj_pts):
+    img2 = np.copy(img)
+    for i in range(len(img_pts)):
+        img_pt = img_pts[i]
+        obj_pt = obj_pts[i]
+        img_pt = tuple(map(int, img_pt))
+        txt = str(np.round(obj_pt.T, 1))
+        print i, txt
+        cv2.circle(img2, img_pt, 7, (0, 0, 255), 3)
+        cv2.putText(img2, str(i), (img_pt[0] + 5, img_pt[1] + 5), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
+                    (0, 255, 0), 3)
+    img2 = cv2.pyrDown(img2)
+    cv2.imshow("",img2)
+    cv2.waitKey()
+
+def match_multiple_imgs(file1, file2, data):
+    tmat1, tmreal1 = match_to_img(file1, data, False)
+    tmat2, tmreal2 = match_to_img(file2, data, False)
+
+    print tmreal2
+
+    tmat1 = Utils.cvt_3x4_to_4x4(tmat1)
+    tmat2 = Utils.cvt_3x4_to_4x4(tmat2)
+    tmreal1 = Utils.cvt_3x4_to_4x4(tmreal1)
+    tmreal2 = Utils.cvt_3x4_to_4x4(tmreal2)
+    print tmreal2
+    c2c1 = np.linalg.inv(tmreal2).dot(tmreal1)
+
+    # o1 o2 are the origins of the camera coord systems.
+    # ow1, ow2 are the estimated positions of the origin of the object (world) coord sys.
+    # all coords in camera1 coord sys (so o1 is zero vector)
+
+    o1 = np.array([[0, 0, 0, 1.0]]).T
+    o2 = c2c1.dot(np.array([[0, 0, 0, 1.0]]).T)
+    ow1 = tmat1.dot(np.array([[0, 0, 0, 1.0]]).T)
+    ow2 = c2c1.dot(tmat2.dot(np.array([[0, 0, 0, 1.0]]).T))
+    print o1
+    print o2
+    print ow1
+    print ow2
+
+def calc_midpoint(p1, p2, v1, v2):
+    v1_ = v1.reshape((3,))
+    v2_ = v2.reshape((3,))
+    n = np.cross(v1_, v2_).reshape((3,1))
+    A = np.array([v2, -v1, n]).reshape((3,3)).T
+    print v2, -v1, n
+    print A
+    b = p1 - p2
+    x = np.linalg.inv(A).dot(b)
+    u, t, lbd = x[0,0], x[1,0], x[2,0]
+    mp = (t * v1 + p1 + u * v2 + p2) / 2
+    return mp
+
+def match_to_img(file, data, draw_coords = True):
     img = cv2.imread(file)
     data_des, data_pts = zip(*data)
 
@@ -369,29 +426,40 @@ def match_to_img(file, data):
         np.asarray(img_pts, np.float32),
         Utils.camMtx,
         None,
-        reprojectionError=10)
+        iterationsCount=100,
+        reprojectionError=30)
+    img_pts2 = [img_pts[i] for i in range(len(img_pts)) if i in inliers]
+    obj_pts2 = [obj_pts[i] for i in range(len(obj_pts)) if i in inliers]
+    if draw_coords:
+        draw_real_coords(img, img_pts2, obj_pts2)
+
     rmat = cv2.Rodrigues(rvec)[0]
 
-    tmat_load = MarkerDetect.loadMat(file, False)
+    tmat_real = MarkerDetect.loadMat(file, False)
     tmat = np.zeros((3,4))
     tmat[:3,:3] = rmat
     tmat[:3,3] = tvec.T
-    tmat4x4 = np.eye(4)
-    tmat4x4[:3,:] = tmat
+    tmat4x4inv = Utils.invTrf(tmat)
     print "num data, img pts", len(data_des), len(des)
     print "num matches:", len(matches)
     print "num inliers: ", len(inliers)
     print "rmat", rmat
     print "tvec", tvec
-    print "tmat load", tmat_load
-    print "combined trf diff", tmat_load.dot(np.linalg.inv(tmat4x4))
-
+    print "tmat load", tmat_real
+    print "combined trf diff", tmat_real.dot(tmat4x4inv)
+    world_origin = np.array([0, 0, 0, 1], dtype=np.float32).T
+    world_origin = tmat_real.dot(world_origin)
+    est_origin = np.array([0, 0, 0, 1], dtype=np.float32).T
+    est_origin = tmat.dot(est_origin)
+    print "real orig", world_origin
+    print "est orig", est_origin
+    return tmat, tmat_real
 
 def test():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
     imgs, kpts, points, data = calc_data_from_files(files)
 
-    match_to_img("imgs/003.jpg", data)
+    match_to_img("imgs/004.jpg", data)
     exit()
 
     print "num points: ", len(points)
@@ -403,20 +471,32 @@ def test():
             if draw(c, imgs, kpts) == 27:
                 return
 
+def test_two_lines():
+    files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
+    imgs, kpts, points, data = calc_data_from_files(files)
+
+    match_multiple_imgs("imgs/004.jpg", "imgs/003.jpg", data)
+    exit()
+
+
 # pointData is list of tuple: (des, p3d)
-def calc_data_from_files(files):
+def calc_data_from_files(files, noload = False):
     imgs = [cv2.imread(f) for f in files]
     masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
     sfm = SFMSolver(files, masks)
     matches, kpts = sfm.getMatches()
 
     import DataCache as DC
-    data = DC.getData(DC.POINTS4D)
+    datafile = DC.POINTS4D_MULTIPLE_MATCH
+    data = None if noload else DC.getData(datafile)
     if data is None:
         graph = sfm.getGraph(matches, kpts)
         all_levels = sfm.extractCliques(graph, maxlevel=3)
         sfm.extendCliques(graph, all_levels[0], 1)
         all_levels = sfm.extractCliques(graph, maxlevel=3)
+        sfm.extendCliques(graph, all_levels[0], 1)
+        all_levels = sfm.extractCliques(graph, maxlevel=3)
+
         # sfm.extendCliques(graph, all_levels[0], 1)
         # all_levels = sfm.extractCliques(graph)
         tmats = [MarkerDetect.loadMat(f) for f in files]
@@ -447,13 +527,16 @@ def calc_data_from_files(files):
                 img_idx, kpt_idx = node
                 pointData.append((kpts[img_idx][1][kpt_idx], p))
 
-        DC.saveData(DC.POINTS4D, (points, pointData))
+        DC.saveData(datafile, (points, pointData))
     else:
         points, pointData = data
 
     return imgs, kpts, points, pointData
 
 if __name__ == '__main__':
+    test_two_lines()
+    exit()
+
     test()
     exit()
 
