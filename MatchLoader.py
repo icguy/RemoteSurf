@@ -87,8 +87,8 @@ class MatchLoader:
 
         dist_thr = 10 ** 2 #distance threshold from epiline
 
-        match1 = self.match_epilines_multiple_inner(F, des1, des2, dist_thr, kpts1, kpts2, step, match_per_point)
-        match2 = self.match_epilines_multiple_inner(F.T, des2, des1, dist_thr, kpts2, kpts1, step, match_per_point, reverse=True)
+        match1 = self._match_epilines_multiple_inner(F, des1, des2, dist_thr, kpts1, kpts2, step, match_per_point)
+        match2 = self._match_epilines_multiple_inner(F.T, des2, des1, dist_thr, kpts2, kpts1, step, match_per_point, reverse=True)
 
         #cross-check
         match1 = [(m.queryIdx, m.trainIdx) for m in match1]
@@ -110,7 +110,7 @@ class MatchLoader:
 
         return all_matches
 
-    def match_epilines_multiple_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step, match_per_point, reverse=False):
+    def _match_epilines_multiple_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step, match_per_point, reverse=False):
         num1, num2 = len(kpts1), len(kpts2)
         match1 = []
 
@@ -176,8 +176,8 @@ class MatchLoader:
 
         dist_thr = 10 ** 2 #distance threshold from epiline
 
-        match1 = self.match_epilines_inner(F, des1, des2, dist_thr, kpts1, kpts2, step)
-        match2 = self.match_epilines_inner(F.T, des2, des1, dist_thr, kpts2, kpts1, step, reverse=True)
+        match1 = self._match_epilines_inner(F, des1, des2, dist_thr, kpts1, kpts2, step)
+        match2 = self._match_epilines_inner(F.T, des2, des1, dist_thr, kpts2, kpts1, step, reverse=True)
 
         #cross-check
         match1 = [(m.queryIdx, m.trainIdx) for m in match1]
@@ -199,7 +199,7 @@ class MatchLoader:
 
         return all_matches
 
-    def match_epilines_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step, reverse=False):
+    def _match_epilines_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step, reverse=False):
         num1, num2 = len(kpts1), len(kpts2)
         match1 = []
 
