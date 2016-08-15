@@ -121,7 +121,12 @@ def getCrossMat(t):
 def invTrf(tmat):
     tmat4x4 = np.eye(4)
     tmat4x4[:3,:]=tmat
-    return inv(tmat4x4)[:3,:]
+    return inv(tmat4x4)
+
+def cvt_3x4_to_4x4(mat):
+    m4x4 = np.eye(4)
+    m4x4[:3,:] = mat
+    return m4x4
 
 # img_pt1 = [u1, v1, 1]
 # np.dot(im_pt2.T, np.dot(F, im_pt1)) == 0
