@@ -73,7 +73,7 @@ class SFMSolver:
             for j in range(num):
                 if i == j: continue
 
-                matches[i][j] = ml.matchBFCrossEpilines(
+                matches[i][j] = ml.matchBFCrossEpilinesMultiple(
                     self.filenames[i],
                     self.filenames[j],
                     kpts[i][1],
@@ -368,9 +368,9 @@ def draw_real_coords(img, img_pts, obj_pts):
     cv2.imshow("",img2)
     cv2.waitKey()
 
-def match_multiple_imgs(file1, file2, data):
-    tmat1, tmreal1 = match_to_img(file1, data)
-    tmat2, tmreal2 = match_to_img(file2, data)
+def match_multiple_imgs(file1, file2, imgs, kpts, points, data):
+    tmat1, tmreal1 = match_to_img(file1, imgs, kpts, points, data, False, True)
+    tmat2, tmreal2 = match_to_img(file2, imgs, kpts, points, data)
 
     tmat1 = Utils.cvt_3x4_to_4x4(tmat1)
     tmat2 = Utils.cvt_3x4_to_4x4(tmat2)
@@ -386,8 +386,7 @@ def match_multiple_imgs(file1, file2, data):
     o2 = c2c1.dot(np.array([[0, 0, 0, 1.0]]).T)[:3,:]
     ow1 = tmat1.dot(np.array([[0, 0, 0, 1.0]]).T)[:3,:]
     ow2 = c2c1.dot(tmat2.dot(np.array([[0, 0, 0, 1.0]]).T))[:3,:]
-    # print o1
-    # print o2
+
     print ow1
     print ow2
     print tmreal1.dot(np.array([[0, 0, 0, 1.0]]).T)
@@ -404,9 +403,9 @@ def calc_midpoint(p1, p2, v1, v2):
     mp = (t * v1 + p1 + u * v2 + p2) / 2
     return mp
 
-def match_to_img(file, data, draw_coords = True):
+def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = False):
     img = cv2.imread(file)
-    data_des, data_pts = zip(*data)
+    data_des, data_pts, img_indices, kpt_indices = zip(*data)
 
     fl = FeatureLoader.FeatureLoader()
     kp, des = fl.loadFeatures(file, "surf")
@@ -424,7 +423,24 @@ def match_to_img(file, data, draw_coords = True):
         Utils.camMtx,
         None,
         iterationsCount=100,
-        reprojectionError=30)
+        reprojectionError=50)
+
+    if draw_inl:
+        for i in range(len(matches)):
+            is_inlier = i in inliers
+            m = matches[i]
+            data_idx = m.trainIdx
+            imidx, kptidx = img_indices[data_idx], kpt_indices[data_idx]
+            img1 = imgs[imidx]
+            kpt1 = kpts[imidx][0][kptidx].pt
+            img2 = img
+            kpt2 = img_pts[i]
+            Utils.drawMatch(img1, img2, kpt1, kpt2, is_inlier, 4)
+            c = cv2.waitKey()
+            if c == 27:
+                break
+
+
     img_pts2 = [img_pts[i] for i in range(len(img_pts)) if i in inliers]
     obj_pts2 = [obj_pts[i] for i in range(len(obj_pts)) if i in inliers]
     if draw_coords:
@@ -456,7 +472,7 @@ def test():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
     imgs, kpts, points, data = calc_data_from_files(files)
 
-    match_to_img("imgs/004.jpg", data)
+    match_to_img("imgs/004.jpg", imgs, kpts, points, data)
     exit()
 
     print "num points: ", len(points)
@@ -471,10 +487,8 @@ def test():
 def test_two_lines():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
     imgs, kpts, points, data = calc_data_from_files(files)
-
-    match_multiple_imgs("imgs/003.jpg", "imgs/005.jpg", data)
+    match_multiple_imgs("imgs/003.jpg", "imgs/005.jpg", imgs, kpts, points, data)
     exit()
-
 
 # pointData is list of tuple: (des, p3d)
 def calc_data_from_files(files, noload = False):
@@ -522,7 +536,7 @@ def calc_data_from_files(files, noload = False):
         for c, p, a, m in points:
             for node in c:
                 img_idx, kpt_idx = node
-                pointData.append((kpts[img_idx][1][kpt_idx], p))
+                pointData.append((kpts[img_idx][1][kpt_idx], p, img_idx, kpt_idx))
 
         DC.saveData(datafile, (points, pointData))
     else:
@@ -531,8 +545,8 @@ def calc_data_from_files(files, noload = False):
     return imgs, kpts, points, pointData
 
 if __name__ == '__main__':
-    test_two_lines()
-    exit()
+    # test_two_lines()
+    # exit()
 
     test()
     exit()
