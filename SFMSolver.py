@@ -472,7 +472,7 @@ def test():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
     imgs, kpts, points, data = calc_data_from_files(files)
 
-    match_to_img("imgs/004.jpg", imgs, kpts, points, data)
+    match_to_img("imgs/003.jpg", imgs, kpts, points, data)
     exit()
 
     print "num points: ", len(points)
@@ -487,7 +487,7 @@ def test():
 def test_two_lines():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
     imgs, kpts, points, data = calc_data_from_files(files)
-    match_multiple_imgs("imgs/003.jpg", "imgs/005.jpg", imgs, kpts, points, data)
+    match_multiple_imgs("imgs/003.jpg", "imgs/004.jpg", imgs, kpts, points, data)
     exit()
 
 # pointData is list of tuple: (des, p3d)
@@ -503,13 +503,11 @@ def calc_data_from_files(files, noload = False):
     if data is None:
         graph = sfm.getGraph(matches, kpts)
         all_levels = sfm.extractCliques(graph, maxlevel=3)
-        sfm.extendCliques(graph, all_levels[0], 1)
-        all_levels = sfm.extractCliques(graph, maxlevel=3)
-        sfm.extendCliques(graph, all_levels[0], 1)
-        all_levels = sfm.extractCliques(graph, maxlevel=3)
-
         # sfm.extendCliques(graph, all_levels[0], 1)
-        # all_levels = sfm.extractCliques(graph)
+        # all_levels = sfm.extractCliques(graph, maxlevel=3)
+        # sfm.extendCliques(graph, all_levels[0], 1)
+        # all_levels = sfm.extractCliques(graph, maxlevel=3)
+
         tmats = [MarkerDetect.loadMat(f) for f in files]
         points = []
 
@@ -545,8 +543,8 @@ def calc_data_from_files(files, noload = False):
     return imgs, kpts, points, pointData
 
 if __name__ == '__main__':
-    # test_two_lines()
-    # exit()
+    test_two_lines()
+    exit()
 
     test()
     exit()
