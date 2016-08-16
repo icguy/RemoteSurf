@@ -274,9 +274,9 @@ class SFMSolver:
         avg_err = np.average(errs)
         max_err = np.max(errs)
         if avg_err < avg_err_thresh and max_err < max_err_thresh:
-            return point, avg_err, max_err
+            return point
         else:
-            return None, None, None
+            return None
 
     def solve_sfm(self, img_pts, projs):
         num_imgs = len(img_pts)
@@ -490,7 +490,7 @@ def test_two_lines():
     match_multiple_imgs("imgs/003.jpg", "imgs/004.jpg", imgs, kpts, points, data)
     exit()
 
-# pointData is list of tuple: (des, p3d)
+# pointData is list of tuple: (des, p3d, img_idx, kpt_idx)
 def calc_data_from_files(files, noload = False):
     imgs = [cv2.imread(f) for f in files]
     masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
@@ -526,12 +526,12 @@ def calc_data_from_files(files, noload = False):
         for i in range(len(all_levels[0])):
             if i % 1000 == 0: print i, len(all_levels[0]), len(points)
             c = all_levels[0][i]
-            point, avg_err, max_err = sfm.getCliquePosSimple(c, kpts, tmats, avg_err_thresh=5, max_err_thresh=10)
+            point = sfm.getCliquePosSimple(c, kpts, tmats, avg_err_thresh=5, max_err_thresh=10)
             if point is not None:
-                points.append((c, point, avg_err, max_err))
+                points.append((c, point))
 
         pointData = []
-        for c, p, a, m in points:
+        for c, p in points:
             for node in c:
                 img_idx, kpt_idx = node
                 pointData.append((kpts[img_idx][1][kpt_idx], p, img_idx, kpt_idx))
@@ -543,8 +543,8 @@ def calc_data_from_files(files, noload = False):
     return imgs, kpts, points, pointData
 
 if __name__ == '__main__':
-    test_two_lines()
-    exit()
+    # test_two_lines()
+    # exit()
 
     test()
     exit()
