@@ -73,7 +73,7 @@ class SFMSolver:
             for j in range(num):
                 if i == j: continue
 
-                matches[i][j] = ml.matchBFCrossEpilinesMultiple(
+                matches[i][j] = ml.matchBFCrossEpilines(
                     self.filenames[i],
                     self.filenames[j],
                     kpts[i][1],
@@ -247,8 +247,7 @@ class SFMSolver:
         # todo: manually add some inliers to ransac solve
         # todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
         # todo: compute pos from multiple images taken, each defining a ray to the position
-        # todo: multiple matches per feature point, each considered good?
-        # todo compare results by multiple match and by simple match+extension
+        # todo: check match quality if photo taken from relatively same viewpoint
 
     def getCliquePosSimple(self, clique, kpts, tmats, avg_err_thresh=20, max_err_thresh = 30):
         num = len(clique)
@@ -277,6 +276,43 @@ class SFMSolver:
             return point
         else:
             return None
+
+    def getEdgePosTriangulate(self, edge, graph, kpts, tmats, max_repr_err = 20, min_num_inliers = 4):
+        node1, node2 = edge
+        img_idx1, kpt_idx1 = node1
+        img_idx2, kpt_idx2 = node2
+        impt1 = np.array(kpts[img_idx1][0][kpt_idx1].pt)
+        impt2 = np.array(kpts[img_idx2][0][kpt_idx2].pt)
+        projMats = [np.dot(Utils.camMtx, tmat) for tmat in tmats]
+        p4d = self._triangulate(projMats[img_idx1], projMats[img_idx2], impt1, impt2)
+
+        pt1 =  self._calc_inliers(graph, kpts, node1, p4d, projMats, max_repr_err, min_num_inliers)
+        pt2 =  self._calc_inliers(graph, kpts, node2, p4d, projMats, max_repr_err, min_num_inliers)
+        return pt1, pt2
+
+    def _calc_inliers(self, graph, kpts, node, p4d, projMats, max_repr_err, min_num_inliers):
+        neighbours = graph[node]
+        inliers = []
+        for n in neighbours:
+            # reproj
+            neigh_im_idx, neigh_kpt_idx = n
+            repr = np.dot(projMats[neigh_im_idx], p4d)
+            repr = repr[:2] / repr[2]
+
+            # err calc
+            diff = repr.T - np.array(kpts[neigh_im_idx][0][neigh_kpt_idx].pt)
+            err = np.linalg.norm(diff, 2)
+            # pprint(repr)
+            # pprint(imgPts[k])
+            # pprint(diff)
+            # print err
+            if err < max_repr_err:
+                inliers.append(n)
+        if len(inliers) >= min_num_inliers:
+            sfm_imgpts = [np.array(kpts[inl_im][0][inl_kpt].pt) for inl_im, inl_kpt in inliers]
+            sfm_projs = [projMats[inl_im] for inl_im, inl_kpt in inliers]
+            return self.solve_sfm(sfm_imgpts, sfm_projs)
+        return None
 
     def solve_sfm(self, img_pts, projs):
         num_imgs = len(img_pts)
@@ -470,9 +506,9 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
 
 def test():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
-    imgs, kpts, points, data = calc_data_from_files(files)
+    imgs, kpts, points, data = calc_data_from_files_unif(files)
 
-    match_to_img("imgs/003.jpg", imgs, kpts, points, data)
+    match_to_img("imgs/005.jpg", imgs, kpts, points, data)
     exit()
 
     print "num points: ", len(points)
@@ -498,7 +534,7 @@ def calc_data_from_files(files, noload = False):
     matches, kpts = sfm.getMatches()
 
     import DataCache as DC
-    datafile = DC.POINTS4D_MULTIPLE_MATCH
+    datafile = DC.POINTS4D
     data = None if noload else DC.getData(datafile)
     if data is None:
         graph = sfm.getGraph(matches, kpts)
@@ -535,6 +571,82 @@ def calc_data_from_files(files, noload = False):
             for node in c:
                 img_idx, kpt_idx = node
                 pointData.append((kpts[img_idx][1][kpt_idx], p, img_idx, kpt_idx))
+
+        DC.saveData(datafile, (points, pointData))
+    else:
+        points, pointData = data
+
+    return imgs, kpts, points, pointData
+
+def calc_data_from_files_unif(files, noload = False):
+    imgs = [cv2.imread(f) for f in files]
+    masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
+    sfm = SFMSolver(files, masks)
+    matches, kpts = sfm.getMatches()
+
+    import DataCache as DC
+    datafile = DC.POINTS4D_UNIFIED
+    data = None if noload else DC.getData(datafile)
+    assert data is not None
+    points, pointData = data
+    return imgs, kpts, points, pointData
+
+# pointData is list of tuple: (des, p3d, img_idx, kpt_idx)
+def calc_data_from_files_triang(files, noload = False):
+    imgs = [cv2.imread(f) for f in files]
+    masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
+    sfm = SFMSolver(files, masks)
+    matches, kpts = sfm.getMatches()
+
+    import DataCache as DC
+    datafile = DC.POINTS4D_TRIANGULATE
+    data = None if noload else DC.getData(datafile)
+    if data is None:
+        graph = sfm.getGraph(matches, kpts)
+        all_levels = sfm.extractCliques(graph, maxlevel=3)
+        # sfm.extendCliques(graph, all_levels[0], 1)
+        # all_levels = sfm.extractCliques(graph, maxlevel=3)
+        # sfm.extendCliques(graph, all_levels[0], 1)
+        # all_levels = sfm.extractCliques(graph, maxlevel=3)
+
+        tmats = [MarkerDetect.loadMat(f) for f in files]
+        points = []
+        pointData = []
+
+        for i in range(len(all_levels[0])):
+            if i % 1000 == 0: print i, len(all_levels[0]), len(pointData)
+            c = all_levels[0][i]
+
+            edge1 = (c[0], c[1])
+            edge2 = (c[1], c[2])
+            edge3 = (c[0], c[2])
+
+            edge = edge1
+            pt0, pt1 = sfm.getEdgePosTriangulate(edge, graph, kpts, tmats)
+            if pt0 is not None:
+                img_idx, kpt_idx = edge[0]
+                pointData.append((kpts[img_idx][1][kpt_idx], pt0, img_idx, kpt_idx))
+            if pt1 is not None:
+                img_idx, kpt_idx = edge[1]
+                pointData.append((kpts[img_idx][1][kpt_idx], pt1, img_idx, kpt_idx))
+
+            edge = edge2
+            pt0, pt1 = sfm.getEdgePosTriangulate(edge, graph, kpts, tmats)
+            if pt0 is not None:
+                img_idx, kpt_idx = edge[0]
+                pointData.append((kpts[img_idx][1][kpt_idx], pt0, img_idx, kpt_idx))
+            if pt1 is not None:
+                img_idx, kpt_idx = edge[1]
+                pointData.append((kpts[img_idx][1][kpt_idx], pt1, img_idx, kpt_idx))
+
+            edge = edge3
+            pt0, pt1 = sfm.getEdgePosTriangulate(edge, graph, kpts, tmats)
+            if pt0 is not None:
+                img_idx, kpt_idx = edge[0]
+                pointData.append((kpts[img_idx][1][kpt_idx], pt0, img_idx, kpt_idx))
+            if pt1 is not None:
+                img_idx, kpt_idx = edge[1]
+                pointData.append((kpts[img_idx][1][kpt_idx], pt1, img_idx, kpt_idx))
 
         DC.saveData(datafile, (points, pointData))
     else:

@@ -1,8 +1,11 @@
 import cPickle as pickle
 from os.path import isfile
 
-POINTS4D = "cache/points4d.p"
-POINTS4D_MULTIPLE_MATCH = "cache/points4d_multiple.p"
+POINTS4D = "cache/points4d.p" # epilines + extension x2 + getCliquePosSimple
+POINTS4D_MULTIPLE_MATCH = "cache/points4d_multiple.p" # epilines_multiple + getCliquePosSimple
+POINTS4D_TRIANGULATE = "cache/points4d_triangulate.p" # epilines + triangulate
+POINTS4D_UNIFIED = "cache/points4d_unified.p"   # POINTS4D_TRIANGULATE + POINTS4D
+POINTS4D_UNIFIED_ALL = "cache/points4d_unified_all.p"   # POINTS4D_TRIANGULATE + POINTS4D + POINTS4D_MULTIPLE_MATCH
 
 def getData(filename):
     if isfile(filename):
