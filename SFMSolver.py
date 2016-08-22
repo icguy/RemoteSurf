@@ -5,6 +5,7 @@ import MatchLoader
 import Utils
 import MarkerDetect
 from pprint import pprint
+import DataCache as DC
 
 class CliqueExtractor:
     def getCliques(self, graph, max_num):
@@ -389,14 +390,15 @@ def calc_repr_err(c, p, inl, tmats, kpts):
     avg_err = np.average(np.array(errs))
     print max_err, avg_err
 
-def draw_real_coords(img, img_pts, obj_pts):
+def draw_real_coords(img, img_pts, obj_pts, print_coords = False):
     img2 = np.copy(img)
     for i in range(len(img_pts)):
         img_pt = img_pts[i]
         obj_pt = obj_pts[i]
         img_pt = tuple(map(int, img_pt))
         txt = str(np.round(obj_pt.T, 1))
-        print i, txt
+        if print_coords:
+            print i, txt
         cv2.circle(img2, img_pt, 7, (0, 0, 255), 3)
         cv2.putText(img2, str(i), (img_pt[0] + 5, img_pt[1] + 5), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
                     (0, 255, 0), 3)
@@ -440,6 +442,7 @@ def calc_midpoint(p1, p2, v1, v2):
     return mp
 
 def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = False):
+    print "match_to_img:  %s" % (file)
     img = cv2.imread(file)
     data_des, data_pts, img_indices, kpt_indices = zip(*data)
 
@@ -504,12 +507,12 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
     print "est orig", est_origin
     return tmat, tmat_real
 
-def test():
+def test(file, datafile):
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
-    imgs, kpts, points, data = calc_data_from_files_unif(files)
+    imgs, kpts, points, data = calc_data_from_files(files, datafile = datafile)
 
-    match_to_img("imgs/005.jpg", imgs, kpts, points, data)
-    exit()
+    match_to_img(file, imgs, kpts, points, data, False)
+    return
 
     print "num points: ", len(points)
     for c, p, a, m in points:
@@ -527,14 +530,13 @@ def test_two_lines():
     exit()
 
 # pointData is list of tuple: (des, p3d, img_idx, kpt_idx)
-def calc_data_from_files(files, noload = False):
+def calc_data_from_files(files, noload = False, datafile = DC.POINTS4D):
     imgs = [cv2.imread(f) for f in files]
     masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
     sfm = SFMSolver(files, masks)
     matches, kpts = sfm.getMatches()
 
     import DataCache as DC
-    datafile = DC.POINTS4D
     data = None if noload else DC.getData(datafile)
     if data is None:
         graph = sfm.getGraph(matches, kpts)
@@ -578,14 +580,12 @@ def calc_data_from_files(files, noload = False):
 
     return imgs, kpts, points, pointData
 
-def calc_data_from_files_unif(files, noload = False):
+def calc_data_from_files_unif(files, noload = False, datafile = DC.POINTS4D_UNIFIED):
     imgs = [cv2.imread(f) for f in files]
     masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
     sfm = SFMSolver(files, masks)
     matches, kpts = sfm.getMatches()
 
-    import DataCache as DC
-    datafile = DC.POINTS4D_UNIFIED
     data = None if noload else DC.getData(datafile)
     assert data is not None
     points, pointData = data
@@ -658,7 +658,20 @@ if __name__ == '__main__':
     # test_two_lines()
     # exit()
 
-    test()
+    test("imgs/001.jpg", DC.POINTS4D_TRIANGULATE)
+    test("imgs/002.jpg", DC.POINTS4D_TRIANGULATE)
+    test("imgs/003.jpg", DC.POINTS4D_TRIANGULATE)
+    test("imgs/004.jpg", DC.POINTS4D_TRIANGULATE)
+
+    test("imgs/001.jpg", DC.POINTS4D)
+    test("imgs/002.jpg", DC.POINTS4D)
+    test("imgs/003.jpg", DC.POINTS4D)
+    test("imgs/004.jpg", DC.POINTS4D)
+
+    test("imgs/001.jpg", DC.POINTS4D_MULTIPLE_MATCH)
+    test("imgs/002.jpg", DC.POINTS4D_MULTIPLE_MATCH)
+    test("imgs/003.jpg", DC.POINTS4D_MULTIPLE_MATCH)
+    test("imgs/004.jpg", DC.POINTS4D_MULTIPLE_MATCH)
     exit()
 
     import cProfile
