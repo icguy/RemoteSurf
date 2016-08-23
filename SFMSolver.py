@@ -74,7 +74,19 @@ class SFMSolver:
             for j in range(num):
                 if i == j: continue
 
-                matches[i][j] = ml.matchBFCrossEpilines(
+                # matches[i][j] = ml.matchBFCrossEpilines(
+                #     self.filenames[i],
+                #     self.filenames[j],
+                #     kpts[i][1],
+                #     kpts[j][1],
+                #     kpts[i][0],
+                #     kpts[j][0],
+                #     tmats[i],
+                #     tmats[j],
+                #     "surf"
+                # )
+
+                matches[i][j] = ml.matchBFEpilinesHomogr(
                     self.filenames[i],
                     self.filenames[j],
                     kpts[i][1],
@@ -249,6 +261,8 @@ class SFMSolver:
         # todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
         # todo: compute pos from multiple images taken, each defining a ray to the position
         # todo: check match quality if photo taken from relatively same viewpoint
+        # todo: try out data generation with homography estimation ( see page 102 in D:\Asztal\suli\msc\Mastering OpenCV with Practical Computer Vision Projects [eBook].pdf)
+        # todo: simple triangulation for homography filtering
 
     def getCliquePosSimple(self, clique, kpts, tmats, avg_err_thresh=20, max_err_thresh = 30):
         num = len(clique)
@@ -509,7 +523,7 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
 
 def test(file, datafile):
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
-    imgs, kpts, points, data = calc_data_from_files(files, datafile = datafile)
+    imgs, kpts, points, data = calc_data_from_files_triang(files)
 
     match_to_img(file, imgs, kpts, points, data, False)
     return
@@ -658,20 +672,10 @@ if __name__ == '__main__':
     # test_two_lines()
     # exit()
 
-    test("imgs/001.jpg", DC.POINTS4D_TRIANGULATE)
-    test("imgs/002.jpg", DC.POINTS4D_TRIANGULATE)
-    test("imgs/003.jpg", DC.POINTS4D_TRIANGULATE)
-    test("imgs/004.jpg", DC.POINTS4D_TRIANGULATE)
-
-    test("imgs/001.jpg", DC.POINTS4D)
-    test("imgs/002.jpg", DC.POINTS4D)
-    test("imgs/003.jpg", DC.POINTS4D)
-    test("imgs/004.jpg", DC.POINTS4D)
-
-    test("imgs/001.jpg", DC.POINTS4D_MULTIPLE_MATCH)
-    test("imgs/002.jpg", DC.POINTS4D_MULTIPLE_MATCH)
-    test("imgs/003.jpg", DC.POINTS4D_MULTIPLE_MATCH)
-    test("imgs/004.jpg", DC.POINTS4D_MULTIPLE_MATCH)
+    test("imgs/001.jpg", DC.POINTS4D_HOMOGR_TRIANG)
+    test("imgs/002.jpg", DC.POINTS4D_HOMOGR_TRIANG)
+    test("imgs/003.jpg", DC.POINTS4D_HOMOGR_TRIANG)
+    test("imgs/004.jpg", DC.POINTS4D_HOMOGR_TRIANG)
     exit()
 
     import cProfile
