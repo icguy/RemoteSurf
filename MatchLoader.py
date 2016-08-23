@@ -3,6 +3,7 @@ import numpy as np
 import cPickle as pickle
 from os.path import isfile
 import Utils as util
+import MarkerDetect as MD
 
 MATCHER_FLANN_RATIO_07 = "flann_ratio"
 MATCHER_BF_RATIO_07 = "bf_ratio"
@@ -10,6 +11,7 @@ MATCHER_BF_CROSS = "bf_cross"
 MATCHER_BF_CROSS_EPILINES = "bf_cross_epilines"
 MATCHER_BF_CROSS_EPILINES_AFTER = "bf_cross_epilines_after"
 MATCHER_BF_MULTIPLE = "bf_multiple"
+MATCHER_BF_EPILINES_HOMOGRAPHY = "bf_epilines_homography"
 
 # dump file name: "cache/filename.detectorType.matcherType.version.p"
 class MatchLoader:
@@ -169,9 +171,6 @@ class MatchLoader:
         if matches is not None and not noload:
             return matches
 
-        # assert False #implementetion not finished
-
-        num1, num2 = len(kpts1), len(kpts2)
         E, F = util.calcEssentialFundamentalMat(tmat1, tmat2)
 
         dist_thr = 10 ** 2 #distance threshold from epiline
@@ -198,6 +197,59 @@ class MatchLoader:
             f.close()
 
         return all_matches
+
+    def matchBFEpilinesHomogr(self, filename1, filename2, des1, des2, kpts1, kpts2,
+                             tmat1, tmat2, detectorType, step = 1, version = "0", noload = False, nosave = False):
+        fname, matches = self.loadMatches(filename1, filename2, detectorType, MATCHER_BF_EPILINES_HOMOGRAPHY, version)
+        if matches is not None and not noload:
+            return matches
+
+        E, F = util.calcEssentialFundamentalMat(tmat1, tmat2)
+
+        dist_thr = 10 ** 2 #distance threshold from epiline
+
+        match1 = self._match_epilines_inner(F, des1, des2, dist_thr, kpts1, kpts2, step)
+        match2 = self._match_epilines_inner(F.T, des2, des1, dist_thr, kpts2, kpts1, step, reverse=True)
+
+        #union
+        match1 = [(m.queryIdx, m.trainIdx) for m in match1]
+        match2 = [(m.queryIdx, m.trainIdx) for m in match2]
+        s1 = set(match1)
+        s2 = set(match2)
+        all = s1.union(s2)
+
+        srcPts = np.float32([kpts1[m[0]].pt for m in all]).reshape(-1,1,2)
+        dstPts = np.float32([kpts2[m[1]].pt for m in all]).reshape(-1,1,2)
+
+        retval, mask = cv2.findHomography(srcPts, dstPts, cv2.RANSAC, 5)
+
+        all = list(all)
+        good = []
+        bad = []
+        for i in range(len(all)):
+            if mask[i][0] == 1:
+                good.append(all[i])
+            else:
+                bad.append(all[i])
+
+        all_matches = [cv2.DMatch(
+                    _queryIdx=gmatch[0],
+                    _trainIdx=gmatch[1],
+                    _imgIdx=0,
+                    _distance=-1) for gmatch in good]
+
+        bad_matches = [cv2.DMatch(
+                    _queryIdx=gmatch[0],
+                    _trainIdx=gmatch[1],
+                    _imgIdx=0,
+                    _distance=-1) for gmatch in bad]
+
+        if not nosave:
+            f = open(fname, "wb")
+            pickle.dump(self.serializeMatches(all_matches), f, 2)
+            f.close()
+
+        return all_matches, bad_matches
 
     def _match_epilines_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step, reverse=False):
         num1, num2 = len(kpts1), len(kpts2)
@@ -311,18 +363,23 @@ if __name__ == "__main__":
     from pprint import pprint
     fl = FL.FeatureLoader()
 
-    fn1 = "imgs/004.jpg"
-    fn2 = "imgs/005.jpg"
+    fn1 = "imgs/005.jpg"
+    fn2 = "imgs/006.jpg"
     img1 = cv2.imread(fn1)
     img2 = cv2.imread(fn2)
-    kp, des = fl.loadFeatures(fn1, "SURF")
+    kp1, des1 = fl.loadFeatures(fn1, "SURF")
     kp2, des2 = fl.loadFeatures(fn2, "SURF")
-    print(len(des), len(des2))
+    print(len(des1), len(des2))
+
+    tmat1 = MD.loadMat(fn1)
+    tmat2 = MD.loadMat(fn2)
 
     ml = MatchLoader()
-    m = ml.matchFLANNRatio(fn1, fn2, des, des2, "surf", 0.7, "07")
-    print len(m)
-    print([(g.trainIdx, g.queryIdx) for g in m])
+    m, b = ml.matchBFEpilinesHomogr(fn1, fn2, des1, des2, kp1, kp2, tmat1, tmat2, "surf", nosave=True)
+    print len(m), len(b)
+    util.drawMatchesOneByOne(img1, img2, kp1, kp2, m, 1)
+    print "bad"
+    util.drawMatchesOneByOne(img1, img2, kp1, kp2, b, 50)
 
 
 
