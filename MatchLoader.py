@@ -225,12 +225,9 @@ class MatchLoader:
 
         all = list(all)
         good = []
-        bad = []
         for i in range(len(all)):
             if mask[i][0] == 1:
                 good.append(all[i])
-            else:
-                bad.append(all[i])
 
         all_matches = [cv2.DMatch(
                     _queryIdx=gmatch[0],
@@ -238,18 +235,12 @@ class MatchLoader:
                     _imgIdx=0,
                     _distance=-1) for gmatch in good]
 
-        bad_matches = [cv2.DMatch(
-                    _queryIdx=gmatch[0],
-                    _trainIdx=gmatch[1],
-                    _imgIdx=0,
-                    _distance=-1) for gmatch in bad]
-
         if not nosave:
             f = open(fname, "wb")
             pickle.dump(self.serializeMatches(all_matches), f, 2)
             f.close()
 
-        return all_matches, bad_matches
+        return all_matches
 
     def _match_epilines_inner(self, F, des1, des2, dist_thr, kpts1, kpts2, step, reverse=False):
         num1, num2 = len(kpts1), len(kpts2)
