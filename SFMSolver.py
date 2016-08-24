@@ -261,6 +261,7 @@ class SFMSolver:
         # todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
         # todo: compute pos from multiple images taken, each defining a ray to the position
         # todo: check match quality if photo taken from relatively same viewpoint
+        # todo: refactor, rethink calc_data_from_files_triang
 
     def getCliquePosSimple(self, clique, kpts, tmats, avg_err_thresh=20, max_err_thresh = 30):
         num = len(clique)
