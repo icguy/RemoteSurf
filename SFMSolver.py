@@ -261,8 +261,6 @@ class SFMSolver:
         # todo: add checking of coordinate bounds to maybe class level? (eg. z is in [1, 3])
         # todo: compute pos from multiple images taken, each defining a ray to the position
         # todo: check match quality if photo taken from relatively same viewpoint
-        # todo: try out data generation with homography estimation ( see page 102 in D:\Asztal\suli\msc\Mastering OpenCV with Practical Computer Vision Projects [eBook].pdf)
-        # todo: simple triangulation for homography filtering
 
     def getCliquePosSimple(self, clique, kpts, tmats, avg_err_thresh=20, max_err_thresh = 30):
         num = len(clique)
@@ -455,7 +453,7 @@ def calc_midpoint(p1, p2, v1, v2):
     mp = (t * v1 + p1 + u * v2 + p2) / 2
     return mp
 
-def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = False):
+def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = False, repr_err_thresh = 20):
     print "match_to_img:  %s" % (file)
     img = cv2.imread(file)
     data_des, data_pts, img_indices, kpt_indices = zip(*data)
@@ -470,13 +468,14 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
         img_pts.append(kp[m.queryIdx].pt)
         obj_pts.append(data_pts[m.trainIdx])
 
+    print "repr_err = %d" % repr_err_thresh
     rvec, tvec, inliers = cv2.solvePnPRansac(
         np.asarray(obj_pts, np.float32),
         np.asarray(img_pts, np.float32),
         Utils.camMtx,
         None,
         iterationsCount=100,
-        reprojectionError=50)
+        reprojectionError=repr_err_thresh)
 
     if draw_inl:
         for i in range(len(matches)):
@@ -523,9 +522,11 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
 
 def test(file, datafile):
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
-    imgs, kpts, points, data = calc_data_from_files_triang(files)
+    imgs, kpts, points, data = calc_data_from_files_triang_simple(files)
 
-    match_to_img(file, imgs, kpts, points, data, False)
+    print "len pointData %d" % len(data)
+
+    match_to_img(file, imgs, kpts, points, data, False, repr_err_thresh=20)
     return
 
     print "num points: ", len(points)
@@ -606,14 +607,12 @@ def calc_data_from_files_unif(files, noload = False, datafile = DC.POINTS4D_UNIF
     return imgs, kpts, points, pointData
 
 # pointData is list of tuple: (des, p3d, img_idx, kpt_idx)
-def calc_data_from_files_triang(files, noload = False):
+def calc_data_from_files_triang(files, datafile = DC.POINTS4D_TRIANGULATE, noload = False):
     imgs = [cv2.imread(f) for f in files]
     masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
     sfm = SFMSolver(files, masks)
     matches, kpts = sfm.getMatches()
 
-    import DataCache as DC
-    datafile = DC.POINTS4D_TRIANGULATE
     data = None if noload else DC.getData(datafile)
     if data is None:
         graph = sfm.getGraph(matches, kpts)
@@ -668,14 +667,52 @@ def calc_data_from_files_triang(files, noload = False):
 
     return imgs, kpts, points, pointData
 
+# pointData is list of tuple: (des, p3d, img_idx, kpt_idx)
+def calc_data_from_files_triang_simple(files, noload = False):
+    imgs = [cv2.imread(f) for f in files]
+    masks = [cv2.imread("imgs/00%d_mask.png" % i, 0) for i in range(5, 10)]
+    sfm = SFMSolver(files, masks)
+    matches, kpts = sfm.getMatches()
+
+    import DataCache as DC
+    datafile = DC.POINTS4D_HOMOGR_TRIANG_SIMPLE
+    data = None if noload else DC.getData(datafile)
+    if data is None:
+        graph = sfm.getGraph(matches, kpts)
+
+
+        points = []
+        pointData = []
+        tmats = [MarkerDetect.loadMat(f) for f in files]
+        projMats = [np.dot(Utils.camMtx, tmat) for tmat in tmats]
+        for node in graph:
+            for neigh in graph[node]:
+                im_idx1 = node[0]
+                im_idx2 = neigh[0]
+                kpt_idx1 = node[1]
+                kpt_idx2 = neigh[1]
+
+                imgPt1 = np.array(kpts[im_idx1][0][kpt_idx1].pt)
+                imgPt2 = np.array(kpts[im_idx2][0][kpt_idx2].pt)
+
+                p4d = sfm._triangulate(projMats[node[0]], projMats[neigh[0]], imgPt1, imgPt2)
+                p4d = p4d[:3,:]
+                pointData.append((kpts[im_idx1][1][kpt_idx1], p4d, im_idx1, kpt_idx1))
+
+        DC.saveData(datafile, (points, pointData))
+    else:
+        points, pointData = data
+
+    return imgs, kpts, points, pointData
+
 if __name__ == '__main__':
     # test_two_lines()
     # exit()
 
-    test("imgs/001.jpg", DC.POINTS4D_HOMOGR_TRIANG)
-    test("imgs/002.jpg", DC.POINTS4D_HOMOGR_TRIANG)
-    test("imgs/003.jpg", DC.POINTS4D_HOMOGR_TRIANG)
-    test("imgs/004.jpg", DC.POINTS4D_HOMOGR_TRIANG)
+    test("imgs/001.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
+    test("imgs/002.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
+    test("imgs/003.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
+    test("imgs/004.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
     exit()
 
     import cProfile
