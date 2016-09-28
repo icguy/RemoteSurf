@@ -527,7 +527,7 @@ def test(file, datafile):
 
     print "len pointData %d" % len(data)
 
-    match_to_img(file, imgs, kpts, points, data, False, repr_err_thresh=20)
+    match_to_img(file, imgs, kpts, points, data, False, repr_err_thresh=5)
     return
 
     print "num points: ", len(points)
