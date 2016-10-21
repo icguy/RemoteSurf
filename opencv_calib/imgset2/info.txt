@@ -1,0 +1,3 @@
+grid: (29, 19)
+resolution: 640 * 360
+0.95 #grid dist in cm
