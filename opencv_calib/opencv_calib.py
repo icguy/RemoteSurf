@@ -5,9 +5,12 @@ import glob
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
+grid_size = (9, 6)
+resolution = (1600, 1200)
+
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-objp = np.zeros((6*9,3), np.float32)
-objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)
+objp = np.zeros((grid_size[0] * grid_size[1], 3), np.float32)
+objp[:,:2] = np.mgrid[0:grid_size[0], 0:grid_size[1]].T.reshape(-1,2)
 objp *= 2.6222 # grid distance in cm
 
 
@@ -26,7 +29,7 @@ for fname in images:
 
 
     # Find the chess board corners
-    ret, corners = cv2.findChessboardCorners(gray, (9, 6),None)
+    ret, corners = cv2.findChessboardCorners(gray, grid_size, None)
     if corners is not None:
         corners *= 4
 
@@ -42,11 +45,11 @@ for fname in images:
 
         # Draw and display the corners
         img2 = cv2.pyrDown(img)
-        cv2.drawChessboardCorners(img2, (9, 6), corners / 2, ret)
+        cv2.drawChessboardCorners(img2, grid_size, corners / 2, ret)
         cv2.imshow('img',img2)
         cv2.waitKey(1)
 
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, (1600, 1200), flags=cv2.CALIB_FIX_ASPECT_RATIO)
+ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, resolution, flags=cv2.CALIB_FIX_ASPECT_RATIO)
 print ret
 print mtx
 print dist
@@ -56,7 +59,7 @@ for i in xrange(len(objpoints)):
     error = cv2.norm(imgpoints[i],imgpoints2, cv2.NORM_L2)/len(imgpoints2)
     img = cv2.imread(fnames[i])
     img2 = cv2.pyrDown(img)
-    cv2.drawChessboardCorners(img2, (9, 6), imgpoints2 / 2, True)
+    cv2.drawChessboardCorners(img2, grid_size, imgpoints2 / 2, True)
     cv2.imshow("img", img2)
     cv2.waitKey(0)
 
