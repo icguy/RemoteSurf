@@ -7,11 +7,12 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 grid_size = (9, 6)
 resolution = (1600, 1200)
+real_size = 2.6222 # grid distance in cm
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((grid_size[0] * grid_size[1], 3), np.float32)
 objp[:,:2] = np.mgrid[0:grid_size[0], 0:grid_size[1]].T.reshape(-1,2)
-objp *= 2.6222 # grid distance in cm
+objp *= real_size
 
 
 # Arrays to store object points and image points from all the images.
