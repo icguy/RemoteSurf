@@ -1,0 +1,4 @@
+grid size: (9, 6)
+downscale x4
+2.6222 # grid distance in cm
+resolution: 1600*1200
