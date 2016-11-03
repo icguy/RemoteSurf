@@ -87,7 +87,7 @@ def rpy(mat):
 
     return r, p, y
 
-def getTransform(roll,  pitch,  yaw,  tx,  ty,  tz):
+def getTransform(roll,  pitch,  yaw,  tx,  ty,  tz, is4x4 = False):
     s1 = np.sin(roll)
     c1 = np.cos(roll)
     s2 = np.sin(pitch)
@@ -95,11 +95,19 @@ def getTransform(roll,  pitch,  yaw,  tx,  ty,  tz):
     s3 = np.sin(yaw)
     c3 = np.cos(yaw)
 
-    return np.array([
-        [c1*c2, c1*s2*s3-s1*c3, c1*s2*c3+s1*s3, tx],
-        [s1*c2, s1*s2*s3+c1*c3, s1*s2*c3-c1*s3, ty],
-        [-s2,   c2*s3,          c2*c3,          tz]
-    ])
+    if not is4x4:
+        return np.array([
+            [c1*c2, c1*s2*s3-s1*c3, c1*s2*c3+s1*s3, tx],
+            [s1*c2, s1*s2*s3+c1*c3, s1*s2*c3-c1*s3, ty],
+            [-s2,   c2*s3,          c2*c3,          tz]
+        ])
+    else:
+        return np.array([
+            [c1 * c2, c1 * s2 * s3 - s1 * c3, c1 * s2 * c3 + s1 * s3, tx],
+            [s1 * c2, s1 * s2 * s3 + c1 * c3, s1 * s2 * c3 - c1 * s3, ty],
+            [-s2, c2 * s3, c2 * c3, tz],
+            [0, 0, 0, 1]
+        ])
 
 def drawMatchesOneByOne(img1, img2, kpt1, kpt2, matches, step = 1):
     cv2.namedWindow("match")
