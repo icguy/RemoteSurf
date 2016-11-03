@@ -3,27 +3,31 @@ import numpy as np
 import Utils
 
 pointdict1 = {
-    "set1/Picture 22.jpg" : (0, 0, 50),
-    "set1/Picture 23.jpg" : (0, 0, 30),
-    "set1/Picture 24.jpg" : (0, 0, 70),
-    "set1/Picture 25.jpg" : (0, 20, 50),
-    "set1/Picture 26.jpg" : (0, 0, 50),
-    "set1/Picture 27.jpg" : (0, 0, 50),
-    "set1/Picture 28.jpg" : (20, 0, 50),
-    "set1/Picture 29.jpg" : (40, 0, 50),
-    "set1/Picture 30.jpg" : (0, 40, 50),
-    "set1/Picture 31.jpg" : (0, 0, 50),
+    "set1/Picture 22.jpg": (0, 0, 50),
+    "set1/Picture 23.jpg": (0, 0, 30),
+    "set1/Picture 24.jpg": (0, 0, 70),
+    "set1/Picture 25.jpg": (0, 20, 50),
+    "set1/Picture 26.jpg": (0, 0, 50),
+    "set1/Picture 27.jpg": (0, 0, 50),
+    "set1/Picture 28.jpg": (20, 0, 50),
+    "set1/Picture 29.jpg": (40, 0, 50),
+    "set1/Picture 30.jpg": (0, 40, 50),
+    "set1/Picture 31.jpg": (0, 0, 50),
 }
 
 pointdict2 = {
-    "set1/Picture 32.jpg" : (0, 0, 80),
-    "set1/Picture 33.jpg" : (0, 0, 60),
-    "set1/Picture 34.jpg" : (0, 20, 80),
-    "set1/Picture 35.jpg" : (0, 40, 80),
-    "set1/Picture 36.jpg" : (20, 0, 80),
-    "set1/Picture 37.jpg" : (40, 0, 80),
-    "set1/Picture 38.jpg" : (0, 0, 40)
+    "set1/Picture 32.jpg": (0, 0, 80),
+    "set1/Picture 33.jpg": (0, 0, 60),
+    "set1/Picture 34.jpg": (0, 20, 80),
+    "set1/Picture 35.jpg": (0, 40, 80),
+    "set1/Picture 36.jpg": (20, 0, 80),
+    "set1/Picture 37.jpg": (40, 0, 80),
+    "set1/Picture 38.jpg": (0, 0, 40)
 }
+
+cammtx = np.array(
+    [1.8435610863515064e+003, 0., 7.995e+002, 0., 1.8435610863515064e+003, 5.995e+002, 0., 0., 1.]).reshape(
+    (3, 3))
 
 def normalize(img):
     mmin, mmax = np.min(img), np.max(img)
@@ -31,7 +35,7 @@ def normalize(img):
 
 def getPts(contours):
     contours = contours[:3]
-    cogs = [c.reshape((4, 2)).sum(axis = 0) / 4.0 for c in contours]
+    cogs = [c.reshape((4, 2)).sum(axis=0) / 4.0 for c in contours]
     up = (cogs[0] + cogs[1]) / 2 - cogs[2]
     right = np.zeros_like(up)
     right[0] = -up[1]
@@ -43,10 +47,10 @@ def getPts(contours):
             allpts.append(c[r])
     globcog = sum(cogs) / 3
     allpts = [pt - globcog for pt in allpts]
-    p00 = max(allpts, key = lambda pt: np.dot(pt, up) + np.dot(pt, -right)) + globcog
-    p01 = max(allpts, key = lambda pt: np.dot(pt, up) + np.dot(pt, right)) + globcog
-    p10 = max(allpts, key = lambda pt: np.dot(pt, -up) + np.dot(pt, -right)) + globcog
-    p11 = max(allpts, key = lambda pt: np.dot(pt, -up) + np.dot(pt, right)) + globcog
+    p00 = max(allpts, key=lambda pt: np.dot(pt, up) + np.dot(pt, -right)) + globcog
+    p01 = max(allpts, key=lambda pt: np.dot(pt, up) + np.dot(pt, right)) + globcog
+    p10 = max(allpts, key=lambda pt: np.dot(pt, -up) + np.dot(pt, -right)) + globcog
+    p11 = max(allpts, key=lambda pt: np.dot(pt, -up) + np.dot(pt, right)) + globcog
 
     return [p00[0], p01[0], p10[0], p11[0]]
 
@@ -93,9 +97,12 @@ def kabsch(P, Q):
     return U
 
 def test():
-    voc = []
-    vrt = []
-    pointdict = pointdict2
+    pointdict = pointdict1
+
+    objpts = np.array([[0, 0, 0], [6.043, 0, 0], [0, 6.043, 0], [6.043, 6.043, 0]])
+    robot_coords = [pointdict[k] for k in pointdict.keys()]
+    imgpts = []
+
     for k in pointdict.keys():
         img = cv2.imread(k)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -107,44 +114,22 @@ def test():
         contours, hierarchy = cv2.findContours(dil, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         contours = filter_contours(contours)
 
-        imgpts = getPts(contours)
+        imgpts_curr = getPts(contours)
 
-        cv2.circle(img, (int(imgpts[1][0]), int(imgpts[1][1])), 10, (255, 0, 0), 4)
-        cv2.circle(img, (int(imgpts[2][0]), int(imgpts[2][1])), 10, (255, 0, 0), 4)
-        cv2.circle(img, (int(imgpts[3][0]), int(imgpts[3][1])), 10, (255, 0, 0), 4)
-        cv2.circle(img, (int(imgpts[0][0]), int(imgpts[0][1])), 10, (0, 0, 255), 4)
+        cv2.circle(img, (int(imgpts_curr[1][0]), int(imgpts_curr[1][1])), 10, (255, 0, 0), 4)
+        cv2.circle(img, (int(imgpts_curr[2][0]), int(imgpts_curr[2][1])), 10, (255, 0, 0), 4)
+        cv2.circle(img, (int(imgpts_curr[3][0]), int(imgpts_curr[3][1])), 10, (255, 0, 0), 4)
+        cv2.circle(img, (int(imgpts_curr[0][0]), int(imgpts_curr[0][1])), 10, (0, 0, 255), 4)
         cv2.drawContours(img, contours, -1, (0, 255, 128), 4)
-
-        cammtx = np.array(
-            [1.8435610863515064e+003, 0., 7.995e+002, 0., 1.8435610863515064e+003, 5.995e+002, 0., 0., 1.]).reshape(
-            (3, 3))
-        objpts = np.array([[0, 0, 0], [6.043, 0, 0], [0, 6.043, 0], [6.043, 6.043, 0]])
-        imgpts = np.array(imgpts)
-        retval, rvec, tvec = cv2.solvePnP(objpts.astype("float32"), imgpts.astype("float32"), cammtx, None)
-        rmat, _ = cv2.Rodrigues(rvec)
-        tmat = np.eye(4)
-        tmat[:3, :3] = rmat
-        tmat[:3, 3] = tvec.T
-        # print tmat
-        print map(lambda c: c * 180 / 3.1416, Utils.rpy(rmat))
-        tmatinv = np.linalg.inv(tmat)
-        voci = tmatinv[:3, 3]
-        voc.append(voci)
-        vrt.append(-np.array(pointdict[k], dtype=float).reshape((3, 1)))
-
         img = cv2.pyrDown(img)
         cv2.imshow("", img)
         # cv2.waitKey()
 
-    numpts = len(voc)
-    voc_np = np.zeros((numpts, 3))
-    vrt_np = np.zeros((numpts, 3))
-    for i in range(numpts):
-        voc_np[i, :] = voc[i].reshape((3,))
-        vrt_np[i, :] = vrt[i].reshape((3,)) / 10
-    voc_np -= np.sum(voc_np, 0) / voc_np.shape[0]
-    vrt_np -= np.sum(vrt_np, 0) / vrt_np.shape[0]
-    rot = kabsch(vrt_np, voc_np)
+        imgpts_curr = np.array(imgpts_curr)
+        imgpts.append(imgpts_curr)
+
+    rot, voc_np, vrt_np = calc_rot(cammtx, imgpts, objpts, robot_coords)
+
     print rot
     print vrt_np
     print voc_np
@@ -154,6 +139,31 @@ def test():
     #         print "-", i, j
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
+
+
+def calc_rot(cammtx, imgpts, objpts, robot_coords):
+    numpts = len(imgpts)
+    voc_np = np.zeros((numpts, 3))
+    vrt_np = np.zeros((numpts, 3))
+    for i in range(numpts):
+        imgpts_i = imgpts[i]
+        retval, rvec, tvec = cv2.solvePnP(objpts, imgpts_i, cammtx, None)
+        rmat, _ = cv2.Rodrigues(rvec)
+        tmat = np.eye(4)
+        tmat[:3, :3] = rmat
+        tmat[:3, 3] = tvec.T
+        # print tmat
+        # print map(lambda c: c * 180 / 3.1416, Utils.rpy(rmat))
+        tmatinv = np.linalg.inv(tmat)
+        voci = tmatinv[:3, 3]
+        voc_np[i, :] = voci.reshape((3,))
+        vrt_np[i, :] = np.array(robot_coords[i], dtype=float).reshape((3,)) / 10
+
+    voc_np -= np.sum(voc_np, 0) / voc_np.shape[0]
+    vrt_np -= np.sum(vrt_np, 0) / vrt_np.shape[0]
+    rot = kabsch(vrt_np, voc_np)
+    return rot, voc_np, vrt_np
+
 
 def filter_contours(contours):
     # print  len(contours)
@@ -169,31 +179,35 @@ def filter_contours(contours):
     contours = [c for c in contours if cv2.contourArea(c) > 5000]
     return contours
 
+
 if __name__ == '__main__':
-    # test()
-    v = np.random.random((3, 3))
-    rot, _, _ = np.linalg.svd(v)
+    test()
 
-    P = np.random.rand(10, 3)
-    centroid = np.sum(P, 0) / P.shape[0]
-    P = P - np.ones((P.shape[0], 1)).dot(centroid.reshape((1,-1)))
 
-    Q = P.dot(rot)
-
-    A = P.T.dot(Q)
-    V, S, W = np.linalg.svd(A)
-    d = np.linalg.det(V) * np.linalg.det(W)
-    print d
-    print V
-    if d < 0:
-        S[2, 2] = -S[2, 2]
-        V[:,2]= -V[:,2]
-    print V
-    U = V.dot(W)
-
-    print "------------"
-    print rot
-    print U
-    print kabsch(P, Q)
+    # v = np.random.random((3, 3))
+    # rot, _, _ = np.linalg.svd(v)
+    #
+    # P = np.random.rand(10, 3)
+    # centroid = np.sum(P, 0) / P.shape[0]
+    # P = P - np.ones((P.shape[0], 1)).dot(centroid.reshape((1,-1)))
+    #
+    # Q = P.dot(rot)
+    #
+    # A = P.T.dot(Q)
+    # V, S, W = np.linalg.svd(A)
+    # d = np.linalg.det(V) * np.linalg.det(W)
+    # print d
+    # print V
+    # if d < 0:
+    #     S[2, 2] = -S[2, 2]
+    #     V[:,2]= -V[:,2]
+    # print V
+    # U = V.dot(W)
+    #
+    # print "------------"
+    # print rot
+    # print U
+    # print kabsch(P, Q)
     # print Q - P.dot(U)
 
+    pass
