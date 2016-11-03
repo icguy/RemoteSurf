@@ -1,28 +1,30 @@
 import cv2
-import numpy as np
 import Utils
+import numpy as np
+from random import random, seed, uniform
+
 
 pointdict1 = {
-    "set1/Picture 22.jpg": (0, 0, 50),
-    "set1/Picture 23.jpg": (0, 0, 30),
-    "set1/Picture 24.jpg": (0, 0, 70),
-    "set1/Picture 25.jpg": (0, 20, 50),
-    "set1/Picture 26.jpg": (0, 0, 50),
-    "set1/Picture 27.jpg": (0, 0, 50),
-    "set1/Picture 28.jpg": (20, 0, 50),
-    "set1/Picture 29.jpg": (40, 0, 50),
-    "set1/Picture 30.jpg": (0, 40, 50),
-    "set1/Picture 31.jpg": (0, 0, 50),
+    "set1/Picture 22.jpg": (0, 0, 5),
+    "set1/Picture 23.jpg": (0, 0, 3),
+    "set1/Picture 24.jpg": (0, 0, 7),
+    "set1/Picture 25.jpg": (0, 2, 5),
+    "set1/Picture 26.jpg": (0, 0, 5),
+    "set1/Picture 27.jpg": (0, 0, 5),
+    "set1/Picture 28.jpg": (2, 0, 5),
+    "set1/Picture 29.jpg": (4, 0, 5),
+    "set1/Picture 30.jpg": (0, 4, 5),
+    "set1/Picture 31.jpg": (0, 0, 5),
 }
 
 pointdict2 = {
-    "set1/Picture 32.jpg": (0, 0, 80),
-    "set1/Picture 33.jpg": (0, 0, 60),
-    "set1/Picture 34.jpg": (0, 20, 80),
-    "set1/Picture 35.jpg": (0, 40, 80),
-    "set1/Picture 36.jpg": (20, 0, 80),
-    "set1/Picture 37.jpg": (40, 0, 80),
-    "set1/Picture 38.jpg": (0, 0, 40)
+    "set1/Picture 32.jpg": (0, 0, 8),
+    "set1/Picture 33.jpg": (0, 0, 6),
+    "set1/Picture 34.jpg": (0, 2, 8),
+    "set1/Picture 35.jpg": (0, 4, 8),
+    "set1/Picture 36.jpg": (2, 0, 8),
+    "set1/Picture 37.jpg": (4, 0, 8),
+    "set1/Picture 38.jpg": (0, 0, 4)
 }
 
 cammtx = np.array(
@@ -96,7 +98,7 @@ def kabsch(P, Q):
 
     return U
 
-def test():
+def img_test():
     pointdict = pointdict1
 
     objpts = np.array([[0, 0, 0], [6.043, 0, 0], [0, 6.043, 0], [6.043, 6.043, 0]])
@@ -128,26 +130,32 @@ def test():
         imgpts_curr = np.array(imgpts_curr)
         imgpts.append(imgpts_curr)
 
-    rot, voc_np, vrt_np = calc_rot(cammtx, imgpts, objpts, robot_coords)
+    rot, voc_np, vrt_np = calc_rot(imgpts, objpts, robot_coords)
 
+    print Utils.rpy(rot)
     print rot
-    print vrt_np
-    print voc_np
-    print voc_np - vrt_np.dot(rot)
+    # print vrt_np
+    # print voc_np
+    # print voc_np - vrt_np.dot(rot.T)
+
     # for i in range(numpts):
     #     for j in range(i + 1, numpts):
     #         print "-", i, j
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
 
-
-def calc_rot(cammtx, imgpts, objpts, robot_coords):
+def calc_rot(imgpts, objpts, robot_coords):
+    global cammtx
     numpts = len(imgpts)
     voc_np = np.zeros((numpts, 3))
     vrt_np = np.zeros((numpts, 3))
     for i in range(numpts):
         imgpts_i = imgpts[i]
-        retval, rvec, tvec = cv2.solvePnP(objpts, imgpts_i, cammtx, None)
+        if objpts.shape[1] == 3:
+            objpts = objpts.T
+        if imgpts_i.shape[1] == 2:
+            imgpts_i = imgpts_i.T
+        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, None)
         rmat, _ = cv2.Rodrigues(rvec)
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
@@ -155,15 +163,19 @@ def calc_rot(cammtx, imgpts, objpts, robot_coords):
         # print tmat
         # print map(lambda c: c * 180 / 3.1416, Utils.rpy(rmat))
         tmatinv = np.linalg.inv(tmat)
+
+        print ".."
+        print tmatinv
         voci = tmatinv[:3, 3]
+        print voci
+        print robot_coords[i]
         voc_np[i, :] = voci.reshape((3,))
-        vrt_np[i, :] = np.array(robot_coords[i], dtype=float).reshape((3,)) / 10
+        vrt_np[i, :] = np.array(robot_coords[i], dtype=float).reshape((3,))
 
     voc_np -= np.sum(voc_np, 0) / voc_np.shape[0]
     vrt_np -= np.sum(vrt_np, 0) / vrt_np.shape[0]
     rot = kabsch(vrt_np, voc_np)
-    return rot, voc_np, vrt_np
-
+    return rot.T, voc_np, vrt_np
 
 def filter_contours(contours):
     # print  len(contours)
@@ -179,10 +191,44 @@ def filter_contours(contours):
     contours = [c for c in contours if cv2.contourArea(c) > 5000]
     return contours
 
+def test():
+    seed(0)
+    num_imgs = 10
+    num_obj_pts = 20
+    obj_pts = np.random.random((3, num_obj_pts))
+    obj_pts_homog = np.ones((4, num_obj_pts))
+    obj_pts_homog[:3, :] = obj_pts
+
+    tmats_rt = [None] * num_imgs
+    r, p, y = .1, .2, .3
+    # r, p, y = 0, 0, 0
+    img_pts = [None] * num_imgs
+    robot_coords = [None] * num_imgs
+
+    tmat_or = Utils.getTransform(1.1, .2, .3, 0, 0, 0, True)
+    tmat_tc = Utils.getTransform(0, 0, 0, 0, 0, 0, True)
+
+    for i in range(num_imgs):
+        robot_coords[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10))
+        tmats_rt[i] =  Utils.getTransform(r, p, y, robot_coords[i][0], robot_coords[i][1], robot_coords[i][2], True)
+        # print tmats_rt[i]
+        tmat_oc = tmat_or.dot(tmats_rt[i].dot(tmat_tc))
+        tmat_co = np.linalg.inv(tmat_oc)
+        # print tmat_co
+        cam_pts = tmat_co.dot(obj_pts_homog)
+        proj_pts = cammtx.dot(cam_pts[:3, :])
+        for j in range(num_obj_pts):
+            proj_pts[:, j] /= proj_pts[2, j]
+        img_pts[i] = proj_pts[:2, :]
+
+    rot, voc, vrt = calc_rot(img_pts, obj_pts, robot_coords)
+    print "---"
+    print rot
+    print tmat_or
 
 if __name__ == '__main__':
-    test()
-
+    img_test()
+    # test()
 
     # v = np.random.random((3, 3))
     # rot, _, _ = np.linalg.svd(v)
