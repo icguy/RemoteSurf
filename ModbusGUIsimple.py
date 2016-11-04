@@ -44,7 +44,7 @@ class ClientGUI:
 
         root = Tk()
         self.root = root
-        root.wm_title("Release Integrity Test Appliance")
+        root.wm_title("RemoteSurf Modbus Client")
         root.protocol("WM_DELETE_WINDOW", self.delete_window)
 
         self.font = tkFont.Font(root = root, family = "Helvetica", size = 12)
