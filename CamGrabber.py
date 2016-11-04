@@ -27,7 +27,7 @@ def run(out_folder):
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         cap = cv2.VideoCapture(1)
-    fileIdx = getNextFileIdx()
+    fileIdx = getNextFileIdx(out_folder)
     if not cap.isOpened():
         print "ERROR: webcam open failed"
     else:
@@ -41,11 +41,11 @@ def run(out_folder):
             if key == 27:
                 break
             if key == 13:
-                success = cv2.imwrite(getFileName(fileIdx), frame)
+                success = cv2.imwrite(getFileName(out_folder, fileIdx), frame)
                 if success:
-                    print "Success. File saved: %s" % getFileName(fileIdx)
+                    print "Success. File saved: %s" % getFileName(out_folder, fileIdx)
                 else:
-                    print "Failed to write to: %s" % getFileName(fileIdx)
+                    print "Failed to write to: %s" % getFileName(out_folder, fileIdx)
                 fileIdx += 1
 
 if __name__ == '__main__':

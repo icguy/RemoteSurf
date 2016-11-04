@@ -6,6 +6,9 @@ from threading import Thread
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
 
+PRINT_ALL_MEMORY_ON_WRITE = True
+START_OPENCV_THREAD = True
+
 def intToUint16(val):
     assert -32768 <= val <= 32767
     return val if val >= 0 else 65536 + val
@@ -176,6 +179,15 @@ class ClientGUI:
             self.connectbutton.config(text = "Connect")
             self.connectlabel.config(text = "Not connected.")
 
+    def print_memory(self):
+        self.refresh_values()
+        print "Memory dump:"
+        print "------------"
+        for address in self.register_values_widgets:
+            val, widget = self.register_values_widgets[address]
+            print address, val
+        print "------------"
+
     def setbutton_click(self):
         if not self.client.is_open():
             print "ERROR: Not connected to client"
@@ -210,6 +222,8 @@ class ClientGUI:
                 print "ERROR: client not connected."
                 self.update_texts()
         self.refresh_values()
+        if PRINT_ALL_MEMORY_ON_WRITE
+            self.print_memory()
 
     def delete_window(self):
         self.client.close()
@@ -233,10 +247,9 @@ def runOpencv():
 
 if __name__ == '__main__':
     opencvThread = None
-    if True:
+    if START_OPENCV_THREAD:
         opencvThread = Thread(target=runOpencv)
         opencvThread.start()
     ClientGUI()
-    print "hai"
     if opencvThread:
         opencvThread.join()
