@@ -36,10 +36,20 @@ def run(out_folder):
             if not r:
                 continue
             cv2.imshow("frame", frame)
-            # enter: 13, escape: 27
+            # enter: 13, escape: 27, space: 32
             key = cv2.waitKey(1)
+            print key
             if key == 27:
                 break
+            if key == 32:
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                ret, corners = cv2.findChessboardCorners(gray, (9, 6), flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
+                if ret:
+                    key = 13
+                    print "Chessboard found"
+                else:
+                    print "Chessboard not found."
+
             if key == 13:
                 success = cv2.imwrite(getFileName(out_folder, fileIdx), frame)
                 if success:
