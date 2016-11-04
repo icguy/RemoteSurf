@@ -208,7 +208,7 @@ class ClientGUI:
         write_log("------------")
         for address in self.register_values_widgets:
             val, widget = self.register_values_widgets[address]
-            write_log(address, val)
+            write_log("%d, %d" % (address, val))
         write_log("------------")
 
     def setbutton_click(self):
