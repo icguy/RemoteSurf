@@ -9,28 +9,25 @@ OUT_FOLDER = None
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
 
-def getNextFileIdx():
+def getNextFileIdx(out_folder):
     i = 0
-    while os.path.exists(os.path.join(OUT_FOLDER, str(i).rjust(4, '0') + ".jpg")):
+    while os.path.exists(os.path.join(out_folder, str(i).rjust(4, '0') + ".jpg")):
         i += 1
     return i
 
-def getFileName(idx):
-    fname = os.path.join(OUT_FOLDER, str(idx).rjust(4, '0') + ".jpg")
+def getFileName(out_folder, idx):
+    fname = os.path.join(out_folder, str(idx).rjust(4, '0') + ".jpg")
     return fname
 
-if __name__ == '__main__':
-    if OUT_FOLDER is None:
-        OUT_FOLDER = get_script_path() + "/out/"
-    if not os.path.exists(OUT_FOLDER):
-        os.makedirs(OUT_FOLDER)
-
+def run(out_folder):
+    if out_folder is None:
+        out_folder = get_script_path() + "/out/"
+    if not os.path.exists(out_folder):
+        os.makedirs(out_folder)
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         cap = cv2.VideoCapture(1)
-
     fileIdx = getNextFileIdx()
-
     if not cap.isOpened():
         print "ERROR: webcam open failed"
     else:
@@ -46,8 +43,11 @@ if __name__ == '__main__':
             if key == 13:
                 success = cv2.imwrite(getFileName(fileIdx), frame)
                 if success:
-                    print "Success. File saved: %s" %  getFileName(fileIdx)
+                    print "Success. File saved: %s" % getFileName(fileIdx)
                 else:
-                    print "Failed to write to: %s" %  getFileName(fileIdx)
+                    print "Failed to write to: %s" % getFileName(fileIdx)
                 fileIdx += 1
+
+if __name__ == '__main__':
+    run(OUT_FOLDER)
 

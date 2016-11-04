@@ -1,6 +1,7 @@
 from Tkinter import *
 import tkFont
 from pyModbusTCP.client import ModbusClient
+from threading import Thread
 
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
@@ -226,5 +227,16 @@ class AccessibleEntry(Entry):
     def set(self, val):
         self.var.set(val)
 
+def runOpencv():
+    import CamGrabber
+    CamGrabber.run(None)
+
 if __name__ == '__main__':
+    opencvThread = None
+    if True:
+        opencvThread = Thread(target=runOpencv)
+        opencvThread.start()
     ClientGUI()
+    print "hai"
+    if opencvThread:
+        opencvThread.join()
