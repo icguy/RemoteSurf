@@ -38,7 +38,7 @@ def run(out_folder):
             cv2.imshow("frame", frame)
             # enter: 13, escape: 27, space: 32
             key = cv2.waitKey(1)
-            print key
+            # print key
             if key == 27:
                 break
             if key == 32:
