@@ -2,12 +2,19 @@ from Tkinter import *
 import tkFont
 from pyModbusTCP.client import ModbusClient
 from threading import Thread
+import datetime
+import os
+from Logger import write_log
+import Logger
 
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
 
 PRINT_ALL_MEMORY_ON_WRITE = True
 START_OPENCV_THREAD = True
+
+OUT_FOLDER = "./out/"
+outfile = None
 
 def intToUint16(val):
     assert -32768 <= val <= 32767
@@ -149,27 +156,27 @@ class ClientGUI:
             self.client.host(SERVER_HOST)
             self.client.port(SERVER_PORT)
             if self.client.open():
-                print "Connection established"
+                write_log("Connection established")
                 self.refresh_values()
                 self.read_robot_pos()
             else:
-                print "ERROR: Connecting failed"
+                write_log("ERROR: Connecting failed")
         self.update_texts()
 
     def read_robot_pos(self):
-        print "Reading robot position:"
+        write_log("Reading robot position:")
         for i in range(1000, 1006):
             if self.client.is_open():
                 real_val_uint = self.client.read_input_registers(i)[0]
                 real_val_holding_uint = self.client.read_holding_registers(i)[0]
                 assert real_val_uint == real_val_holding_uint
                 real_val_int = uintToInt16(real_val_uint)
-                print i, real_val_int
+                write_log("%d, %d" % (i, real_val_int))
             else:
-                print "ERROR: Read could not be completed, client not connected."
+                write_log("ERROR: Read could not be completed, client not connected.")
                 self.update_texts()
                 break
-        print "Read done."
+        write_log("Read done.")
 
     def refresh_values(self):
         for address in self.register_values_widgets:
@@ -182,10 +189,10 @@ class ClientGUI:
                 widget.set(str(real_val_int))
                 self.register_values_widgets[address] = (real_val_int, widget)
             else:
-                print "ERROR: Read could not be completed, client not connected."
+                write_log("ERROR: Read could not be completed, client not connected.")
                 self.update_texts()
                 break
-        print "Refresh done."
+        write_log("Refresh done.")
 
     def update_texts(self):
         if self.client.is_open():
@@ -197,16 +204,16 @@ class ClientGUI:
 
     def print_memory(self):
         self.refresh_values()
-        print "Memory dump:"
-        print "------------"
+        write_log("Memory dump:")
+        write_log("------------")
         for address in self.register_values_widgets:
             val, widget = self.register_values_widgets[address]
-            print address, val
-        print "------------"
+            write_log(address, val)
+        write_log("------------")
 
     def setbutton_click(self):
         if not self.client.is_open():
-            print "ERROR: Not connected to client"
+            write_log("ERROR: Not connected to client")
             return
 
         for address in self.register_values_widgets:
@@ -215,14 +222,14 @@ class ClientGUI:
             try:
                 widgetvalue_int = int(widget.get())
             except ValueError:
-                print "ERROR: Wrong input format in value entry for address: %d" % address
+                write_log("ERROR: Wrong input format in value entry for address: %d" % address)
                 continue
 
             if value == widgetvalue_int:
                 continue
 
             if not (-32768 <= widgetvalue_int <= 32767):
-                print "ERROR: -32768 <= value <= 32767 is false for address: %d" % address
+                write_log("ERROR: -32768 <= value <= 32767 is false for address: %d" % address)
                 continue
 
             widgetvalue_uint = intToUint16(widgetvalue_int)
@@ -231,11 +238,11 @@ class ClientGUI:
                 retval = self.client.write_single_register(address, widgetvalue_uint)
                 if retval:
                     self.register_values_widgets[address] = (widgetvalue_int, widget)
-                    print "Register written. Address: %d, value: %d" % (address, widgetvalue_int)
+                    write_log("Register written. Address: %d, value: %d" % (address, widgetvalue_int))
                 else:
-                    print "ERROR: Write failed. Address: %d, value: %d" % (address, widgetvalue_int)
+                    write_log("ERROR: Write failed. Address: %d, value: %d" % (address, widgetvalue_int))
             else:
-                print "ERROR: client not connected."
+                write_log("ERROR: client not connected.")
                 self.update_texts()
         self.refresh_values()
         if PRINT_ALL_MEMORY_ON_WRITE:
@@ -263,6 +270,9 @@ def runOpencv():
     CamGrabber.run(None)
 
 if __name__ == '__main__':
+    now = datetime.datetime.now()
+    Logger.outfile = os.path.join(OUT_FOLDER, "%d.%d.%d. %d:%d:%d.txt" % (now.year, now.month, now.day, now.hour, now.minute, now.second) )
+
     opencvThread = None
     if START_OPENCV_THREAD:
         opencvThread = Thread(target=runOpencv)

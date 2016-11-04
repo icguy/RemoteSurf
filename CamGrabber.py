@@ -3,6 +3,7 @@ import numpy as np
 import time
 import os
 import sys
+from Logger import write_log
 
 OUT_FOLDER = None
 
@@ -29,7 +30,7 @@ def run(out_folder):
         cap = cv2.VideoCapture(1)
     fileIdx = getNextFileIdx(out_folder)
     if not cap.isOpened():
-        print "ERROR: webcam open failed"
+        write_log("ERROR: webcam open failed")
     else:
         while cap.isOpened():
             r, frame = cap.read()
@@ -38,7 +39,7 @@ def run(out_folder):
             cv2.imshow("frame", frame)
             # enter: 13, escape: 27, space: 32
             key = cv2.waitKey(1)
-            # print key
+            # write_log(key
             if key == 27:
                 break
             if key == 32:
@@ -46,16 +47,16 @@ def run(out_folder):
                 ret, corners = cv2.findChessboardCorners(gray, (9, 6), flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
                 if ret:
                     key = 13
-                    print "Chessboard found"
+                    write_log("Chessboard found")
                 else:
-                    print "Chessboard not found."
+                    write_log("Chessboard not found.")
 
             if key == 13:
                 success = cv2.imwrite(getFileName(out_folder, fileIdx), frame)
                 if success:
-                    print "Success. File saved: %s" % getFileName(out_folder, fileIdx)
+                    write_log("Success. File saved: %s" % getFileName(out_folder, fileIdx))
                 else:
-                    print "Failed to write to: %s" % getFileName(out_folder, fileIdx)
+                    write_log("Failed to write to: %s" % getFileName(out_folder, fileIdx))
                 fileIdx += 1
 
 if __name__ == '__main__':
