@@ -151,9 +151,25 @@ class ClientGUI:
             if self.client.open():
                 print "Connection established"
                 self.refresh_values()
+                self.read_robot_pos()
             else:
                 print "ERROR: Connecting failed"
         self.update_texts()
+
+    def read_robot_pos(self):
+        print "Reading robot position:"
+        for i in range(1000, 1006):
+            if self.client.is_open():
+                real_val_uint = self.client.read_input_registers(i)[0]
+                real_val_holding_uint = self.client.read_holding_registers(i)[0]
+                assert real_val_uint == real_val_holding_uint
+                real_val_int = uintToInt16(real_val_uint)
+                print i, real_val_int
+            else:
+                print "ERROR: Read could not be completed, client not connected."
+                self.update_texts()
+                break
+        print "Read done."
 
     def refresh_values(self):
         for address in self.register_values_widgets:
