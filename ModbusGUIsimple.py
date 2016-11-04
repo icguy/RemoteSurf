@@ -240,6 +240,7 @@ class ClientGUI:
         self.refresh_values()
         if PRINT_ALL_MEMORY_ON_WRITE:
             self.print_memory()
+            self.read_robot_pos()
 
     def delete_window(self):
         self.client.close()
