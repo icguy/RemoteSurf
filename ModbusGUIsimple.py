@@ -13,7 +13,7 @@ SERVER_PORT = 502
 PRINT_ALL_MEMORY_ON_WRITE = True
 START_OPENCV_THREAD = True
 
-OUT_FOLDER = "./out/"
+OUT_FOLDER = "out/"
 outfile = None
 
 def intToUint16(val):
@@ -271,7 +271,7 @@ def runOpencv():
 
 if __name__ == '__main__':
     now = datetime.datetime.now()
-    Logger.outfile = os.path.join(OUT_FOLDER, "%d.%d.%d. %d:%d:%d.txt" % (now.year, now.month, now.day, now.hour, now.minute, now.second) )
+    Logger.outfile = os.path.join(OUT_FOLDER, "%d_%d_%d__%d_%d_%d.txt" % (now.year, now.month, now.day, now.hour, now.minute, now.second) )
 
     opencvThread = None
     if START_OPENCV_THREAD:
