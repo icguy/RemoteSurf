@@ -57,7 +57,6 @@ for fname in images:
             scale *= 2
         gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
 
-
         ret, corners = cv2.findChessboardCorners(gray, grid_size, flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
         if corners is not None:
             corners *= scale
