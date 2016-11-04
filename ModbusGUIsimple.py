@@ -222,7 +222,7 @@ class ClientGUI:
                 print "ERROR: client not connected."
                 self.update_texts()
         self.refresh_values()
-        if PRINT_ALL_MEMORY_ON_WRITE
+        if PRINT_ALL_MEMORY_ON_WRITE:
             self.print_memory()
 
     def delete_window(self):
