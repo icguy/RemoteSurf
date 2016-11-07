@@ -1,12 +1,49 @@
+import datetime
 
-outfile = None
 PRINT_LOG_TO_STDOUT = True
 
-def write_log(text):
-    if PRINT_LOG_TO_STDOUT: print text
-    if outfile is None: return
+class MyLogger:
+    __singleton = None
+    def __init__(self, outfile = None):
+        print "mylogger starting"
+        self.outfile = None
+        if MyLogger.__singleton is None:
+            print "singleton not created yet"
+            MyLogger.__singleton = self
 
-    f = file(outfile, "a")
-    f.write(text)
-    f.write("\r\n")
-    f.close()
+        if outfile is not None:
+            print "overwriting outfile location"
+            self.outfile = outfile
+
+        if self.outfile is None:
+            print "new outfile location"
+            self.create_new_file()
+        print "mylogger started, logging to: %s" % self.outfile
+
+    def create_new_file(self):
+        from os import makedirs
+        from os.path import exists, dirname, join
+
+        datestr = self.getDateString()
+        dir = join("out", datestr)
+        self.outfile = join(dir, "out.txt")
+        if not exists(dir):
+            makedirs(dir)
+
+
+    def getDateString(self):
+        now = datetime.datetime.now()
+        return "%d_%d_%d__%d_%d_%d" % (now.year, now.month, now.day, now.hour, now.minute, now.second)
+
+    def write_log(self, text):
+        if PRINT_LOG_TO_STDOUT: print text
+        if self.outfile is None: return
+
+        f = file(self.outfile, "a")
+        f.write("%s\n" % text)
+        f.close()
+
+logger = MyLogger(None)
+
+def write_log(text):
+    logger.write_log(text)
