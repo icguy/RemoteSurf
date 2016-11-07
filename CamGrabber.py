@@ -3,7 +3,7 @@ import numpy as np
 import time
 import os
 import sys
-from Logger import write_log
+from Logger import write_log, logger
 
 OUT_FOLDER = None
 
@@ -22,9 +22,7 @@ def getFileName(out_folder, idx):
 
 def run(out_folder):
     if out_folder is None:
-        out_folder = get_script_path() + "/out/"
-    if not os.path.exists(out_folder):
-        os.makedirs(out_folder)
+        out_folder = logger.outputdir
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         cap = cv2.VideoCapture(1)
@@ -36,10 +34,23 @@ def run(out_folder):
             r, frame = cap.read()
             if not r:
                 continue
+
+            if 1200 not in frame.shape or 1600 not in frame.shape:
+                # bad resolution
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                frame = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+                cv2.putText(frame, "BAD RESOLUTION: %s" % (str(gray.shape)), (0, gray.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                cv2.imshow("frame", frame)
+                key = cv2.waitKey(1)
+                if key != -1:
+                    print "pressed key: %d" % key
+                if key == 27:
+                    break
+                continue
+
             cv2.imshow("frame", frame)
             # enter: 13, escape: 27, space: 32
             key = cv2.waitKey(1)
-            # write_log(key
             if key == 27:
                 break
             if key == 32:
