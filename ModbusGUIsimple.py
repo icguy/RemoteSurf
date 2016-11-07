@@ -4,7 +4,8 @@ from pyModbusTCP.client import ModbusClient
 from threading import Thread
 import datetime
 import os
-from Logger import write_log
+from Logger import write_log, logger
+import cv2
 
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
@@ -12,7 +13,6 @@ SERVER_PORT = 502
 PRINT_ALL_MEMORY_ON_WRITE = True
 START_OPENCV_THREAD = True
 
-OUT_FOLDER = "out/"
 outfile = None
 
 def intToUint16(val):
