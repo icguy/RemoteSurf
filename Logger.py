@@ -29,9 +29,6 @@ class MyLogger:
         datestr = self.getDateString()
         dir = join("out", datestr)
         self.outfile = join(dir, "out.txt")
-        if not exists(dir):
-            makedirs(dir)
-
 
     def getDateString(self):
         now = datetime.datetime.now()
@@ -40,6 +37,9 @@ class MyLogger:
     def write_log(self, text):
         if PRINT_LOG_TO_STDOUT: print text
         if self.outfile is None: return
+        if not exists(self.outputdir):
+            print "creating output dir"
+            makedirs(dir)
 
         f = file(self.outfile, "a")
         f.write("%s\n" % text)
