@@ -26,6 +26,9 @@ def run(out_folder):
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         cap = cv2.VideoCapture(1)
+    cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 1600)
+    cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 1200)
+
     fileIdx = getNextFileIdx(out_folder)
     if not cap.isOpened():
         write_log("ERROR: webcam open failed")
