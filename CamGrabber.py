@@ -38,7 +38,7 @@ def run(out_folder):
             if not r:
                 continue
 
-            if 1200 not in frame.shape or 1600 not in frame.shape:
+            if 960 not in frame.shape or 720 not in frame.shape:
                 # bad resolution
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 frame = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
