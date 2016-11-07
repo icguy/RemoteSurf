@@ -3,20 +3,23 @@ import Utils
 import numpy as np
 from random import random, seed, uniform
 
-
+outdir = "out0"
+img_points_scale_bad_res = 1600.0 / 640
 pointdict1 = {
-    "../out/0000.jpg": (0, 0, 20),
-    "../out/0001.jpg": (4, 0, 20),
-    "../out/0002.jpg": (-5, 0, 20),
-    "../out/0003.jpg": (0, 5, 20),
-    "../out/0004.jpg": (0, -5, 20),
-    "../out/0005.jpg": (0, 0, 25),
-    "../out/0006.jpg": (5, 0, 25),
-    "../out/0007.jpg": (-5, 0, 25),
-    "../out/0008.jpg": (0, 5, 25),
-    "../out/0009.jpg": (0, -5, 25),
-    "../out/0010.jpg": (0, 0, 15),
+    "../out/%s/0000.jpg": (-250, 0, 200),
+    "../out/%s/0001.jpg": (-250, 0, 250),
+    "../out/%s/0002.jpg": (-250, 0, 300),
+    "../out/%s/0003.jpg": (-300, 0, 300),
+    "../out/%s/0004.jpg": (-200, 0, 300),
+    "../out/%s/0005.jpg": (-250, 50, 300),
+    "../out/%s/0006.jpg": (-250, -50, 300),
+    # "../out/%s/0007.jpg": (),
+    # "../out/%s/0008.jpg": (0, 5, 25),
+    # "../out/%s/0009.jpg": (0, -5, 25),
+    # "../out/%s/0010.jpg": (0, 0, 15),
 }
+for k in pointdict1:
+    pointdict1[k] = map(lambda c: c / 10, pointdict1[k])
 
 cammtx = np.array(
     [1.8435610863515064e+003, 0., 7.995e+002, 0., 1.8435610863515064e+003, 5.995e+002, 0., 0., 1.]).reshape(
@@ -110,6 +113,7 @@ def img_test():
     imgpts = []
 
     for k in pointdict.keys():
+        k = k % (outdir)
         img = cv2.imread(k)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray = normalize(gray)
@@ -119,6 +123,7 @@ def img_test():
         # drawCorners(img, corners)
 
         imgpts_curr = corners.reshape((54,2))
+        imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
 
@@ -139,6 +144,7 @@ def img_test():
 
 def calc_rot(imgpts, objpts, robot_coords):
     global cammtx
+    print cammtx
     numpts = len(imgpts)
     voc_np = np.zeros((numpts, 3))
     vrt_np = np.zeros((numpts, 3))
@@ -148,19 +154,20 @@ def calc_rot(imgpts, objpts, robot_coords):
             objpts = objpts.T
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
+
         retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, None)
         rmat, _ = cv2.Rodrigues(rvec)
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
         tmat[:3, 3] = tvec.T
-        # print tmat
-        # print map(lambda c: c * 180 / 3.1416, Utils.rpy(rmat))
         tmatinv = np.linalg.inv(tmat)
 
         print ".."
         print tmat
+        print " "
         print tmatinv
         voci = tmatinv[:3, 3]
+
         print voci
         print robot_coords[i]
         voc_np[i, :] = voci.reshape((3,))
@@ -221,5 +228,7 @@ def test():
     print tmat_or
 
 if __name__ == '__main__':
+    # np.set_printoptions(formatter={'float': lambda x: "\t{0:0.3f}".format(x)})
+    np.set_printoptions(precision=3, suppress=True)
     img_test()
     # test()
