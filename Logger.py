@@ -1,4 +1,6 @@
 import datetime
+from os import makedirs
+from os.path import exists, dirname, join
 
 PRINT_LOG_TO_STDOUT = True
 
@@ -18,12 +20,12 @@ class MyLogger:
         if self.outfile is None:
             print "new outfile location"
             self.create_new_file()
+
+        self.outputdir = dirname(self.outfile)
+
         print "mylogger started, logging to: %s" % self.outfile
 
     def create_new_file(self):
-        from os import makedirs
-        from os.path import exists, dirname, join
-
         datestr = self.getDateString()
         dir = join("out", datestr)
         self.outfile = join(dir, "out.txt")
