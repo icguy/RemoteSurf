@@ -39,7 +39,7 @@ class MyLogger:
         if self.outfile is None: return
         if not exists(self.outputdir):
             print "creating output dir"
-            makedirs(dir)
+            makedirs(self.outputdir)
 
         f = file(self.outfile, "a")
         f.write("%s\n" % text)
