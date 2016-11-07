@@ -5,7 +5,6 @@ from threading import Thread
 import datetime
 import os
 from Logger import write_log
-import Logger
 
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
@@ -270,9 +269,6 @@ def runOpencv():
     CamGrabber.run(None)
 
 if __name__ == '__main__':
-    now = datetime.datetime.now()
-    Logger.outfile = os.path.join(OUT_FOLDER, "%d_%d_%d__%d_%d_%d.txt" % (now.year, now.month, now.day, now.hour, now.minute, now.second) )
-
     opencvThread = None
     if START_OPENCV_THREAD:
         opencvThread = Thread(target=runOpencv)
