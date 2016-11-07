@@ -26,8 +26,9 @@ def run(out_folder):
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         cap = cv2.VideoCapture(1)
-    cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 1600)
-    cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 1200)
+    resolution = (960, 720)
+    cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, resolution[0])
+    cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, resolution[1])
 
     fileIdx = getNextFileIdx(out_folder)
     if not cap.isOpened():
@@ -38,7 +39,7 @@ def run(out_folder):
             if not r:
                 continue
 
-            if 960 not in frame.shape or 720 not in frame.shape:
+            if resolution[0] not in frame.shape or resolution[1] not in frame.shape:
                 # bad resolution
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 frame = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
