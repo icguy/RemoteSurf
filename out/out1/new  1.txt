@@ -1,0 +1,300 @@
+Memory dump:
+------------
+500 0
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Register written. Address: 501, value: 100
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 100
+502 200
+503 0
+504 90
+505 0
+------------
+Register written. Address: 501, value: 0
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Register written. Address: 501, value: 50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 50
+502 200
+503 0
+504 90
+505 0
+------------
+Register written. Address: 501, value: -50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 -50
+502 200
+503 0
+504 90
+505 0
+------------
+Register written. Address: 501, value: 0
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Register written. Address: 500, value: -50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 -50
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Register written. Address: 500, value: 0
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0000.jpg
+Register written. Address: 500, value: 50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 50
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Chessboard not found.
+Chessboard not found.
+Chessboard not found.
+Register written. Address: 500, value: 40
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 40
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0001.jpg
+Register written. Address: 500, value: -50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 -50
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0002.jpg
+Register written. Address: 500, value: 0
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Register written. Address: 501, value: 50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 50
+502 200
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0003.jpg
+Register written. Address: 501, value: -50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 -50
+502 200
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0004.jpg
+Register written. Address: 501, value: 0
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 0
+502 200
+503 0
+504 90
+505 0
+------------
+Register written. Address: 502, value: 250
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 0
+502 250
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0005.jpg
+Register written. Address: 500, value: 50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 50
+501 0
+502 250
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0006.jpg
+Register written. Address: 500, value: -50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 -50
+501 0
+502 250
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0007.jpg
+Register written. Address: 500, value: 0
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 0
+502 250
+503 0
+504 90
+505 0
+------------
+Register written. Address: 501, value: 50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 50
+502 250
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0008.jpg
+Register written. Address: 501, value: -50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 -50
+502 250
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0009.jpg
+Register written. Address: 501, value: 0
+Register written. Address: 502, value: 150
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500 0
+501 0
+502 150
+503 0
+504 90
+505 0
+------------
+Chessboard found
+Success. File saved: C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf/out
+/0010.jpg
+
+C:\Users\user\Documents\AD\RemoteSurf\Python\RemoteSurf>
