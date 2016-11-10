@@ -6,6 +6,7 @@ import sys
 from Logger import write_log, logger
 
 OUT_FOLDER = None
+exit = False
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -35,6 +36,9 @@ def run(out_folder):
         write_log("ERROR: webcam open failed")
     else:
         while cap.isOpened():
+            if exit:
+                break
+                
             r, frame = cap.read()
             if not r:
                 continue

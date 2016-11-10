@@ -6,6 +6,7 @@ import datetime
 import os
 from Logger import write_log, logger
 import cv2
+import CamGrabber
 
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
@@ -58,6 +59,7 @@ class ClientGUI:
         connectframe = Frame(root)
         connectbutton = Button(connectframe, text = "Connect", command = self.connectbutton_click)
         connectlabel = Label(connectframe, text = "Not connected.")
+        snapshotbutton = Button(connectframe, text = "Capture")
         mainframe = Frame(root)
         registerframe = Frame(mainframe)
         reglabel = Label(registerframe, text = "Set registers")
@@ -71,6 +73,7 @@ class ClientGUI:
         connectframe.pack(side = TOP, fill = X)
         connectbutton.pack(side = RIGHT)
         connectlabel.pack(side = LEFT)
+        snapshotbutton.pack(side = BOTTOM, anchor = E)
         mainframe.pack(side = BOTTOM, fill = BOTH, expand = YES)
         registerframe.pack(side = TOP, expand = YES, anchor = W)
         # outputframe.pack(side = BOTTOM, fill = BOTH, expand = YES)
@@ -118,6 +121,7 @@ class ClientGUI:
         self.connectframe = connectframe
         self.connectlabel = connectlabel
         self.connectbutton = connectbutton
+        self.snapshotbutton = snapshotbutton
         self.mainframe = mainframe
         self.registerframe = registerframe
         self.reglabel = reglabel
@@ -160,7 +164,7 @@ class ClientGUI:
                 self.read_robot_pos()
             else:
                 write_log("ERROR: Connecting failed")
-        self.update_texts()
+        self.update_gui()
 
     def read_robot_pos(self):
         write_log("Reading robot position:")
@@ -173,7 +177,7 @@ class ClientGUI:
                 write_log("%d, %d" % (i, real_val_int))
             else:
                 write_log("ERROR: Read could not be completed, client not connected.")
-                self.update_texts()
+                self.update_gui()
                 break
         write_log("Read done.")
 
@@ -189,17 +193,18 @@ class ClientGUI:
                 self.register_values_widgets[address] = (real_val_int, widget)
             else:
                 write_log("ERROR: Read could not be completed, client not connected.")
-                self.update_texts()
+                self.update_gui()
                 break
         write_log("Refresh done.")
 
-    def update_texts(self):
+    def update_gui(self):
         if self.client.is_open():
             self.connectlabel.config(text = "Connected to: %s:%d" % (SERVER_HOST, SERVER_PORT))
             self.connectbutton.config(text = "Disconnect")
         else:
             self.connectbutton.config(text = "Connect")
             self.connectlabel.config(text = "Not connected.")
+        self.root.update()
 
     def print_memory(self):
         self.refresh_values()
@@ -242,13 +247,14 @@ class ClientGUI:
                     write_log("ERROR: Write failed. Address: %d, value: %d" % (address, widgetvalue_int))
             else:
                 write_log("ERROR: client not connected.")
-                self.update_texts()
+                self.update_gui()
         self.refresh_values()
         if PRINT_ALL_MEMORY_ON_WRITE:
             self.print_memory()
             self.read_robot_pos()
 
     def delete_window(self):
+        CamGrabber.exit = True
         self.client.close()
         self.root.quit()
 
@@ -265,7 +271,6 @@ class AccessibleEntry(Entry):
         self.var.set(val)
 
 def runOpencv():
-    import CamGrabber
     CamGrabber.run(None)
 
 if __name__ == '__main__':
