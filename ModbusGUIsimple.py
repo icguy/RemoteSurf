@@ -181,7 +181,6 @@ class ClientGUI:
         for address in self.register_values_widgets:
             if self.client.is_open():
                 value, widget = self.register_values_widgets[address]
-                print address
                 real_val_uint = self.client.read_input_registers(address)[0]
                 real_val_holding_uint = self.client.read_holding_registers(address)[0]
                 assert real_val_uint == real_val_holding_uint
