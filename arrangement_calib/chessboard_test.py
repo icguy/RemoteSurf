@@ -19,37 +19,37 @@ from random import random, seed, uniform
 #     # "../out/%s/0010.jpg": (0, 0, 15),
 # }
 
-# outdir = "2016_11_7__17_50_40"
-# img_points_scale_bad_res = 1600.0 / 920
-# pointdict1 = {
-#     "../out/%s/0000.jpg": (0, 0, 0),
-#     "../out/%s/0001.jpg": (50, 0, 0),
-#     "../out/%s/0002.jpg": (-30, 0, 0),
-#     "../out/%s/0003.jpg": (0, 50, 0),
-#     "../out/%s/0004.jpg": (0, -50, 0),
-#     "../out/%s/0005.jpg": (0, 0, -50),
-#     "../out/%s/0006.jpg": (0, 0, -100),
-#     "../out/%s/0007.jpg": (0, 0, 50),
-#     # "../out/%s/0008.jpg": (0, 5, 25),
-#     # "../out/%s/0009.jpg": (0, -5, 25),
-#     # "../out/%s/0010.jpg": (0, 0, 15),
-# }
-
-outdir = "2016_11_7__18_10_0"
+outdir = "2016_11_7__17_50_40"
 img_points_scale_bad_res = 1600.0 / 920
 pointdict1 = {
-    "../out/%s/0000.jpg": (-150, 0, 0),
-    "../out/%s/0001.jpg": (-200, 0, 0),
-    "../out/%s/0002.jpg": (-120, 0, 0),
-    "../out/%s/0003.jpg": (-150, -50, 0),
-    "../out/%s/0004.jpg": (-150, -100, 0),
-    "../out/%s/0005.jpg": (-150, 0, -50),
-    "../out/%s/0006.jpg": (-150, 0, -100),
-    "../out/%s/0007.jpg": (-150, -50, -100),
+    "../out/%s/0000.jpg": (0, 0, 0),
+    "../out/%s/0001.jpg": (50, 0, 0),
+    "../out/%s/0002.jpg": (-30, 0, 0),
+    "../out/%s/0003.jpg": (0, 50, 0),
+    "../out/%s/0004.jpg": (0, -50, 0),
+    "../out/%s/0005.jpg": (0, 0, -50),
+    "../out/%s/0006.jpg": (0, 0, -100),
+    "../out/%s/0007.jpg": (0, 0, 50),
     # "../out/%s/0008.jpg": (0, 5, 25),
     # "../out/%s/0009.jpg": (0, -5, 25),
     # "../out/%s/0010.jpg": (0, 0, 15),
 }
+
+# outdir = "2016_11_7__18_10_0"
+# img_points_scale_bad_res = 1600.0 / 920
+# pointdict1 = {
+#     "../out/%s/0000.jpg": (-150, 0, 0),
+#     "../out/%s/0001.jpg": (-200, 0, 0),
+#     "../out/%s/0002.jpg": (-120, 0, 0),
+#     "../out/%s/0003.jpg": (-150, -50, 0),
+#     "../out/%s/0004.jpg": (-150, -100, 0),
+#     "../out/%s/0005.jpg": (-150, 0, -50),
+#     "../out/%s/0006.jpg": (-150, 0, -100),
+#     "../out/%s/0007.jpg": (-150, -50, -100),
+#     # "../out/%s/0008.jpg": (0, 5, 25),
+#     # "../out/%s/0009.jpg": (0, -5, 25),
+#     # "../out/%s/0010.jpg": (0, 0, 15),
+# }
 
 for k in pointdict1:
     pointdict1[k] = map(lambda c: c / 10, pointdict1[k])
@@ -135,6 +135,10 @@ def drawCorners(img, corners):
     cv2.waitKey()
 
 def img_test():
+    """
+    AZ ÍGY KAPOTT MÁTRIXSZAL A ROBOT KOORDINÁTA-RENDSZERÉNEK VEKTORAIT ÍRJUK FÖL A MARKER KOORDINÁTA RENDSZERÉBEN
+    :return:
+    """
     pointdict = pointdict1
 
     pattern_size = (9, 6)
