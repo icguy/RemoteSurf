@@ -245,3 +245,6 @@ Reading robot position:
 1004, 90
 1005, 413
 Read done.
+
+setup:
+marker +x || robot +y

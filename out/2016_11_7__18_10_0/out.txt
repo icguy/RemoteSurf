@@ -266,3 +266,6 @@ Reading robot position:
 Read done.
 Chessboard found
 Success. File saved: out\2016_11_7__18_10_0\0007.jpg
+
+setup:
+marker +y || robot +x
