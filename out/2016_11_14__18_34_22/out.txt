@@ -1,0 +1,1034 @@
+Connection established
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0000.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 250
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0001.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 260
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 260
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0002.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 270
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 270
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0003.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 280
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 280
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0004.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 290
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 290
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0005.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 300
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0006.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 310
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 310
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0007.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 320
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 320
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0008.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 330
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 330
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0009.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 340
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 340
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0010.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 350
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 350
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0011.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 500, value: 300
+Register written. Address: 501, value: -50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, -50
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0012.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: -40
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, -40
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0013.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: -30
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, -30
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0014.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: -20
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, -20
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0015.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: -10
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, -10
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0016.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: 0
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0017.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: 10
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 10
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0018.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: 20
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 20
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0019.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: 30
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 30
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0020.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: 40
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 40
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0021.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: 50
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 50
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0022.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 501, value: 0
+Register written. Address: 502, value: 450
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 450
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0023.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 460
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 460
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0024.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 470
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 470
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0025.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 480
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 480
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0026.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 490
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 490
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0027.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 500
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 500
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0028.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 510
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 510
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0029.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 520
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 520
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0030.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 530
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 530
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0031.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 540
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 540
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Chessboard found
+Success. File saved: out\2016_11_14__18_34_22\0032.jpg
+Refresh done.
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
+Register written. Address: 502, value: 550
+Refresh done.
+Refresh done.
+Memory dump:
+------------
+500, 300
+501, 0
+502, 550
+503, 180
+504, 0
+505, 180
+------------
+Reading robot position:
+1000, 283
+1001, 10
+1002, 500
+1003, -180
+1004, 0
+1005, 283
+Read done.
