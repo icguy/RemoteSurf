@@ -5,9 +5,11 @@ import sys
 from Logger import write_log, logger
 import pickle
 
+WINDOW_POS = None
 OUT_FOLDER = None
 exit = False
 gui = None
+capture = False
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -31,10 +33,12 @@ def dumpDict(fname):
     rob_pos = gui.read_robot_pos()
 
     f = open(fname, "wb")
-    pickle.dump([reg_val, rob_pos], f, 2)
+    pickle.dump([reg_val, rob_pos], f, 0)
     f.close()
 
 def run(out_folder):
+    global capture
+
     if out_folder is None:
         out_folder = logger.outputdir
     cap = cv2.VideoCapture(0)
@@ -48,6 +52,11 @@ def run(out_folder):
     if not cap.isOpened():
         write_log("ERROR: webcam open failed")
     else:
+        cv2.namedWindow("frame")
+        if WINDOW_POS:
+            x, y = WINDOW_POS
+            cv2.moveWindow("frame", x, y)
+
         while cap.isOpened():
             if exit:
                 break
@@ -74,7 +83,9 @@ def run(out_folder):
             key = cv2.waitKey(1)
             if key == 27:
                 break
-            if key == 32:
+            if key == 32 or capture:
+                if capture: capture = False
+
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 ret, corners = cv2.findChessboardCorners(gray, (9, 6), flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
                 if ret:

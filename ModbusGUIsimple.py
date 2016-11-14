@@ -2,17 +2,23 @@ from Tkinter import *
 import tkFont
 from pyModbusTCP.client import ModbusClient
 from threading import Thread
-import datetime
-import os
 from Logger import write_log, logger
-import cv2
 import CamGrabber
+import CalibPoints
+import time
 
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
 
 PRINT_ALL_MEMORY_ON_WRITE = True
 START_OPENCV_THREAD = True
+
+MAINFRAME_POS = 675, 60
+CALIBFRAME_POS = 675, 350
+OPENCV_POS = 1000, 200
+CamGrabber.WINDOW_POS = OPENCV_POS
+
+CALIB_POINTS = CalibPoints.points1
 
 outfile = None
 
@@ -26,20 +32,23 @@ def uintToInt16(val):
 
 class ClientGUI:
     def __init__(self):
+        self.calibgui = None
         self.client = ModbusClient()
         self.register_values_widgets = {}
-        self.build_ui()
+        self.__build_ui()
 
     def run_ui(self):
         self.root.mainloop()
 
-    def build_ui(self):
+    def __build_ui(self):
         # ui hierarchy:
         #
         #root
         #   connectframe
         #       connectlabel
         #       connectbutton
+        #       snapshotbutton
+        #       calibbuton
         #   mainframe
         #       registerframe
         #           reglabel
@@ -49,20 +58,17 @@ class ClientGUI:
         #           outputlabel
         #           outputtext
 
-        x_padding = 5
-        y_padding = 5
-
         root = Tk()
         self.root = root
         root.wm_title("RemoteSurf Modbus Client")
-        root.protocol("WM_DELETE_WINDOW", self.delete_window)
+        root.protocol("WM_DELETE_WINDOW", self.__delete_window)
 
         self.font = tkFont.Font(root = root, family = "Helvetica", size = 12)
 
         connectframe = Frame(root)
-        connectbutton = Button(connectframe, text = "Connect", command = self.connectbutton_click)
+        connectbutton = Button(connectframe, text = "Connect", command = self.__connectbutton_click)
         connectlabel = Label(connectframe, text = "Not connected.")
-        snapshotbutton = Button(connectframe, text = "Capture")
+        calibbutton = Button(connectframe, text = "Calibrate", command = self.__calibbutton_click)
         mainframe = Frame(root)
         registerframe = Frame(mainframe)
         reglabel = Label(registerframe, text = "Set registers")
@@ -76,7 +82,7 @@ class ClientGUI:
         connectframe.pack(side = TOP, fill = X)
         connectbutton.pack(side = RIGHT)
         connectlabel.pack(side = LEFT)
-        snapshotbutton.pack(side = BOTTOM, anchor = E)
+        calibbutton.pack(side = BOTTOM, anchor = E)
         mainframe.pack(side = BOTTOM, fill = BOTH, expand = YES)
         registerframe.pack(side = TOP, expand = YES, anchor = W)
         # outputframe.pack(side = BOTTOM, fill = BOTH, expand = YES)
@@ -112,7 +118,7 @@ class ClientGUI:
         for i in range(len(registers_data)):
             reg_data = registers_data[i]
             row = i + 1
-            self.add_register(registergridframe, reg_data, row, registergrid_widgets)
+            self.__add_register(registergridframe, reg_data, row, registergrid_widgets)
 
         # hscrollbar.config(orient = HORIZONTAL, command = outputtext.xview)
         # hscrollbar.pack(side = BOTTOM, fill = X)
@@ -124,11 +130,11 @@ class ClientGUI:
         self.connectframe = connectframe
         self.connectlabel = connectlabel
         self.connectbutton = connectbutton
-        self.snapshotbutton = snapshotbutton
         self.mainframe = mainframe
         self.registerframe = registerframe
         self.reglabel = reglabel
         self.registergridframe = registergridframe
+        self.calibbutton = calibbutton
         # self.outputframe = outputframe
         # self.outputlabel = outputlabel
         # self.vscrollbar = vscrollbar
@@ -136,9 +142,12 @@ class ClientGUI:
         # self.outputtext = outputtext
 
         root.update()
-        root.minsize(root.winfo_width(), root.winfo_height())
+        w, h = root.winfo_width(), root.winfo_height()
+        root.minsize(w, h)
+        x, y = MAINFRAME_POS
+        root.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
-    def add_register(self, master, data, row, widget_list):
+    def __add_register(self, master, data, row, widget_list):
         regaddresslabel = Label(master, text=str(data[0]))
         regaddresslabel.grid(row=row, column=0)
         reglabellabel = Label(master, text=data[1])
@@ -146,7 +155,7 @@ class ClientGUI:
         regvalueentry = AccessibleEntry(master, justify = RIGHT)
         regvalueentry.set("0")
         regvalueentry.grid(row=row, column=2, padx=self.x_pad)
-        regsetbtn = Button(master, text="Set", command = self.setbutton_click)
+        regsetbtn = Button(master, text="Set", command = self.__setbutton_click)
         regsetbtn.grid(row=row, column=3)
         widget_list.append(regaddresslabel)
         widget_list.append(reglabellabel)
@@ -154,7 +163,11 @@ class ClientGUI:
         widget_list.append(regsetbtn)
         self.register_values_widgets[data[0]] = (0, regvalueentry)
 
-    def connectbutton_click(self):
+    def __calibbutton_click(self):
+        if not self.calibgui:
+            self.calibgui = CalibGUI(self, self.client)
+
+    def __connectbutton_click(self):
         if self.client.is_open():
             self.client.close()
         else:
@@ -166,7 +179,7 @@ class ClientGUI:
                 self.read_robot_pos()
             else:
                 write_log("ERROR: Connecting failed")
-        self.update_gui()
+        self.__update_gui()
 
     def read_robot_pos(self):
         write_log("Reading robot position:")
@@ -181,7 +194,7 @@ class ClientGUI:
                 write_log("%d, %d" % (i, real_val_int))
             else:
                 write_log("ERROR: Read could not be completed, client not connected.")
-                self.update_gui()
+                self.__update_gui()
                 break
         write_log("Read done.")
         return posdict
@@ -198,12 +211,12 @@ class ClientGUI:
                 self.register_values_widgets[address] = (real_val_int, widget)
             else:
                 write_log("ERROR: Read could not be completed, client not connected.")
-                self.update_gui()
+                self.__update_gui()
                 break
         write_log("Refresh done.")
         return self.register_values_widgets
 
-    def update_gui(self):
+    def __update_gui(self):
         if self.client.is_open():
             self.connectlabel.config(text = "Connected to: %s:%d" % (SERVER_HOST, SERVER_PORT))
             self.connectbutton.config(text = "Disconnect")
@@ -212,7 +225,7 @@ class ClientGUI:
             self.connectlabel.config(text = "Not connected.")
         self.root.update()
 
-    def print_memory(self):
+    def __print_memory(self):
         self.refresh_values()
         write_log("Memory dump:")
         write_log("------------")
@@ -221,7 +234,7 @@ class ClientGUI:
             write_log("%d, %d" % (address, val))
         write_log("------------")
 
-    def setbutton_click(self):
+    def __setbutton_click(self):
         if not self.client.is_open():
             write_log("ERROR: Not connected to client")
             return
@@ -253,16 +266,85 @@ class ClientGUI:
                     write_log("ERROR: Write failed. Address: %d, value: %d" % (address, widgetvalue_int))
             else:
                 write_log("ERROR: client not connected.")
-                self.update_gui()
+                self.__update_gui()
         self.refresh_values()
         if PRINT_ALL_MEMORY_ON_WRITE:
-            self.print_memory()
+            self.__print_memory()
             self.read_robot_pos()
 
-    def delete_window(self):
+    def set_values(self, values):
+        """
+        :param values: dictionary of { address : value} both int
+        :return:
+        """
+        for address in values:
+            if address not in self.register_values_widgets:
+                continue
+
+            val, widget = self.register_values_widgets[address]
+            widget.set(str(values[address]))
+        self.__setbutton_click()
+
+    def __delete_window(self):
         CamGrabber.exit = True
         self.client.close()
         self.root.quit()
+
+class CalibGUI:
+    def __init__(self, parent, client):
+        self.parent = parent
+        self.client = client
+        self.next_point_idx = 0
+
+        self.__build_ui(parent)
+
+    def __build_ui(self, parent):
+        # ui hierarchy:
+        #
+        # window
+        #   statuslabel
+        #   forwardbutton
+
+        window = Toplevel(parent.root)
+        window.wm_title("Calibration")
+        window.protocol("WM_DELETE_WINDOW", self.__delete_window)
+        self.window = window
+
+        statuslabel = Label(window, text = "Ready")
+        forwardbutton = Button(window, text = ">>", command = self.__forwardbutton_click)
+
+        forwardbutton.pack(side = RIGHT)
+        statuslabel.pack(side = LEFT)
+
+        self.forwardbutton = forwardbutton
+        self.statuslabel = statuslabel
+
+        window.update()
+        w, h = window.winfo_width(), window.winfo_height()
+        window.minsize(w, h)
+        x, y = CALIBFRAME_POS
+        window.geometry('%dx%d+%d+%d' % (w, h, x, y))
+
+    def __forwardbutton_click(self):
+        if self.next_point_idx < len(CALIB_POINTS):
+            CamGrabber.capture = True
+            time.sleep(0.5)
+
+            point = CALIB_POINTS[self.next_point_idx]
+            values = {
+                500: point[0],
+                501: point[1],
+                502: point[2],
+                503: point[3],
+                504: point[4],
+                505: point[5],
+            }
+            self.parent.set_values(values)
+            self.next_point_idx += 1
+
+    def __delete_window(self):
+        self.parent.calibgui = None
+        self.window.destroy()
 
 class AccessibleEntry(Entry):
     def __init__(self, master, cnf = {}, **kw):
