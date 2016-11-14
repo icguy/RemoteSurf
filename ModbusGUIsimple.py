@@ -30,6 +30,9 @@ class ClientGUI:
         self.register_values_widgets = {}
         self.build_ui()
 
+    def run_ui(self):
+        self.root.mainloop()
+
     def build_ui(self):
         # ui hierarchy:
         #
@@ -134,7 +137,6 @@ class ClientGUI:
 
         root.update()
         root.minsize(root.winfo_width(), root.winfo_height())
-        root.mainloop()
 
     def add_register(self, master, data, row, widget_list):
         regaddresslabel = Label(master, text=str(data[0]))
@@ -168,18 +170,21 @@ class ClientGUI:
 
     def read_robot_pos(self):
         write_log("Reading robot position:")
+        posdict = {}
         for i in range(1000, 1006):
             if self.client.is_open():
                 real_val_uint = self.client.read_input_registers(i)[0]
                 real_val_holding_uint = self.client.read_holding_registers(i)[0]
                 assert real_val_uint == real_val_holding_uint
                 real_val_int = uintToInt16(real_val_uint)
+                posdict[i] = real_val_int
                 write_log("%d, %d" % (i, real_val_int))
             else:
                 write_log("ERROR: Read could not be completed, client not connected.")
                 self.update_gui()
                 break
         write_log("Read done.")
+        return posdict
 
     def refresh_values(self):
         for address in self.register_values_widgets:
@@ -196,6 +201,7 @@ class ClientGUI:
                 self.update_gui()
                 break
         write_log("Refresh done.")
+        return self.register_values_widgets
 
     def update_gui(self):
         if self.client.is_open():
@@ -275,9 +281,12 @@ def runOpencv():
 
 if __name__ == '__main__':
     opencvThread = None
+    gui = ClientGUI()
     if START_OPENCV_THREAD:
         opencvThread = Thread(target=runOpencv)
+        CamGrabber.gui = gui
         opencvThread.start()
-    ClientGUI()
+
+    gui.run_ui()
     if opencvThread:
         opencvThread.join()

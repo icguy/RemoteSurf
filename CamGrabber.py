@@ -1,12 +1,13 @@
 import cv2
 import numpy as np
-import time
 import os
 import sys
 from Logger import write_log, logger
+import pickle
 
 OUT_FOLDER = None
 exit = False
+gui = None
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -20,6 +21,18 @@ def getNextFileIdx(out_folder):
 def getFileName(out_folder, idx):
     fname = os.path.join(out_folder, str(idx).rjust(4, '0') + ".jpg")
     return fname
+
+def dumpDict(fname):
+    reg_val_widget = gui.refresh_values()
+    reg_val = {}
+    for address in reg_val_widget:
+        val, widget = reg_val_widget[address]
+        reg_val[address] = val
+    rob_pos = gui.read_robot_pos()
+
+    f = open(fname, "wb")
+    pickle.dump([reg_val, rob_pos], f, 2)
+    f.close()
 
 def run(out_folder):
     if out_folder is None:
@@ -71,11 +84,15 @@ def run(out_folder):
                     write_log("Chessboard not found.")
 
             if key == 13:
-                success = cv2.imwrite(getFileName(out_folder, fileIdx), frame)
+                filename = getFileName(out_folder, fileIdx)
+
+                success = cv2.imwrite(filename, frame)
                 if success:
-                    write_log("Success. File saved: %s" % getFileName(out_folder, fileIdx))
+                    write_log("Success. File saved: %s" % filename)
+                    dictfile = os.path.splitext(filename)[0]+".p"
+                    dumpDict(dictfile)
                 else:
-                    write_log("Failed to write to: %s" % getFileName(out_folder, fileIdx))
+                    write_log("Failed to write to: %s" % filename)
                 fileIdx += 1
 
 if __name__ == '__main__':
