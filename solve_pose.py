@@ -42,7 +42,7 @@ for m in good:
 
 
 from feature_test import drawMatches
-from calib import test
+from calib_test import test
 import rpy
 
 
