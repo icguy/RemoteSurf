@@ -21,7 +21,7 @@ CALIBFRAME_POS = 675, 350
 OPENCV_POS = 1000, 200
 CamGrabber.WINDOW_POS = OPENCV_POS
 
-CALIB_POINTS = CalibPoints.points1
+CALIB_POINTS = CalibPoints.points2[0]
 
 outfile = None
 
