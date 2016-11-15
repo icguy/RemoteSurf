@@ -273,7 +273,6 @@ class ClientGUI:
         if wait:
             while True:
                 counter = self.client.read_input_registers(COUNTER_REGISTER_IN)[0]
-                print counter, self.counter
                 if counter == self.counter:
                     break
                 time.sleep(0.1)
