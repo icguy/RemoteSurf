@@ -182,13 +182,12 @@ def img_test():
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
 
-def img_test_from_files():
+def img_test_from_files(out_dir):
     """
     AZ IGY KAPOTT MATRIXSZAL A ROBOT KOORDINATA-RENDSZERENEK VEKTORAIT IRJUK FOL A MARKER KOORDINATA RENDSZEREBEN
     :return:
     """
-    out_dir = "2016_11_15__15_2_40"
-    files = glob("../out/%s/*.jpg" % out_dir)
+    files = glob("%s/*.jpg" % out_dir)
 
 
     pattern_size = (9, 6)
@@ -323,6 +322,10 @@ if __name__ == '__main__':
     # np.set_printoptions(formatter={'float': lambda x: "\t{0:0.3f}".format(x)})
     np.set_printoptions(precision=3, suppress=True)
 
-    img_test_from_files()
+
+    out_dir = "../out/2016_11_15__15_2_40"
+    out_dir = "../out/2016_11_15__15_35_17"
+    out_dir = "../out/2016_11_15__15_39_53"
+    img_test_from_files(out_dir)
     # img_test()
     # test()

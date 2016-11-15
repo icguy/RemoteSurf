@@ -6,6 +6,7 @@ from Logger import write_log, logger
 import CamGrabber
 import CalibPoints
 import time
+from arrangement_calib.chessboard_test import img_test_from_files
 
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
@@ -370,6 +371,7 @@ class CalibGUI:
             }
             self.parent.set_values(values)
             self.next_point_idx += 1
+        img_test_from_files(logger.outputdir)
 
     def __delete_window(self):
         self.parent.calibgui = None
