@@ -356,7 +356,7 @@ class CalibGUI:
         window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
     def __forwardbutton_click(self):
-        if self.next_point_idx < len(CALIB_POINTS):
+        while self.next_point_idx < len(CALIB_POINTS):
             CamGrabber.capture = True
             time.sleep(0.5)
 
