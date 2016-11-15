@@ -35,6 +35,7 @@ class ClientGUI:
         self.calibgui = None
         self.client = ModbusClient()
         self.register_values_widgets = {}
+        self.counter = 1
         self.__build_ui()
 
     def run_ui(self):
@@ -251,26 +252,32 @@ class ClientGUI:
             if value == widgetvalue_int:
                 continue
 
-            if not (-32768 <= widgetvalue_int <= 32767):
-                write_log("ERROR: -32768 <= value <= 32767 is false for address: %d" % address)
-                continue
-
-            widgetvalue_uint = intToUint16(widgetvalue_int)
-
-            if self.client.is_open():
-                retval = self.client.write_single_register(address, widgetvalue_uint)
-                if retval:
-                    self.register_values_widgets[address] = (widgetvalue_int, widget)
-                    write_log("Register written. Address: %d, value: %d" % (address, widgetvalue_int))
-                else:
-                    write_log("ERROR: Write failed. Address: %d, value: %d" % (address, widgetvalue_int))
+            retval = self.__write_register(address, widgetvalue_int)
+            if retval:
+                self.register_values_widgets[address] = (widgetvalue_int, widget)
             else:
-                write_log("ERROR: client not connected.")
                 self.__update_gui()
         self.refresh_values()
         if PRINT_ALL_MEMORY_ON_WRITE:
             self.__print_memory()
             self.read_robot_pos()
+
+    def __write_register(self, address, value):
+        if not (-32768 <= value <= 32767):
+            write_log("ERROR: -32768 <= value <= 32767 is false for address: %d" % address)
+            return False
+
+        widgetvalue_uint = intToUint16(value)
+        if self.client.is_open():
+            retval = self.client.write_single_register(address, widgetvalue_uint)
+            if retval:
+                write_log("Register written. Address: %d, value: %d" % (address, value))
+                return True
+            else:
+                write_log("ERROR: Write failed. Address: %d, value: %d" % (address, value))
+        else:
+            write_log("ERROR: client not connected.")
+        return False
 
     def set_values(self, values):
         """
