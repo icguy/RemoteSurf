@@ -12,7 +12,6 @@ SERVER_PORT = 502
 COUNTER_REGISTER_OUT = 540
 COUNTER_REGISTER_IN = 1041
 
-WAIT_MESSAGE_COUNTER = True
 PRINT_ALL_MEMORY_ON_WRITE = True
 START_OPENCV_THREAD = True
 
@@ -238,7 +237,7 @@ class ClientGUI:
             write_log("%d, %d" % (address, val))
         write_log("------------")
 
-    def __setbutton_click(self):
+    def __setbutton_click(self, wait = False):
         if not self.client.is_open():
             write_log("ERROR: Not connected to client")
             return
@@ -270,7 +269,7 @@ class ClientGUI:
         self.refresh_values()
 
         # message counter wait
-        if WAIT_MESSAGE_COUNTER:
+        if wait:
             while True:
                 counter = self.client.read_input_registers(COUNTER_REGISTER_IN)[0]
                 print counter, self.counter
@@ -302,7 +301,7 @@ class ClientGUI:
             write_log("ERROR: client not connected.")
         return False
 
-    def set_values(self, values):
+    def set_values(self, values, wait = True):
         """
         :param values: dictionary of { address : value} both int
         :return:
@@ -313,7 +312,7 @@ class ClientGUI:
 
             val, widget = self.register_values_widgets[address]
             widget.set(str(values[address]))
-        self.__setbutton_click()
+        self.__setbutton_click(wait)
 
     def __delete_window(self):
         CamGrabber.exit = True
