@@ -9,7 +9,10 @@ import time
 
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
+COUNTER_REGISTER_OUT = 540
+COUNTER_REGISTER_IN = 1041
 
+WAIT_MESSAGE_COUNTER = True
 PRINT_ALL_MEMORY_ON_WRITE = True
 START_OPENCV_THREAD = True
 
@@ -240,6 +243,13 @@ class ClientGUI:
             write_log("ERROR: Not connected to client")
             return
 
+        # writing message counter
+        retval = self.__write_register(COUNTER_REGISTER_OUT, self.counter)
+        if not retval:
+            self.__update_gui()
+            return
+
+        # writing registers
         for address in self.register_values_widgets:
             value, widget = self.register_values_widgets[address]
             widgetvalue_int = None
@@ -258,6 +268,19 @@ class ClientGUI:
             else:
                 self.__update_gui()
         self.refresh_values()
+
+        # message counter wait
+        if WAIT_MESSAGE_COUNTER:
+            while True:
+                counter = self.client.read_input_registers(COUNTER_REGISTER_IN)[0]
+                print counter, self.counter
+                if counter == self.counter:
+                    break
+                time.sleep(0.1)
+
+        # counter increment
+        self.counter = (self.counter + 1) % 20
+
         if PRINT_ALL_MEMORY_ON_WRITE:
             self.__print_memory()
             self.read_robot_pos()
