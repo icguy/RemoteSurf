@@ -160,13 +160,14 @@ def calc_rot(imgpts, objpts, robot_coords):
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
         tmat[:3, 3] = tvec.T
-        # print tmat
-        # print map(lambda c: c * 180 / 3.1416, Utils.rpy(rmat))
         tmatinv = np.linalg.inv(tmat)
 
         print ".."
+        print tmat
+        print " "
         print tmatinv
         voci = tmatinv[:3, 3]
+
         print voci
         print robot_coords[i]
         voc_np[i, :] = voci.reshape((3,))

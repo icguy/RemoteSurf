@@ -235,7 +235,6 @@ def img_test_from_files(out_dir):
 
 def calc_rot(imgpts, objpts, robot_coords):
     global cammtx
-    print cammtx
     numpts = len(imgpts)
     voc_np = np.zeros((numpts, 3))
     vrt_np = np.zeros((numpts, 3))
@@ -245,7 +244,6 @@ def calc_rot(imgpts, objpts, robot_coords):
             objpts = objpts.T
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
-
         retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, None)
         rmat, _ = cv2.Rodrigues(rvec)
         tmat = np.eye(4)
