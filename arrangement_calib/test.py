@@ -194,6 +194,8 @@ def filter_contours(contours):
 
 def test():
     seed(0)
+    np.random.seed(0)
+
     num_imgs = 10
     num_obj_pts = 20
     obj_pts = np.random.random((3, num_obj_pts))
@@ -206,8 +208,8 @@ def test():
     img_pts = [None] * num_imgs
     robot_coords = [None] * num_imgs
 
-    tmat_or = Utils.getTransform(1.1, .2, .3, 0, 0, 0, True)
-    tmat_tc = Utils.getTransform(0, 0, 0, 0, 0, 0, True)
+    tmat_or = get_rand_trf()
+    tmat_tc = get_rand_trf()
 
     for i in range(num_imgs):
         robot_coords[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10))
@@ -226,10 +228,41 @@ def test():
     print "---"
     print rot
     print tmat_or
+    print tmat_or[:3,:3] - rot
+    print "-----------"
+
+    # pi = Ror' * voci - vrti
+    # Ai = Rrti
+    # B(i) = Ror'
+
+    B = rot.T
+    M = np.zeros((3 * num_imgs, 6))
+    K = np.zeros((3 * num_imgs, 1))
+    for i in range(num_imgs):
+        tmats_rt[i] = get_rand_trf()
+        tmat_oc = tmat_or.dot(tmats_rt[i].dot(tmat_tc))
+        voci = tmat_oc[:3, 3]
+        vrti = tmats_rt[i][:3, 3]
+        pi = rot.T.dot(voci) - vrti
+        Ai = tmats_rt[i][:3, :3]
+        M[(3 * i) : (3 * i + 3), :3] = Ai
+        M[(3 * i) : (3 * i + 3), 3:] = B
+        K[(3 * i) : (3 * i + 3), 0] = pi
+    x = np.linalg.pinv(M).dot(K)
+    print tmat_tc
+    print tmat_or
+    print x
+
+
+def get_rand_trf():
+    rand_trf = Utils.getTransform(uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10,
+                                 uniform(-1, 1) * 10, uniform(-1, 1) * 10, True)
+    return rand_trf
+
 
 if __name__ == '__main__':
-    img_test()
-    # test()
+    # img_test()
+    test()
 
     # v = np.random.random((3, 3))
     # rot, _, _ = np.linalg.svd(v)
