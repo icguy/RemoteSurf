@@ -160,16 +160,12 @@ def calc_rot(imgpts, objpts, robot_coords):
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
         tmat[:3, 3] = tvec.T
-        tmatinv = np.linalg.inv(tmat)
+        toc = np.linalg.inv(tmat)
 
-        print ".."
-        print tmat
-        print " "
-        print tmatinv
-        voci = tmatinv[:3, 3]
+        voci = toc[:3, 3]
 
-        print voci
-        print robot_coords[i]
+        # print voci
+        # print robot_coords[i]
         voc_np[i, :] = voci.reshape((3,))
         vrt_np[i, :] = np.array(robot_coords[i], dtype=float).reshape((3,))
 
@@ -177,6 +173,46 @@ def calc_rot(imgpts, objpts, robot_coords):
     vrt_np -= np.sum(vrt_np, 0) / vrt_np.shape[0]
     rot = kabsch(vrt_np, voc_np)
     return rot.T, voc_np, vrt_np
+
+def calc_trans(imgpts, objpts, robot_coords, Ror):
+    global cammtx
+
+    numpts = len(imgpts)
+
+    # pi = Ror' * voci - vrti
+    # Ai = Rrti
+    # B = Ror'
+    B = Ror.T
+    M = np.zeros((3 * numpts, 6))
+    K = np.zeros((3 * numpts, 1))
+
+    for i in range(numpts):
+        imgpts_i = imgpts[i]
+        if objpts.shape[1] == 3:
+            objpts = objpts.T
+        if imgpts_i.shape[1] == 2:
+            imgpts_i = imgpts_i.T
+        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, None)
+        rmat, _ = cv2.Rodrigues(rvec)
+        tmat = np.eye(4)
+        tmat[:3, :3] = rmat
+        tmat[:3, 3] = tvec.T
+        toc = np.linalg.inv(tmat)
+
+        voci = toc[:3, 3]
+
+        x, y, z, a, b, c = robot_coords[i]
+        trti = Utils.getTransform(c, b, a, x, y, z, True)
+
+        vrti = trti[:3, 3]
+        pi = Ror.T.dot(voci) - vrti
+        Ai = trti[:3, :3]
+        M[(3 * i): (3 * i + 3), :3] = Ai
+        M[(3 * i): (3 * i + 3), 3:] = B
+        K[(3 * i): (3 * i + 3), 0] = pi
+
+    x = np.linalg.pinv(M).dot(K)
+    return x
 
 def filter_contours(contours):
     # print  len(contours)
@@ -193,8 +229,9 @@ def filter_contours(contours):
     return contours
 
 def test():
-    seed(0)
-    np.random.seed(0)
+    # seed(0)
+    # np.random.seed(0)
+    np.set_printoptions(precision=5, suppress=True)
 
     num_imgs = 10
     num_obj_pts = 20
@@ -203,8 +240,8 @@ def test():
     obj_pts_homog[:3, :] = obj_pts
 
     tmats_rt = [None] * num_imgs
-    r, p, y = .1, .2, .3
-    # r, p, y = 0, 0, 0
+    rr, pp, yy = (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10)
+    # rr, pp, yy = 0, 0, 0
     img_pts = [None] * num_imgs
     robot_coords = [None] * num_imgs
 
@@ -213,7 +250,8 @@ def test():
 
     for i in range(num_imgs):
         robot_coords[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10))
-        tmats_rt[i] =  Utils.getTransform(r, p, y, robot_coords[i][0], robot_coords[i][1], robot_coords[i][2], True)
+        x, y, z = robot_coords[i]
+        tmats_rt[i] =  Utils.getTransform(rr, pp, yy, x, y, z, True)
         # print tmats_rt[i]
         tmat_oc = tmat_or.dot(tmats_rt[i].dot(tmat_tc))
         tmat_co = np.linalg.inv(tmat_oc)
@@ -224,41 +262,44 @@ def test():
             proj_pts[:, j] /= proj_pts[2, j]
         img_pts[i] = proj_pts[:2, :]
 
-    rot, voc, vrt = calc_rot(img_pts, obj_pts, robot_coords)
+    Ror, voc, vrt = calc_rot(img_pts, obj_pts, robot_coords)
     print "---"
-    print rot
+    print Ror
     print tmat_or
-    print tmat_or[:3,:3] - rot
+    print tmat_or[:3,:3] - Ror
     print "-----------"
 
-    # pi = Ror' * voci - vrti
-    # Ai = Rrti
-    # B(i) = Ror'
+    # return
+    num_imgs2 = 10
 
-    B = rot.T
-    M = np.zeros((3 * num_imgs, 6))
-    K = np.zeros((3 * num_imgs, 1))
-    for i in range(num_imgs):
-        tmats_rt[i] = get_rand_trf()
+    tmats_rt = [None] * num_imgs2
+    img_pts = [None] * num_imgs2
+    robot_coords = [None] * num_imgs2
+
+    for i in range(num_imgs2):
+        robot_coords[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10))
+        x, y, z, a, b, c = robot_coords[i]
+        tmats_rt[i] = Utils.getTransform(c, b, a, x, y, z, True)
+        # print tmats_rt[i]
         tmat_oc = tmat_or.dot(tmats_rt[i].dot(tmat_tc))
-        voci = tmat_oc[:3, 3]
-        vrti = tmats_rt[i][:3, 3]
-        pi = rot.T.dot(voci) - vrti
-        Ai = tmats_rt[i][:3, :3]
-        M[(3 * i) : (3 * i + 3), :3] = Ai
-        M[(3 * i) : (3 * i + 3), 3:] = B
-        K[(3 * i) : (3 * i + 3), 0] = pi
-    x = np.linalg.pinv(M).dot(K)
+        tmat_co = np.linalg.inv(tmat_oc)
+        cam_pts = tmat_co.dot(obj_pts_homog)
+        proj_pts = cammtx.dot(cam_pts[:3, :])
+        for j in range(num_obj_pts):
+            proj_pts[:, j] /= proj_pts[2, j]
+        img_pts[i] = proj_pts[:2, :]
+
+    x = calc_trans(img_pts, obj_pts, robot_coords, Ror)
     print tmat_tc
     print tmat_or
     print x
-
+    print x[:3,0] - tmat_tc[:3, 3]
+    print x[3:,0] - tmat_or[:3, 3]
 
 def get_rand_trf():
     rand_trf = Utils.getTransform(uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10,
                                  uniform(-1, 1) * 10, uniform(-1, 1) * 10, True)
     return rand_trf
-
 
 if __name__ == '__main__':
     # img_test()
