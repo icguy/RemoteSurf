@@ -50,6 +50,7 @@ for i in range(1000):
     
 
 for f in glob("C:/Users/user/Documents/AD/RemoteSurf/Python/RemoteSurf/out/2016_11_15__16_47_52/*.p"):
+    print f
     ff = file(f)
     o = pickle.load(ff)
     ff.close()
