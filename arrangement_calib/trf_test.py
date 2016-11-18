@@ -49,7 +49,7 @@ for i in range(1000):
         print "haho"
     
 
-for f in glob("C:/Users/user/Documents/AD/RemoteSurf/Python/RemoteSurf/out/2016_11_15__16_47_52/*.p"):
+for f in glob("C:/Users/user/Documents/AD/RemoteSurf/Python/RemoteSurf/out/2016_11_18__11_51_59/*.p"):
     print f
     ff = file(f)
     o = pickle.load(ff)
