@@ -6,6 +6,8 @@ from glob import glob
 import os
 import pickle
 
+from test import calc_rot, calc_trans
+
 # outdir = "out0"
 # img_points_scale_bad_res = 1600.0 / 640
 # pointdict1 = {
@@ -232,36 +234,6 @@ def img_test_from_files(out_dir):
     #         print "-", i, j
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
-
-def calc_rot(imgpts, objpts, robot_coords):
-    global cammtx
-    numpts = len(imgpts)
-    voc_np = np.zeros((numpts, 3))
-    vrt_np = np.zeros((numpts, 3))
-    for i in range(numpts):
-        imgpts_i = imgpts[i]
-        if objpts.shape[1] == 3:
-            objpts = objpts.T
-        if imgpts_i.shape[1] == 2:
-            imgpts_i = imgpts_i.T
-        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, None)
-        rmat, _ = cv2.Rodrigues(rvec)
-        tmat = np.eye(4)
-        tmat[:3, :3] = rmat
-        tmat[:3, 3] = tvec.T
-        toc = np.linalg.inv(tmat)
-
-        voci = toc[:3, 3]
-
-        # print voci
-        # print robot_coords[i]
-        voc_np[i, :] = voci.reshape((3,))
-        vrt_np[i, :] = np.array(robot_coords[i], dtype=float).reshape((3,))
-
-    voc_np -= np.sum(voc_np, 0) / voc_np.shape[0]
-    vrt_np -= np.sum(vrt_np, 0) / vrt_np.shape[0]
-    rot = kabsch(vrt_np, voc_np)
-    return rot.T, voc_np, vrt_np
 
 def filter_contours(contours):
     # print  len(contours)
