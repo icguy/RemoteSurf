@@ -20,7 +20,6 @@ def points1_gen():
 
 def points2_gen():
     points, num = points1_gen()
-    points = []
     num = 0
 
     est_height = ORIGIN[2]
@@ -28,23 +27,24 @@ def points2_gen():
     angle_range_y = (-15, 15)
     num_points_in_dir = 10
 
-    points.append([0, 0, 0, 0, 0, 0])
+    points2 = []
+    points2.append([0, 0, 0, 0, 0, 0])
     #x
     for i in range(num_points_in_dir + 1):
         angle_deg = int(interp(angle_range_x[0], angle_range_x[1], 1.0 * i / num_points_in_dir))
         angle_rad = math.radians(angle_deg)
         delta = int(math.atan(angle_rad) * est_height)
-        points.append([-delta, 0, 0, 0, angle_deg, 0])
+        points2.append([-delta, 0, 0, 0, angle_deg, 0])
 
     #y
     for i in range(num_points_in_dir + 1):
         angle_deg = int(interp(angle_range_y[0], angle_range_y[1], 1.0 * i / num_points_in_dir))
         angle_rad = math.radians(angle_deg)
         delta = int(math.atan(angle_rad) * est_height)
-        points.append([0, delta, 0, angle_deg, 0, 0])
+        points2.append([0, delta, 0, angle_deg, 0, 0])
 
-    points = [[p[i] + ORIGIN[i] for i in range(len(ORIGIN))] for p in points]
-    return points, num
+    points2 = [[p[i] + ORIGIN[i] for i in range(len(ORIGIN))] for p in points2]
+    return points + points2, num
 
 points1 = points1_gen()
 points2 = points2_gen()
