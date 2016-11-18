@@ -249,16 +249,12 @@ def calc_rot(imgpts, objpts, robot_coords):
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
         tmat[:3, 3] = tvec.T
-        tmatinv = np.linalg.inv(tmat)
+        toc = np.linalg.inv(tmat)
 
-        print ".."
-        print tmat
-        print " "
-        print tmatinv
-        voci = tmatinv[:3, 3]
+        voci = toc[:3, 3]
 
-        print voci
-        print robot_coords[i]
+        # print voci
+        # print robot_coords[i]
         voc_np[i, :] = voci.reshape((3,))
         vrt_np[i, :] = np.array(robot_coords[i], dtype=float).reshape((3,))
 
