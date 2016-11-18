@@ -12,3 +12,11 @@ for dir in dirs:
     if len(contents) == 0 or (len(contents) == 1 and contents[0] == "out.txt"):
         shutil.rmtree(curdir)
         print curdir
+
+# print [[f for f in dirdata[2] if f.endswith(".bak")] for dirdata in os.walk("arrangement_calib")]
+for dirdata in os.walk("."):
+    for f in dirdata[2]:
+        if f.endswith(".bak"):
+            path = os.path.join(dirdata[0], f)
+            print path
+            os.remove(path)
