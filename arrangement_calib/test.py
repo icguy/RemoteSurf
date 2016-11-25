@@ -228,9 +228,19 @@ def filter_contours(contours):
     contours = [c for c in contours if cv2.contourArea(c) > 5000]
     return contours
 
+def add_noise(pts, amplitude):
+    pts2 = [None] * len(pts)
+    for i in range(len(pts)):
+        pt = pts[i]
+        noise = np.random.random(pt.shape) * 2 - 1
+        noise *= amplitude
+        pts2[i] = pt + noise
+    return pts2
+
 def test():
-    # seed(0)
-    # np.random.seed(0)
+    sd = 10
+    seed(sd)
+    np.random.seed(sd)
     np.set_printoptions(precision=5, suppress=True)
 
     num_imgs = 10
@@ -262,6 +272,8 @@ def test():
             proj_pts[:, j] /= proj_pts[2, j]
         img_pts[i] = proj_pts[:2, :]
 
+    img_pts = add_noise(img_pts, 5)
+
     Ror, voc, vrt = calc_rot(img_pts, obj_pts, robot_coords)
     print "---"
     print Ror
@@ -269,8 +281,7 @@ def test():
     print tmat_or[:3,:3] - Ror
     print "-----------"
 
-    # return
-    num_imgs2 = 10
+    num_imgs2 = 1000
 
     tmats_rt = [None] * num_imgs2
     img_pts = [None] * num_imgs2
@@ -289,6 +300,13 @@ def test():
             proj_pts[:, j] /= proj_pts[2, j]
         img_pts[i] = proj_pts[:2, :]
 
+        if i == 776:
+            print x, y, z, a, b, c
+            print tmat_co
+
+    img_pts = add_noise(img_pts, 5)
+    # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
+    # robot_coords = [robot_coords[i] for i in range(len(robot_coords)) if i != 776]
     x = calc_trans(img_pts, obj_pts, robot_coords, Ror)
     print tmat_tc
     print tmat_or

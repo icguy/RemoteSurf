@@ -261,6 +261,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         # drawCorners(img, corners)
         cv2.cornerSubPix(gray, corners, (9, 6), (-1, -1),
                          criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
+        print corners
         # drawCorners(img, corners)
 
         imgpts_curr = corners.reshape((54, 2))
