@@ -30,6 +30,8 @@ pointdict2 = {
 cammtx = np.array(
     [1.8435610863515064e+003, 0., 7.995e+002, 0., 1.8435610863515064e+003, 5.995e+002, 0., 0., 1.]).reshape(
     (3, 3))
+dist_coeffs = np.array([1.1415471237383623e-001, -1.4601522229886266e+000, 0., 0.,
+                        5.1820223903354057e+000])
 
 def normalize(img):
     mmin, mmax = np.min(img), np.max(img)
@@ -144,8 +146,8 @@ def img_test():
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
 
-def calc_rot(imgpts, objpts, robot_coords):
-    global cammtx
+def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
+    global cammtx, dist_coeffs
     numpts = len(imgpts)
     voc_np = np.zeros((numpts, 3))
     vrt_np = np.zeros((numpts, 3))
@@ -155,7 +157,7 @@ def calc_rot(imgpts, objpts, robot_coords):
             objpts = objpts.T
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
-        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, None)
+        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None)
         rmat, _ = cv2.Rodrigues(rvec)
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
@@ -174,8 +176,8 @@ def calc_rot(imgpts, objpts, robot_coords):
     rot = kabsch(vrt_np, voc_np)
     return rot.T, voc_np, vrt_np
 
-def calc_trans(imgpts, objpts, robot_coords, Ror):
-    global cammtx
+def calc_trans(imgpts, objpts, robot_coords, Ror, use_dist_coeffs = False):
+    global cammtx, dist_coeffs
 
     numpts = len(imgpts)
 
@@ -192,7 +194,7 @@ def calc_trans(imgpts, objpts, robot_coords, Ror):
             objpts = objpts.T
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
-        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, None)
+        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None)
         rmat, _ = cv2.Rodrigues(rvec)
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
