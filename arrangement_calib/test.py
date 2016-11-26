@@ -239,8 +239,7 @@ def add_noise(pts, amplitude):
         pts2[i] = pt + noise
     return pts2
 
-def test():
-    sd = 10
+def test(sd = 10):
     seed(sd)
     np.random.seed(sd)
     np.set_printoptions(precision=5, suppress=True)
@@ -303,8 +302,13 @@ def test():
         img_pts[i] = proj_pts[:2, :]
 
         if i == 776:
+            print ".."
+            print i
             print x, y, z, a, b, c
             print tmat_co
+            print tmat_oc
+            print proj_pts[:2, :]
+            print ".."
 
     img_pts = add_noise(img_pts, 5)
     # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
@@ -315,6 +319,7 @@ def test():
     print x
     print x[:3,0] - tmat_tc[:3, 3]
     print x[3:,0] - tmat_or[:3, 3]
+    return max(np.max(x[:3,0] - tmat_tc[:3, 3]), np.max(x[3:,0] - tmat_or[:3, 3]))
 
 def get_rand_trf():
     rand_trf = Utils.getTransform(uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10,
@@ -323,7 +328,19 @@ def get_rand_trf():
 
 if __name__ == '__main__':
     # img_test()
-    test()
+    print test(97)
+    necces_seedek = [10, 20, 48, 53, 69, 78, 96, 97]
+
+    # seed  err             ludas
+    # 10    32.6704391356   776
+    # 20    197.964954352   166
+    # 48    201.696790972   434
+    # 53    7373426.10986   605
+    # 69    276871753.915   961
+    # 78    514334413.382   131
+    # 96    4109638.9098    392
+    # 97    352.850449091   931
+
 
     # v = np.random.random((3, 3))
     # rot, _, _ = np.linalg.svd(v)
