@@ -274,7 +274,8 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
 
     robot_coords = []
     imgpts = []
-    for f in files:
+    files_trans = files[num_rot_calib_imgs:]
+    for f in files_trans:
         datafile = os.path.splitext(f)[0] + ".p"
         pfile = file(datafile)
         data = pickle.load(pfile)
