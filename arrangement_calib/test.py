@@ -204,7 +204,12 @@ def calc_trans(imgpts, objpts, robot_coords, Ror, use_dist_coeffs = False):
         voci = toc[:3, 3]
 
         x, y, z, a, b, c = robot_coords[i]
+        a, b, c = map(lambda p : p * np.pi / 180, (a, b, c))    #deg to rad
+        x, y, z = map(lambda p : p / 10.0, (x, y, z))           #mm to cm
         trti = Utils.getTransform(c, b, a, x, y, z, True)
+        print i
+        print trti
+        print toc
 
         vrti = trti[:3, 3]
         pi = Ror.T.dot(voci) - vrti

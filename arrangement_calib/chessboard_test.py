@@ -275,6 +275,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
     robot_coords = []
     imgpts = []
     files_trans = files[num_rot_calib_imgs:]
+    print [(i, os.path.basename(files_trans[i])) for i in range(len(files_trans))]
     for f in files_trans:
         datafile = os.path.splitext(f)[0] + ".p"
         pfile = file(datafile)
