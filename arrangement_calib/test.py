@@ -132,7 +132,7 @@ def img_test():
         imgpts_curr = np.array(imgpts_curr)
         imgpts.append(imgpts_curr)
 
-    rot, voc_np, vrt_np = calc_rot(imgpts, objpts, robot_coords)
+    rot = calc_rot(imgpts, objpts, robot_coords)
 
     print Utils.rpy(rot)
     print rot
@@ -174,7 +174,7 @@ def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
     voc_np -= np.sum(voc_np, 0) / voc_np.shape[0]
     vrt_np -= np.sum(vrt_np, 0) / vrt_np.shape[0]
     rot = kabsch(vrt_np, voc_np)
-    return rot.T, voc_np, vrt_np
+    return rot.T
 
 def calc_trans(imgpts, objpts, robot_coords, Ror, use_dist_coeffs = False):
     global cammtx, dist_coeffs
@@ -280,7 +280,7 @@ def test(sd = 10):
 
     img_pts = add_noise(img_pts, 5)
 
-    Ror, voc, vrt = calc_rot(img_pts, obj_pts, robot_coords)
+    Ror = calc_rot(img_pts, obj_pts, robot_coords)
     print "---"
     print Ror
     print tmat_or
