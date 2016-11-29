@@ -178,15 +178,15 @@ def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
     rot = kabsch(vrt_np, voc_np)
     return rot.T, toc
 
-def calc_trans(imgpts, objpts, robot_coords, Ror, use_dist_coeffs = False):
+def calc_trans(imgpts, objpts, robot_coords, ror, use_dist_coeffs = False):
     global cammtx, dist_coeffs
 
     numpts = len(imgpts)
 
-    # pi = Ror' * voci - vrti
-    # Ai = Rrti
-    # B = Ror'
-    B = Ror.T
+    # pi = ror' * voci - vrti
+    # Ai = rrti
+    # B = ror'
+    B = ror.T
     M = np.zeros((3 * numpts, 6))
     K = np.zeros((3 * numpts, 1))
 
@@ -212,7 +212,7 @@ def calc_trans(imgpts, objpts, robot_coords, Ror, use_dist_coeffs = False):
         print toc
 
         vrti = trti[:3, 3]
-        pi = Ror.T.dot(voci) - vrti
+        pi = ror.T.dot(voci) - vrti
         Ai = trti[:3, :3]
         M[(3 * i): (3 * i + 3), :3] = Ai
         M[(3 * i): (3 * i + 3), 3:] = B
@@ -289,31 +289,36 @@ def test(sd = 10):
 
     img_pts = add_noise(img_pts, 5)
 
+    ror_est, toc_est = calc_rot(img_pts, obj_pts, robot_coords)
+    roc_est = calc_avg_rot([toci[:3, :3] for toci in toc_est])
+    rrt = Utils.getTransform(rr, pp, yy, 0, 0, 0, True)[:3, :3]
+    rtc_est = rrt.T.dot(ror_est.T.dot(roc_est))
+
     Ror, toc = calc_rot(img_pts, obj_pts, robot_coords)
     print "---"
-    print Ror
+    print ror_est
     print tmat_or
-    print tmat_or[:3,:3] - Ror
+    print tmat_or[:3,:3] - ror_est
     print "-----------"
 
     num_imgs2 = 1000
 
-    tmats_rt = [None] * num_imgs2
-    img_pts = [None] * num_imgs2
-    robot_coords = [None] * num_imgs2
+    tmats_rt_trans = [None] * num_imgs2
+    img_pts_trans = [None] * num_imgs2
+    robot_coords_trans = [None] * num_imgs2
 
     for i in range(num_imgs2):
-        robot_coords[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10))
-        x, y, z, a, b, c = robot_coords[i]
-        tmats_rt[i] = Utils.getTransform(c, b, a, x, y, z, True)
+        robot_coords_trans[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10))
+        x, y, z, a, b, c = robot_coords_trans[i]
+        tmats_rt_trans[i] = Utils.getTransform(c, b, a, x, y, z, True)
         # print tmats_rt[i]
-        tmat_oc = tmat_or.dot(tmats_rt[i].dot(tmat_tc))
+        tmat_oc = tmat_or.dot(tmats_rt_trans[i].dot(tmat_tc))
         tmat_co = np.linalg.inv(tmat_oc)
         cam_pts = tmat_co.dot(obj_pts_homog)
         proj_pts = cammtx.dot(cam_pts[:3, :])
         for j in range(num_obj_pts):
             proj_pts[:, j] /= proj_pts[2, j]
-        img_pts[i] = proj_pts[:2, :]
+        img_pts_trans[i] = proj_pts[:2, :]
 
         if i == 776:
             print ".."
@@ -328,13 +333,23 @@ def test(sd = 10):
 
     # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
     # robot_coords = [robot_coords[i] for i in range(len(robot_coords)) if i != 776]
-    x = calc_trans(img_pts, obj_pts, robot_coords, Ror)
+    x_est = calc_trans(img_pts_trans, obj_pts, robot_coords_trans, ror_est)
     print tmat_tc
     print tmat_or
-    print x
-    print x[:3,0] - tmat_tc[:3, 3]
-    print x[3:,0] - tmat_or[:3, 3]
-    return max(np.max(x[:3,0] - tmat_tc[:3, 3]), np.max(x[3:,0] - tmat_or[:3, 3]))
+    print x_est
+    print x_est[:3,0] - tmat_tc[:3, 3]
+    print x_est[3:,0] - tmat_or[:3, 3]
+
+    vtc_est = x_est[:3, :]
+    vor_est = x_est[3:, :]
+    tor_est = np.eye(4)
+    tor_est[:3, :3] = ror_est
+    tor_est[:3, 3] = vor_est.reshape((3,))
+    ttc_est = np.eye(4)
+    ttc_est[:3, :3] = rtc_est
+    ttc_est[:3, 3] = vtc_est.reshape((3,))
+
+    return max(np.max(x_est[:3,0] - tmat_tc[:3, 3]), np.max(x_est[3:,0] - tmat_or[:3, 3]))
 
 def get_rand_trf():
     rand_trf = Utils.getTransform(uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10,
