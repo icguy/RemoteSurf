@@ -171,7 +171,7 @@ def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
         # print voci
         # print robot_coords[i]
         voc_np[i, :] = voci.reshape((3,))
-        vrt_np[i, :] = np.array(robot_coords[i], dtype=float).reshape((3,))
+        vrt_np[i, :] = np.array(robot_coords[i][:3], dtype=float).reshape((3,))
 
     voc_np -= np.sum(voc_np, 0) / voc_np.shape[0]
     vrt_np -= np.sum(vrt_np, 0) / vrt_np.shape[0]
