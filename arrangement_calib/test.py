@@ -223,6 +223,15 @@ def calc_trans(imgpts, objpts, robot_coords, Ror, use_dist_coeffs = False):
     x = np.linalg.pinv(M).dot(K)
     return x
 
+def calc_avg_rot(rot_matrices):
+    num_matrices = len(rot_matrices)
+    bigrot = np.zeros((num_matrices * 3, 3))
+    bigeye = np.zeros((num_matrices * 3, 3))
+    for i in range(num_matrices):
+        bigrot[i:(i+3), :] = rot_matrices[i]
+        bigeye[i:(i+3), :] = np.eye(3)
+    return kabsch(bigeye, bigrot)
+
 def filter_contours(contours):
     # print  len(contours)
     # h, w = dil.shape
