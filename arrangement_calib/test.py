@@ -132,7 +132,7 @@ def img_test():
         imgpts_curr = np.array(imgpts_curr)
         imgpts.append(imgpts_curr)
 
-    rot = calc_rot(imgpts, objpts, robot_coords)
+    rot, toc = calc_rot(imgpts, objpts, robot_coords)
 
     print Utils.rpy(rot)
     print rot
@@ -282,7 +282,7 @@ def test(sd = 10):
 
     img_pts = add_noise(img_pts, 5)
 
-    Ror = calc_rot(img_pts, obj_pts, robot_coords)
+    Ror, toc = calc_rot(img_pts, obj_pts, robot_coords)
     print "---"
     print Ror
     print tmat_or
