@@ -151,6 +151,7 @@ def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
     numpts = len(imgpts)
     voc_np = np.zeros((numpts, 3))
     vrt_np = np.zeros((numpts, 3))
+    toc = []
     for i in range(numpts):
         imgpts_i = imgpts[i]
         if objpts.shape[1] == 3:
@@ -162,9 +163,10 @@ def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
         tmat[:3, 3] = tvec.T
-        toc = np.linalg.inv(tmat)
+        toci = np.linalg.inv(tmat)
+        toc.append(toci)
 
-        voci = toc[:3, 3]
+        voci = toci[:3, 3]
 
         # print voci
         # print robot_coords[i]
@@ -174,7 +176,7 @@ def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
     voc_np -= np.sum(voc_np, 0) / voc_np.shape[0]
     vrt_np -= np.sum(vrt_np, 0) / vrt_np.shape[0]
     rot = kabsch(vrt_np, voc_np)
-    return rot.T
+    return rot.T, toc
 
 def calc_trans(imgpts, objpts, robot_coords, Ror, use_dist_coeffs = False):
     global cammtx, dist_coeffs

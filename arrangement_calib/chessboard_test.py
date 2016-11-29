@@ -169,7 +169,7 @@ def img_test():
 
 
 
-    rot = calc_rot(imgpts, pattern_points, robot_coords)
+    rot, toc = calc_rot(imgpts, pattern_points, robot_coords)
 
     print Utils.rpy(rot)
     print rot
@@ -220,7 +220,7 @@ def img_test_from_files(out_dir):
 
 
 
-    rot = calc_rot(imgpts, pattern_points, robot_coords)
+    rot, toc = calc_rot(imgpts, pattern_points, robot_coords)
 
     print Utils.rpy(rot)
     print rot
@@ -267,7 +267,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
-    ror = calc_rot(imgpts, pattern_points, robot_coords, True)
+    ror, toc = calc_rot(imgpts, pattern_points, robot_coords, True)
 
     print Utils.rpy(ror)
     print ror
@@ -361,7 +361,7 @@ def test():
             proj_pts[:, j] /= proj_pts[2, j]
         img_pts[i] = proj_pts[:2, :]
 
-    rot = calc_rot(img_pts, obj_pts, robot_coords)
+    rot, toc = calc_rot(img_pts, obj_pts, robot_coords)
     print "---"
     print rot
     print tmat_or
