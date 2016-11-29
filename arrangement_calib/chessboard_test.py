@@ -5,7 +5,7 @@ from random import random, seed, uniform
 from glob import glob
 import os
 import pickle
-from test import calc_rot, calc_trans
+from test import calc_rot, calc_trans, calc_avg_rot
 
 # outdir = "out0"
 # img_points_scale_bad_res = 1600.0 / 640
@@ -234,6 +234,7 @@ def img_test_from_files(out_dir):
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
 
+
 def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
     file_names_pattern = "%s/*.jpg" % out_dir
     files = glob(file_names_pattern)
@@ -244,7 +245,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
     pattern_points[:, :2] = np.indices(pattern_size).T.reshape(-1, 2)
     pattern_points *= 2.615
 
-    robot_coords = []
+    robot_coords_rot = []
     imgpts = []
 
     for f in files_rot:
@@ -252,7 +253,11 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         pfile = file(datafile)
         data = pickle.load(pfile)
         pfile.close()
-        robot_coords.append([data[0][i] for i in [500, 501, 502]])
+
+        x, y, z, a, b, c = [data[0][i] for i in [500, 501, 502, 503, 504, 505]]
+        a, b, c = map(lambda p: p * np.pi / 180     , (a, b, c))  # deg to rad
+        x, y, z = map(lambda p: p / 10.0            , (x, y, z))  # mm to cm
+        robot_coords_rot.append([x, y, z, a, b, c])
 
         img = cv2.imread(f)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -267,14 +272,13 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
-    ror, toc = calc_rot(imgpts, pattern_points, robot_coords, True)
+    ror, toc = calc_rot(imgpts, pattern_points, robot_coords_rot, True)
+    rtc = calc_avg_rot([toci[:3,:3] for toci in toc])
 
     print Utils.rpy(ror)
     print ror
-    print "toc"
-    print toc
 
-    robot_coords = []
+    robot_coords_trans = []
     imgpts = []
     files_trans = files[num_rot_calib_imgs:]
     print [(i, os.path.basename(files_trans[i])) for i in range(len(files_trans))]
@@ -283,7 +287,11 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         pfile = file(datafile)
         data = pickle.load(pfile)
         pfile.close()
-        robot_coords.append([data[0][i] for i in [500, 501, 502, 503, 504, 505]])
+
+        x, y, z, a, b, c = [data[0][i] for i in [500, 501, 502, 503, 504, 505]]
+        a, b, c = map(lambda p: p * np.pi / 180     , (a, b, c))  # deg to rad
+        x, y, z = map(lambda p: p / 10.0            , (x, y, z))  # mm to cm
+        robot_coords_trans.append([x, y, z, a, b, c])
 
         img = cv2.imread(f)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -298,15 +306,16 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
-    x = calc_trans(imgpts, pattern_points, robot_coords, ror, True)
+    x = calc_trans(imgpts, pattern_points, robot_coords_trans, ror, True)
     vtc = x[:3, :]
     vor = x[3:, :]
     tor = np.eye(4)
     tor[:3,:3] = ror
-    tor[:3, 3] = vor
+    tor[:3, 3] = vor.reshape((3,))
     ttc = np.eye(4)
-    ttc[:3, :3] = ror
-    ttc[:3, 3] = vtc
+    ttc[:3, :3] = rtc
+    ttc[:3, 3] = vtc.reshape((3,))
+
 
     print x # vtc, vor
 

@@ -206,8 +206,6 @@ def calc_trans(imgpts, objpts, robot_coords, Ror, use_dist_coeffs = False):
         voci = toc[:3, 3]
 
         x, y, z, a, b, c = robot_coords[i]
-        a, b, c = map(lambda p : p * np.pi / 180, (a, b, c))    #deg to rad
-        x, y, z = map(lambda p : p / 10.0, (x, y, z))           #mm to cm
         trti = Utils.getTransform(c, b, a, x, y, z, True)
         print i
         print trti
@@ -327,6 +325,7 @@ def test(sd = 10):
             print ".."
 
     img_pts = add_noise(img_pts, 5)
+
     # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
     # robot_coords = [robot_coords[i] for i in range(len(robot_coords)) if i != 776]
     x = calc_trans(img_pts, obj_pts, robot_coords, Ror)
