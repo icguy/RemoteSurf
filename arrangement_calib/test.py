@@ -30,6 +30,8 @@ pointdict2 = {
 cammtx = np.array(
     [1.8435610863515064e+003, 0., 7.995e+002, 0., 1.8435610863515064e+003, 5.995e+002, 0., 0., 1.]).reshape(
     (3, 3))
+dist_coeffs = np.array([1.1415471237383623e-001, -1.4601522229886266e+000, 0., 0.,
+                        5.1820223903354057e+000])
 
 def normalize(img):
     mmin, mmax = np.min(img), np.max(img)
@@ -144,8 +146,8 @@ def img_test():
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
 
-def calc_rot(imgpts, objpts, robot_coords):
-    global cammtx
+def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
+    global cammtx, dist_coeffs
     numpts = len(imgpts)
     voc_np = np.zeros((numpts, 3))
     vrt_np = np.zeros((numpts, 3))
@@ -155,7 +157,7 @@ def calc_rot(imgpts, objpts, robot_coords):
             objpts = objpts.T
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
-        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, None)
+        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None)
         rmat, _ = cv2.Rodrigues(rvec)
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
@@ -174,8 +176,8 @@ def calc_rot(imgpts, objpts, robot_coords):
     rot = kabsch(vrt_np, voc_np)
     return rot.T, voc_np, vrt_np
 
-def calc_trans(imgpts, objpts, robot_coords, Ror):
-    global cammtx
+def calc_trans(imgpts, objpts, robot_coords, Ror, use_dist_coeffs = False):
+    global cammtx, dist_coeffs
 
     numpts = len(imgpts)
 
@@ -192,7 +194,7 @@ def calc_trans(imgpts, objpts, robot_coords, Ror):
             objpts = objpts.T
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
-        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, None)
+        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None)
         rmat, _ = cv2.Rodrigues(rvec)
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
@@ -202,7 +204,12 @@ def calc_trans(imgpts, objpts, robot_coords, Ror):
         voci = toc[:3, 3]
 
         x, y, z, a, b, c = robot_coords[i]
+        a, b, c = map(lambda p : p * np.pi / 180, (a, b, c))    #deg to rad
+        x, y, z = map(lambda p : p / 10.0, (x, y, z))           #mm to cm
         trti = Utils.getTransform(c, b, a, x, y, z, True)
+        print i
+        print trti
+        print toc
 
         vrti = trti[:3, 3]
         pi = Ror.T.dot(voci) - vrti
@@ -228,9 +235,18 @@ def filter_contours(contours):
     contours = [c for c in contours if cv2.contourArea(c) > 5000]
     return contours
 
-def test():
-    # seed(0)
-    # np.random.seed(0)
+def add_noise(pts, amplitude):
+    pts2 = [None] * len(pts)
+    for i in range(len(pts)):
+        pt = pts[i]
+        noise = np.random.random(pt.shape) * 2 - 1
+        noise *= amplitude
+        pts2[i] = pt + noise
+    return pts2
+
+def test(sd = 10):
+    seed(sd)
+    np.random.seed(sd)
     np.set_printoptions(precision=5, suppress=True)
 
     num_imgs = 10
@@ -262,6 +278,8 @@ def test():
             proj_pts[:, j] /= proj_pts[2, j]
         img_pts[i] = proj_pts[:2, :]
 
+    img_pts = add_noise(img_pts, 5)
+
     Ror, voc, vrt = calc_rot(img_pts, obj_pts, robot_coords)
     print "---"
     print Ror
@@ -269,8 +287,7 @@ def test():
     print tmat_or[:3,:3] - Ror
     print "-----------"
 
-    # return
-    num_imgs2 = 10
+    num_imgs2 = 1000
 
     tmats_rt = [None] * num_imgs2
     img_pts = [None] * num_imgs2
@@ -289,12 +306,25 @@ def test():
             proj_pts[:, j] /= proj_pts[2, j]
         img_pts[i] = proj_pts[:2, :]
 
+        if i == 776:
+            print ".."
+            print i
+            print x, y, z, a, b, c
+            print tmat_co
+            print tmat_oc
+            print proj_pts[:2, :]
+            print ".."
+
+    img_pts = add_noise(img_pts, 5)
+    # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
+    # robot_coords = [robot_coords[i] for i in range(len(robot_coords)) if i != 776]
     x = calc_trans(img_pts, obj_pts, robot_coords, Ror)
     print tmat_tc
     print tmat_or
     print x
     print x[:3,0] - tmat_tc[:3, 3]
     print x[3:,0] - tmat_or[:3, 3]
+    return max(np.max(x[:3,0] - tmat_tc[:3, 3]), np.max(x[3:,0] - tmat_or[:3, 3]))
 
 def get_rand_trf():
     rand_trf = Utils.getTransform(uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10,
@@ -303,7 +333,19 @@ def get_rand_trf():
 
 if __name__ == '__main__':
     # img_test()
-    test()
+    print test(97)
+    necces_seedek = [10, 20, 48, 53, 69, 78, 96, 97]
+
+    # seed  err             ludas
+    # 10    32.6704391356   776
+    # 20    197.964954352   166
+    # 48    201.696790972   434
+    # 53    7373426.10986   605
+    # 69    276871753.915   961
+    # 78    514334413.382   131
+    # 96    4109638.9098    392
+    # 97    352.850449091   931
+
 
     # v = np.random.random((3, 3))
     # rot, _, _ = np.linalg.svd(v)

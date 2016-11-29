@@ -267,14 +267,16 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
-    rot, voc_np, vrt_np = calc_rot(imgpts, pattern_points, robot_coords)
+    rot, voc_np, vrt_np = calc_rot(imgpts, pattern_points, robot_coords, True)
 
     print Utils.rpy(rot)
     print rot
 
     robot_coords = []
     imgpts = []
-    for f in files:
+    files_trans = files[num_rot_calib_imgs:]
+    print [(i, os.path.basename(files_trans[i])) for i in range(len(files_trans))]
+    for f in files_trans:
         datafile = os.path.splitext(f)[0] + ".p"
         pfile = file(datafile)
         data = pickle.load(pfile)
@@ -294,7 +296,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
-    x = calc_trans(imgpts, pattern_points, robot_coords, rot)
+    x = calc_trans(imgpts, pattern_points, robot_coords, rot, True)
     print x # vtc, vor
 
 def filter_contours(contours):
@@ -310,6 +312,15 @@ def filter_contours(contours):
     contours = [c for c in sorted(contours, key=lambda c: cv2.contourArea(c))]
     contours = [c for c in contours if cv2.contourArea(c) > 5000]
     return contours
+
+"""
+todo:
+-check out other calib methods
+-debug arrangement_calib/test/test(), see:
+    # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
+    # robot_coords = [robot_coords[i] for i in range(len(robot_coords)) if i != 776]
+
+"""
 
 def test():
     seed(0)
