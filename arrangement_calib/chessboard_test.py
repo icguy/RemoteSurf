@@ -234,15 +234,6 @@ def img_test_from_files(out_dir):
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
 
-def reprojectPoints(tor, trt, ttc, cammtx, obj_pts):
-    num_pts = len(trt)
-
-    img_pts = []
-    for i in range(num_pts):
-        trti = trt[i]
-        toc = tor.dot(trti.dot(ttc))
-        dasfasgadgasg #todo
-
 def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
     file_names_pattern = "%s/*.jpg" % out_dir
     files = glob(file_names_pattern)
