@@ -267,10 +267,10 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
-    rot, voc_np, vrt_np = calc_rot(imgpts, pattern_points, robot_coords, True)
+    ror, voc_np, vrt_np = calc_rot(imgpts, pattern_points, robot_coords, True)
 
-    print Utils.rpy(rot)
-    print rot
+    print Utils.rpy(ror)
+    print ror
 
     robot_coords = []
     imgpts = []
@@ -296,7 +296,16 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
-    x = calc_trans(imgpts, pattern_points, robot_coords, rot, True)
+    x = calc_trans(imgpts, pattern_points, robot_coords, ror, True)
+    vtc = x[:3, :]
+    vor = x[3:, :]
+    tor = np.eye(4)
+    tor[:3,:3] = ror
+    tor[:3, 4] = vor
+    ttc = np.eye(4)
+    ttc[:3, :3] = ror
+    ttc[:3, 4] = vtc
+
     print x # vtc, vor
 
 def filter_contours(contours):
