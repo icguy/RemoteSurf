@@ -271,6 +271,8 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
 
     print Utils.rpy(ror)
     print ror
+    print "toc"
+    print toc
 
     robot_coords = []
     imgpts = []
@@ -301,10 +303,10 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
     vor = x[3:, :]
     tor = np.eye(4)
     tor[:3,:3] = ror
-    tor[:3, 4] = vor
+    tor[:3, 3] = vor
     ttc = np.eye(4)
     ttc[:3, :3] = ror
-    ttc[:3, 4] = vtc
+    ttc[:3, 3] = vtc
 
     print x # vtc, vor
 
