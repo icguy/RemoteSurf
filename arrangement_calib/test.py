@@ -207,9 +207,9 @@ def calc_trans(imgpts, objpts, robot_coords, ror, use_dist_coeffs = False):
 
         x, y, z, a, b, c = robot_coords[i]
         trti = Utils.getTransform(c, b, a, x, y, z, True)
-        print i
-        print trti
-        print toc
+        # print i
+        # print trti
+        # print toc
 
         vrti = trti[:3, 3]
         pi = ror.T.dot(voci) - vrti
@@ -253,7 +253,7 @@ def add_noise(pts, amplitude):
         pts2[i] = pt + noise
     return pts2
 
-def test(sd = 10):
+def test(sd = 10, noise = False):
     seed(sd)
     np.random.seed(sd)
     np.set_printoptions(precision=5, suppress=True)
@@ -287,14 +287,14 @@ def test(sd = 10):
             proj_pts[:, j] /= proj_pts[2, j]
         img_pts[i] = proj_pts[:2, :]
 
-    img_pts = add_noise(img_pts, 5)
+    if noise:
+        img_pts = add_noise(img_pts, 5)
 
     ror_est, toc_est = calc_rot(img_pts, obj_pts, robot_coords)
     roc_est = calc_avg_rot([toci[:3, :3] for toci in toc_est])
     rrt = Utils.getTransform(rr, pp, yy, 0, 0, 0, True)[:3, :3]
     rtc_est = rrt.T.dot(ror_est.T.dot(roc_est))
 
-    Ror, toc = calc_rot(img_pts, obj_pts, robot_coords)
     print "---"
     print ror_est
     print tmat_or
@@ -320,16 +320,17 @@ def test(sd = 10):
             proj_pts[:, j] /= proj_pts[2, j]
         img_pts_trans[i] = proj_pts[:2, :]
 
-        if i == 776:
-            print ".."
-            print i
-            print x, y, z, a, b, c
-            print tmat_co
-            print tmat_oc
-            print proj_pts[:2, :]
-            print ".."
+        # if i == 776:
+        #     print ".."
+        #     print i
+        #     print x, y, z, a, b, c
+        #     print tmat_co
+        #     print tmat_oc
+        #     print proj_pts[:2, :]
+        #     print ".."
 
-    img_pts = add_noise(img_pts, 5)
+    if noise:
+        img_pts_trans = add_noise(img_pts_trans, 5)
 
     # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
     # robot_coords = [robot_coords[i] for i in range(len(robot_coords)) if i != 776]
@@ -358,7 +359,7 @@ def get_rand_trf():
 
 if __name__ == '__main__':
     # img_test()
-    print test(97)
+    print test(11, True)
     necces_seedek = [10, 20, 48, 53, 69, 78, 96, 97]
 
     # seed  err             ludas
