@@ -230,6 +230,37 @@ def calc_avg_rot(rot_matrices):
         bigeye[i:(i+3), :] = np.eye(3)
     return kabsch(bigeye, bigrot)
 
+def reprojectPoints(tor, trt, ttc, cammtx, obj_pts, image_points):
+    print "reproj"
+    num_trfs = len(trt)
+    num_pts = max(obj_pts.shape)
+
+    if obj_pts.shape[0] != 3 : obj_pts = obj_pts.T
+    for i in range(len(image_points)):
+        if image_points[i].shape[0] != 2 : image_points[i] = image_points[i].T
+
+    temp = np.ones((4, num_pts))
+    temp[:3, :] = obj_pts
+    obj_pts = temp
+
+    img_pts_reproj = []
+    for i in range(num_trfs):
+        trti = trt[i]
+        toci = tor.dot(trti.dot(ttc))
+        tcoi = np.linalg.inv(toci)
+        obj_pts_trfd = tcoi.dot(obj_pts)[:3, :]
+        reproj = cammtx.dot(obj_pts_trfd)
+        for j in range(num_pts):
+            reproj[:, j] /= reproj[2, j]
+        img_pts_reproj.append(reproj[:2, :])
+
+    diffs = []
+    for i in range(num_trfs):
+        diff = np.sum((img_pts_reproj[i] - image_points[i]) ** 2)
+        diffs.append(diff)
+
+    print "min: %f, max: %f, avg: %f, num_pts: %d" % (min(diffs), max(diffs), sum(diffs) / len(diffs), num_pts)
+
 def filter_contours(contours):
     # print  len(contours)
     # h, w = dil.shape
@@ -350,6 +381,7 @@ def test(sd = 10, noise = False):
     ttc_est[:3, :3] = rtc_est
     ttc_est[:3, 3] = vtc_est.reshape((3,))
 
+    reprojectPoints(tor_est, tmats_rt + tmats_rt_trans, ttc_est, cammtx, obj_pts, img_pts + img_pts_trans)
     return max(np.max(x_est[:3,0] - tmat_tc[:3, 3]), np.max(x_est[3:,0] - tmat_or[:3, 3]))
 
 def get_rand_trf():

@@ -5,7 +5,7 @@ from random import random, seed, uniform
 from glob import glob
 import os
 import pickle
-from test import calc_rot, calc_trans, calc_avg_rot
+from test import calc_rot, calc_trans, calc_avg_rot, reprojectPoints
 
 # outdir = "out0"
 # img_points_scale_bad_res = 1600.0 / 640
@@ -323,6 +323,13 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
     ttc[:3, 3] = vtc.reshape((3,))
 
     print x # vtc, vor
+    reprojectPoints(
+        tor,
+        tmats_rt + tmats_rt_trans,
+        ttc,
+        cammtx,
+        pattern_points,
+        imgpts + imgpts_trans)
 
 def filter_contours(contours):
     # print  len(contours)
