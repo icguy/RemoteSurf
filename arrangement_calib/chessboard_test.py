@@ -247,6 +247,8 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
     robot_coords_rot = []
     imgpts = []
 
+    a, b, c = -1, -1, -1
+    tmats_rt = []
     for f in files_rot:
         datafile = os.path.splitext(f)[0] + ".p"
         pfile = file(datafile)
@@ -257,6 +259,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         a, b, c = map(lambda p: p * np.pi / 180     , (a, b, c))  # deg to rad
         x, y, z = map(lambda p: p / 10.0            , (x, y, z))  # mm to cm
         robot_coords_rot.append([x, y, z, a, b, c])
+        tmats_rt.append(Utils.getTransform(c, b, a, x, y, z, True))
 
         img = cv2.imread(f)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -272,13 +275,16 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts.append(imgpts_curr)
 
     ror, toc = calc_rot(imgpts, pattern_points, robot_coords_rot, True)
-    rtc = calc_avg_rot([toci[:3,:3] for toci in toc])
+    roc = calc_avg_rot([toci[:3,:3] for toci in toc])
+    rrt = Utils.getTransform(c, b, a, 0, 0, 0, True)[:3, :3]
+    rtc = rrt.T.dot(ror.T.dot(roc))
 
     print Utils.rpy(ror)
     print ror
 
     robot_coords_trans = []
-    imgpts = []
+    imgpts_trans = []
+    tmats_rt_trans = []
     files_trans = files[num_rot_calib_imgs:]
     print [(i, os.path.basename(files_trans[i])) for i in range(len(files_trans))]
     for f in files_trans:
@@ -291,6 +297,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         a, b, c = map(lambda p: p * np.pi / 180     , (a, b, c))  # deg to rad
         x, y, z = map(lambda p: p / 10.0            , (x, y, z))  # mm to cm
         robot_coords_trans.append([x, y, z, a, b, c])
+        tmats_rt_trans.append(Utils.getTransform(c, b, a, x, y, z, True))
 
         img = cv2.imread(f)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -303,9 +310,9 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
 
         imgpts_curr = corners.reshape((54, 2))
         imgpts_curr *= img_points_scale_bad_res
-        imgpts.append(imgpts_curr)
+        imgpts_trans.append(imgpts_curr)
 
-    x = calc_trans(imgpts, pattern_points, robot_coords_trans, ror, True)
+    x = calc_trans(imgpts_trans, pattern_points, robot_coords_trans, ror, True)
     vtc = x[:3, :]
     vor = x[3:, :]
     tor = np.eye(4)
@@ -314,7 +321,6 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
     ttc = np.eye(4)
     ttc[:3, :3] = rtc
     ttc[:3, 3] = vtc.reshape((3,))
-
 
     print x # vtc, vor
 
