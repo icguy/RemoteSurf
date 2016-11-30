@@ -312,7 +312,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr *= img_points_scale_bad_res
         imgpts_trans.append(imgpts_curr)
 
-    x = calc_trans(imgpts_trans, pattern_points, robot_coords_trans, ror, True)
+    x, toc = calc_trans(imgpts_trans, pattern_points, robot_coords_trans, ror, True)
     vtc = x[:3, :]
     vor = x[3:, :]
     tor = np.eye(4)

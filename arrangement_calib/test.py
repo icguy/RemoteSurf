@@ -158,7 +158,10 @@ def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
             objpts = objpts.T
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
-        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None)
+        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None, flags=cv2.CV_ITERATIVE)
+        # reproj = cv2.projectPoints(objpts.T, rvec, tvec, cammtx, dist_coeffs if use_dist_coeffs else None)[0].reshape(-1, 2)
+        # diff = (imgpts_i.T - reproj)
+        # print "repr err", np.sum((imgpts_i.T - reproj) ** 2)
         rmat, _ = cv2.Rodrigues(rvec)
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
@@ -190,6 +193,7 @@ def calc_trans(imgpts, objpts, robot_coords, ror, use_dist_coeffs = False):
     M = np.zeros((3 * numpts, 6))
     K = np.zeros((3 * numpts, 1))
 
+    toc = []
     for i in range(numpts):
         imgpts_i = imgpts[i]
         if objpts.shape[1] == 3:
@@ -197,13 +201,18 @@ def calc_trans(imgpts, objpts, robot_coords, ror, use_dist_coeffs = False):
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
         retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None)
+        # reproj = cv2.projectPoints(objpts.T, rvec, tvec, cammtx, dist_coeffs if use_dist_coeffs else None)[0].reshape(
+        #     -1, 2)
+        # diff = (imgpts_i.T - reproj)
+        # print "repr err", np.sum((imgpts_i.T - reproj) ** 2)
         rmat, _ = cv2.Rodrigues(rvec)
         tmat = np.eye(4)
         tmat[:3, :3] = rmat
         tmat[:3, 3] = tvec.T
-        toc = np.linalg.inv(tmat)
+        toci = np.linalg.inv(tmat)
+        toc.append(toci)
 
-        voci = toc[:3, 3]
+        voci = toci[:3, 3]
 
         x, y, z, a, b, c = robot_coords[i]
         trti = Utils.getTransform(c, b, a, x, y, z, True)
@@ -219,7 +228,7 @@ def calc_trans(imgpts, objpts, robot_coords, ror, use_dist_coeffs = False):
         K[(3 * i): (3 * i + 3), 0] = pi
 
     x = np.linalg.pinv(M).dot(K)
-    return x
+    return x, toc
 
 def calc_avg_rot(rot_matrices):
     num_matrices = len(rot_matrices)
@@ -290,8 +299,13 @@ def test(sd = 10, noise = False):
     np.set_printoptions(precision=5, suppress=True)
 
     num_imgs = 10
-    num_obj_pts = 20
-    obj_pts = np.random.random((3, num_obj_pts))
+    num_obj_pts = 9 * 6
+    pattern_size = (9, 6)
+    pattern_points = np.zeros((np.prod(pattern_size), 3), np.float32)
+    pattern_points[:, :2] = np.indices(pattern_size).T.reshape(-1, 2)
+    pattern_points *= 2.615
+    obj_pts = pattern_points.T
+
     obj_pts_homog = np.ones((4, num_obj_pts))
     obj_pts_homog[:3, :] = obj_pts
 
@@ -301,15 +315,16 @@ def test(sd = 10, noise = False):
     img_pts = [None] * num_imgs
     robot_coords = [None] * num_imgs
 
-    tmat_or = get_rand_trf()
-    tmat_tc = get_rand_trf()
-
+    tmat_or = get_rand_trf([-10, 10] * 3 + [-10, 10] * 2 + [0, 10])
+    tmat_tc = get_rand_trf([-10, 10] * 3 + [-4, 4] * 3)
+    tmats_oc = []
     for i in range(num_imgs):
-        robot_coords[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10))
+        robot_coords[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(1, 2) * 10))
         x, y, z = robot_coords[i]
         tmats_rt[i] =  Utils.getTransform(rr, pp, yy, x, y, z, True)
         # print tmats_rt[i]
         tmat_oc = tmat_or.dot(tmats_rt[i].dot(tmat_tc))
+        tmats_oc.append(tmat_oc)
         tmat_co = np.linalg.inv(tmat_oc)
         # print tmat_co
         cam_pts = tmat_co.dot(obj_pts_homog)
@@ -332,18 +347,20 @@ def test(sd = 10, noise = False):
     print tmat_or[:3,:3] - ror_est
     print "-----------"
 
-    num_imgs2 = 1000
+    num_imgs2 = 10
 
     tmats_rt_trans = [None] * num_imgs2
     img_pts_trans = [None] * num_imgs2
     robot_coords_trans = [None] * num_imgs2
 
+    tmats_oc = []
     for i in range(num_imgs2):
-        robot_coords_trans[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10))
+        robot_coords_trans[i] = map(int, (uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(1, 2) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10))
         x, y, z, a, b, c = robot_coords_trans[i]
         tmats_rt_trans[i] = Utils.getTransform(c, b, a, x, y, z, True)
         # print tmats_rt[i]
         tmat_oc = tmat_or.dot(tmats_rt_trans[i].dot(tmat_tc))
+        tmats_oc.append(tmat_oc)
         tmat_co = np.linalg.inv(tmat_oc)
         cam_pts = tmat_co.dot(obj_pts_homog)
         proj_pts = cammtx.dot(cam_pts[:3, :])
@@ -365,12 +382,15 @@ def test(sd = 10, noise = False):
 
     # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
     # robot_coords = [robot_coords[i] for i in range(len(robot_coords)) if i != 776]
-    x_est = calc_trans(img_pts_trans, obj_pts, robot_coords_trans, ror_est)
-    print tmat_tc
-    print tmat_or
-    print x_est
+    x_est, toc_trans_est = calc_trans(img_pts_trans, obj_pts, robot_coords_trans, ror_est)
+
+    print "---"
+    # print tmat_tc
+    # print tmat_or
+    # print x_est
     print x_est[:3,0] - tmat_tc[:3, 3]
     print x_est[3:,0] - tmat_or[:3, 3]
+    print "---"
 
     vtc_est = x_est[:3, :]
     vor_est = x_est[3:, :]
@@ -384,9 +404,133 @@ def test(sd = 10, noise = False):
     reprojectPoints(tor_est, tmats_rt + tmats_rt_trans, ttc_est, cammtx, obj_pts, img_pts + img_pts_trans)
     return max(np.max(x_est[:3,0] - tmat_tc[:3, 3]), np.max(x_est[3:,0] - tmat_or[:3, 3]))
 
-def get_rand_trf():
-    rand_trf = Utils.getTransform(uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10, uniform(-1, 1) * 10,
-                                 uniform(-1, 1) * 10, uniform(-1, 1) * 10, True)
+def test2():
+    from glob import glob
+    import os
+    import pickle
+
+    file_names_pattern = "%s/*.jpg" % "../out/2016_11_18__11_51_59"
+    num_rot_calib_imgs = 32
+    files = glob(file_names_pattern)
+    files_rot = files[:num_rot_calib_imgs]
+
+    num_obj_pts = 9 * 6
+    pattern_size = (9, 6)
+    pattern_points = np.zeros((np.prod(pattern_size), 3), np.float32)
+    pattern_points[:, :2] = np.indices(pattern_size).T.reshape(-1, 2)
+    pattern_points *= 2.615
+    obj_pts = pattern_points.T
+    obj_pts_homog = np.ones((4, num_obj_pts))
+    obj_pts_homog[:3, :] = obj_pts
+    tmat_or = np.array([[0, 1, 0, 8],
+                        [1, 0, 0, -20],
+                        [0, 0,-1, -4],
+                        [0, 0, 0, 1]])
+    tmat_tc = np.array([[1, 0, 0, 1],
+                        [0, 1, 0, 2],
+                        [0, 0, 1, 5],
+                        [0, 0, 0, 1]])
+
+    robot_coords_rot = []
+    imgpts = []
+    a, b, c = -1, -1, -1
+    tmats_rt = []
+    tmats_oc = []
+    for f in files_rot:
+        datafile = os.path.splitext(f)[0] + ".p"
+        pfile = file(datafile)
+        data = pickle.load(pfile)
+        pfile.close()
+
+        x, y, z, a, b, c = [data[0][i] for i in [500, 501, 502, 503, 504, 505]]
+        a, b, c = map(lambda p: p * np.pi / 180     , (a, b, c))  # deg to rad
+        x, y, z = map(lambda p: p / 10.0            , (x, y, z))  # mm to cm
+        robot_coords_rot.append([x, y, z, a, b, c])
+        tmat_rt = Utils.getTransform(c, b, a, x, y, z, True)
+        tmats_rt.append(tmat_rt)
+
+        tmat_oc = tmat_or.dot(tmat_rt.dot(tmat_tc))
+        tmats_oc.append(tmat_oc)
+        tmat_co = np.linalg.inv(tmat_oc)
+        # print tmat_co
+        cam_pts = tmat_co.dot(obj_pts_homog)
+        proj_pts = cammtx.dot(cam_pts[:3, :])
+        for j in range(num_obj_pts):
+            proj_pts[:, j] /= proj_pts[2, j]
+        imgpts.append(proj_pts[:2, :])
+
+    ror_est, toc_est = calc_rot(imgpts, pattern_points, robot_coords_rot, True)
+    roc_est = calc_avg_rot([toci[:3,:3] for toci in toc_est])
+    rrt = Utils.getTransform(c, b, a, 0, 0, 0, True)[:3, :3]
+    rtc_est = rrt.T.dot(ror_est.T.dot(roc_est))
+
+    print Utils.rpy(ror_est)
+    print ror_est
+
+    robot_coords_trans = []
+    imgpts_trans = []
+    tmats_rt_trans = []
+    tmats_oc_trans = []
+    files_trans = files[num_rot_calib_imgs:]
+    print [(i, os.path.basename(files_trans[i])) for i in range(len(files_trans))]
+    for f in files_trans:
+        datafile = os.path.splitext(f)[0] + ".p"
+        pfile = file(datafile)
+        data = pickle.load(pfile)
+        pfile.close()
+
+        x, y, z, a, b, c = [data[0][i] for i in [500, 501, 502, 503, 504, 505]]
+        a, b, c = map(lambda p: p * np.pi / 180     , (a, b, c))  # deg to rad
+        x, y, z = map(lambda p: p / 10.0            , (x, y, z))  # mm to cm
+        robot_coords_trans.append([x, y, z, a, b, c])
+        tmat_rt = Utils.getTransform(c, b, a, x, y, z, True)
+        tmats_rt_trans.append(tmat_rt)
+
+        tmat_oc = tmat_or.dot(tmat_rt.dot(tmat_tc))
+        tmats_oc_trans.append(tmat_oc)
+        tmat_co = np.linalg.inv(tmat_oc)
+        # print tmat_co
+        cam_pts = tmat_co.dot(obj_pts_homog)
+        proj_pts = cammtx.dot(cam_pts[:3, :])
+        for j in range(num_obj_pts):
+            proj_pts[:, j] /= proj_pts[2, j]
+        imgpts_trans.append(proj_pts[:2, :])
+
+    x_est, toc_trans_est = calc_trans(
+        imgpts_trans, pattern_points, robot_coords_trans, ror_est, True)
+    vtc_est = x_est[:3, :]
+    vor_est = x_est[3:, :]
+    tor_est = np.eye(4)
+    tor_est[:3,:3] = ror_est
+    tor_est [:3, 3] = vor_est .reshape((3,))
+    ttc_est  = np.eye(4)
+    ttc_est [:3, :3] = rtc_est
+    ttc_est [:3, 3] = vtc_est.reshape((3,))
+
+    print x_est # vtc, vor
+    print tmat_tc
+    print tmat_or
+    reprojectPoints(
+        tor_est,
+        tmats_rt + tmats_rt_trans,
+        ttc_est,
+        cammtx,
+        pattern_points,
+        imgpts + imgpts_trans)
+
+
+def get_rand_trf(ranges = None):
+    if ranges is None:
+        ranges = [-10, 10] * 6
+
+    rand_trf = Utils.getTransform(
+        uniform(ranges[0], ranges[1]),
+        uniform(ranges[2], ranges[3]),
+        uniform(ranges[4], ranges[5]),
+        uniform(ranges[6], ranges[7]),
+        uniform(ranges[8], ranges[9]),
+        uniform(ranges[10], ranges[11]),
+        True)
     return rand_trf
 
 def kabsch_test():
@@ -413,9 +557,11 @@ def kabsch_test():
     print Q - P.dot(U)
 
 if __name__ == '__main__':
-    # img_test()
-    print test(11, True)
-    necces_seedek = [10, 20, 48, 53, 69, 78, 96, 97]
+    test2()
+
+
+    # print test(11, True)
+    # necces_seedek = [10, 20, 48, 53, 69, 78, 96, 97]
 
     # seed  err             ludas
     # 10    32.6704391356   776
