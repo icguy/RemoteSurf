@@ -389,6 +389,29 @@ def get_rand_trf():
                                  uniform(-1, 1) * 10, uniform(-1, 1) * 10, True)
     return rand_trf
 
+def kabsch_test():
+    v = np.random.random((3, 3))
+    rot, _, _ = np.linalg.svd(v)
+    P = np.random.rand(10, 3)
+    centroid = np.sum(P, 0) / P.shape[0]
+    P = P - np.ones((P.shape[0], 1)).dot(centroid.reshape((1, -1)))
+    Q = P.dot(rot)
+    A = P.T.dot(Q)
+    V, S, W = np.linalg.svd(A)
+    d = np.linalg.det(V) * np.linalg.det(W)
+    print d
+    print V
+    if d < 0:
+        S[2, 2] = -S[2, 2]
+        V[:, 2] = -V[:, 2]
+    print V
+    U = V.dot(W)
+    print "------------"
+    print rot
+    print U
+    print kabsch(P, Q)
+    print Q - P.dot(U)
+
 if __name__ == '__main__':
     # img_test()
     print test(11, True)
@@ -404,31 +427,4 @@ if __name__ == '__main__':
     # 96    4109638.9098    392
     # 97    352.850449091   931
 
-
-    # v = np.random.random((3, 3))
-    # rot, _, _ = np.linalg.svd(v)
-    #
-    # P = np.random.rand(10, 3)
-    # centroid = np.sum(P, 0) / P.shape[0]
-    # P = P - np.ones((P.shape[0], 1)).dot(centroid.reshape((1,-1)))
-    #
-    # Q = P.dot(rot)
-    #
-    # A = P.T.dot(Q)
-    # V, S, W = np.linalg.svd(A)
-    # d = np.linalg.det(V) * np.linalg.det(W)
-    # print d
-    # print V
-    # if d < 0:
-    #     S[2, 2] = -S[2, 2]
-    #     V[:,2]= -V[:,2]
-    # print V
-    # U = V.dot(W)
-    #
-    # print "------------"
-    # print rot
-    # print U
-    # print kabsch(P, Q)
-    # print Q - P.dot(U)
-
-    pass
+    # kabsch_test()
