@@ -21,9 +21,10 @@ CALIBFRAME_POS = 675, 350
 OPENCV_POS = 1000, 200
 CamGrabber.WINDOW_POS = OPENCV_POS
 
-CALIB_POINTS = CalibPoints.points2[0]
+CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points2
 
 outfile = None
+break_wait = False
 
 def intToUint16(val):
     assert -32768 <= val <= 32767
@@ -271,11 +272,13 @@ class ClientGUI:
 
         # message counter wait
         if wait:
-            while True:
+            global break_wait
+            while not break_wait:
                 counter = self.client.read_input_registers(COUNTER_REGISTER_IN)[0]
                 if counter == self.counter:
                     break
                 time.sleep(0.1)
+            break_wait = False
 
         # counter increment
         self.counter = (self.counter + 1) % 20
@@ -357,10 +360,14 @@ class CalibGUI:
         window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
     def __forwardbutton_click(self):
-        self.calib_thread = Thread(target=self.__calibrate)
-        self.calib_thread.start()
+        if self.calib_thread is None:
+            self.calib_thread = Thread(target=self.__calibrate)
+            self.calib_thread.start()
 
     def __calibrate(self):
+        global break_wait
+        break_wait = False
+
         while self.next_point_idx < len(CALIB_POINTS):
             CamGrabber.capture = True
             time.sleep(0.5)
@@ -386,6 +393,8 @@ class CalibGUI:
 
     def __delete_window(self):
         if self.calib_thread is not None:
+            global break_wait
+            break_wait = True
             self.stop_signal = True
             self.calib_thread.join()
 
