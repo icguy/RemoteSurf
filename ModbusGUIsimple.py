@@ -324,6 +324,8 @@ class CalibGUI:
         self.parent = parent
         self.client = client
         self.next_point_idx = 0
+        self.calib_thread = None
+        self.stop_signal = False
 
         self.__build_ui(parent)
 
@@ -355,6 +357,10 @@ class CalibGUI:
         window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
     def __forwardbutton_click(self):
+        self.calib_thread = Thread(target=self.__calibrate)
+        self.calib_thread.start()
+
+    def __calibrate(self):
         while self.next_point_idx < len(CALIB_POINTS):
             CamGrabber.capture = True
             time.sleep(0.5)
@@ -368,11 +374,21 @@ class CalibGUI:
                 504: point[4],
                 505: point[5],
             }
-            self.parent.set_values(values)
+            self.parent.set_values(values, True)
             self.next_point_idx += 1
+
+            if self.stop_signal:
+                self.stop_signal = False
+                return
+
         img_test_from_files(logger.outputdir)
+        self.calib_thread = None
 
     def __delete_window(self):
+        if self.calib_thread is not None:
+            self.stop_signal = True
+            self.calib_thread.join()
+
         self.parent.calibgui = None
         self.window.destroy()
 
