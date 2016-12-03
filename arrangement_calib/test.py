@@ -502,10 +502,10 @@ def test2():
     vor_est = x_est[3:, :]
     tor_est = np.eye(4)
     tor_est[:3,:3] = ror_est
-    tor_est [:3, 3] = vor_est .reshape((3,))
-    ttc_est  = np.eye(4)
-    ttc_est [:3, :3] = rtc_est
-    ttc_est [:3, 3] = vtc_est.reshape((3,))
+    tor_est[:3, 3] = vor_est.reshape((3,))
+    ttc_est = np.eye(4)
+    ttc_est[:3, :3] = rtc_est
+    ttc_est[:3, 3] = vtc_est.reshape((3,))
 
     print x_est # vtc, vor
     print tmat_tc
@@ -517,7 +517,6 @@ def test2():
         cammtx,
         pattern_points,
         imgpts + imgpts_trans)
-
 
 def get_rand_trf(ranges = None):
     if ranges is None:
