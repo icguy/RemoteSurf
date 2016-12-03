@@ -408,8 +408,10 @@ def test2():
     from glob import glob
     import os
     import pickle
+    np.set_printoptions(precision=5, suppress=True)
 
     file_names_pattern = "../out/2016_11_18__11_51_59/*.jpg"
+    # file_names_pattern = "../out/2016_12_2__11_13_30/*.jpg"
     num_rot_calib_imgs = 32
     files = glob(file_names_pattern)
     files_rot = files[:num_rot_calib_imgs]
@@ -464,15 +466,19 @@ def test2():
     rrt = Utils.getTransform(c, b, a, 0, 0, 0, True)[:3, :3]
     rtc_est = rrt.T.dot(ror_est.T.dot(roc_est))
 
-    print Utils.rpy(ror_est)
+    print "ror_est, tmat_or"
     print ror_est
+    print tmat_or
+    print "rtc_est, tmat_tc"
+    print rtc_est
+    print tmat_tc
 
     robot_coords_trans = []
     imgpts_trans = []
     tmats_rt_trans = []
     tmats_oc_trans = []
     files_trans = files[num_rot_calib_imgs:]
-    print [(i, os.path.basename(files_trans[i])) for i in range(len(files_trans))]
+    # print [(i, os.path.basename(files_trans[i])) for i in range(len(files_trans))]
     for f in files_trans:
         datafile = os.path.splitext(f)[0] + ".p"
         pfile = file(datafile)
@@ -507,9 +513,8 @@ def test2():
     ttc_est[:3, :3] = rtc_est
     ttc_est[:3, 3] = vtc_est.reshape((3,))
 
+    print "x_est = vtc, vor"
     print x_est # vtc, vor
-    print tmat_tc
-    print tmat_or
     reprojectPoints(
         tor_est,
         tmats_rt + tmats_rt_trans,
