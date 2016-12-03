@@ -409,7 +409,7 @@ def test2():
     import os
     import pickle
 
-    file_names_pattern = "%s/*.jpg" % "../out/2016_11_18__11_51_59"
+    file_names_pattern = "../out/2016_11_18__11_51_59/*.jpg"
     num_rot_calib_imgs = 32
     files = glob(file_names_pattern)
     files_rot = files[:num_rot_calib_imgs]
