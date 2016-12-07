@@ -1,0 +1,13 @@
+TODO:
+
+1	ok	kamera-kalibrációt automatizálni (kell egy marker, vagy chessboard)     pre: -
+2	ok	megoldani, hogy a hub-ot lehúzza a kamera (külső hub vagy PC)   pre: -
+3	ok	tesztelni, hogy a felírt BASE-TOOL transzformáció helyes-e
+4	ok	tesztelni a transzformáció-meghatározó kalibrációt  pre: 6
+5	ok	fixelni a pc-plc kommunikációt      pre: -
+6	ok	fixelni a pc-robot kommunikációt    pre: 5
+7		implementálni az egészet a retekbe  pre: all
+
+kipróbálni több kéz-szem kalibráló algoritmust
+kipróbálni, mi van ha nagyobb látószögből nézek rá a sakktáblára
+kifejleszteni egy módszert, hogy több nézőpontból történő vizsgálatot össze tudjunk rakni bizonytalanságokkal
