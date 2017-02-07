@@ -10,15 +10,22 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
 
 outfile = file("out.txt", "w")
 
-grid_size = (29, 19)
-resolution = (1600, 1200)
-real_size = 0.95 # grid distance in cm
-imgs_path = 'imgset2/*.jpg'
+imgset1 = {
+    "grid size" : (29, 19),
+    "resolution" : (1600, 1200),
+    "real size" : 0.95, # grid distance in cm
+    "img path" : 'imgset2/*.jpg'}
+imgset2 = {
+    "grid size" : (9, 6),
+    "resolution" : (1600, 1200),
+    "real size" : 2.6222, # grid distance in cm
+    "img path" : 'imgset1/*.jpg'}
+imgset = imgset1
 
-# grid_size = (9, 6)
-# resolution = (1600, 1200)
-# real_size = 2.6222 # grid distance in cm
-# imgs_path = 'imgset1/*.jpg'
+grid_size = imgset["grid size"]
+resolution = imgset["resolution"]
+real_size = imgset["real size"]
+imgs_path = imgset["img path"]
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((grid_size[0] * grid_size[1], 3), np.float32)
