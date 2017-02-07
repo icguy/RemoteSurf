@@ -20,7 +20,12 @@ imgset2 = {
     "resolution" : (1600, 1200),
     "real size" : 2.6222, # grid distance in cm
     "img path" : 'imgset1/*.jpg'}
-imgset = imgset1
+imgset3 = {
+    "grid size" : (9, 6),
+    "resolution" : (960, 720),
+    "real size" : 2.615, # grid distance in cm
+    "img path" : 'D:/dokumentumok/Python/RemoteSurf/out/2016_11_18__11_51_59/*.jpg'}
+imgset = imgset3
 
 grid_size = imgset["grid size"]
 resolution = imgset["resolution"]
@@ -48,7 +53,7 @@ for fname in images:
     num += 1
     img = cv2.imread(fname)
 
-    gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     ret, corners = cv2.findChessboardCorners(gray, grid_size, flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
     outfile.write("%d \r\n %s \r\r %s \r\n" % (num , "---- corners" , str(corners)))
@@ -68,7 +73,7 @@ for fname in images:
         cv2.waitKey(1)
         cv2.destroyWindow("img")
 
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, resolution, flags=cv2.CALIB_FIX_ASPECT_RATIO | cv2.CALIB_FIX_FOCAL_LENGTH | cv2.CALIB_ZERO_TANGENT_DIST | cv2.CALIB_FIX_PRINCIPAL_POINT)
+ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, resolution, flags=cv2.CALIB_FIX_ASPECT_RATIO | cv2.CALIB_FIX_FOCAL_LENGTH | cv2.CALIB_FIX_PRINCIPAL_POINT)
 
 outfile.write("mat, distcoeff \r\n %s \r\n .. \r\n %s" % (str(mtx), str(dist)))
 print ret
