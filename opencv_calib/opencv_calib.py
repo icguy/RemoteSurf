@@ -14,13 +14,11 @@ grid_size = (29, 19)
 resolution = (1600, 1200)
 real_size = 0.95 # grid distance in cm
 imgs_path = 'imgset2/*.jpg'
-downscale = 2
 
 # grid_size = (9, 6)
 # resolution = (1600, 1200)
 # real_size = 2.6222 # grid distance in cm
 # imgs_path = 'imgset1/*.jpg'
-# downscale = 2
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((grid_size[0] * grid_size[1], 3), np.float32)
