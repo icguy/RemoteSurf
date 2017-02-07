@@ -24,7 +24,6 @@ from test import calc_rot, calc_trans, calc_avg_rot, reprojectPoints
 # }
 
 outdir = "2016_11_7__17_50_40"
-img_points_scale_bad_res = 1600.0 / 920
 pointdict1 = {
     "../out/%s/0000.jpg": (0, 0, 0),
     "../out/%s/0001.jpg": (50, 0, 0),
@@ -58,9 +57,7 @@ pointdict1 = {
 for k in pointdict1:
     pointdict1[k] = map(lambda c: c / 10, pointdict1[k])
 
-cammtx = np.array(
-    [1.8435610863515064e+003, 0., 7.995e+002, 0., 1.8435610863515064e+003, 5.995e+002, 0., 0., 1.]).reshape(
-    (3, 3))
+cammtx = Utils.camMtx
 
 def normalize(img):
     mmin, mmax = np.min(img), np.max(img)
@@ -164,7 +161,6 @@ def img_test():
         # drawCorners(img, corners)
 
         imgpts_curr = corners.reshape((54,2))
-        imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
 
@@ -215,7 +211,6 @@ def img_test_from_files(out_dir):
         # drawCorners(img, corners)
 
         imgpts_curr = corners.reshape((54,2))
-        imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
 
@@ -271,7 +266,6 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         # drawCorners(img, corners)
 
         imgpts_curr = corners.reshape((54, 2))
-        imgpts_curr *= img_points_scale_bad_res
         imgpts.append(imgpts_curr)
 
     ror, toc = calc_rot(imgpts, pattern_points, robot_coords_rot, True)
@@ -309,7 +303,6 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         # drawCorners(img, corners)
 
         imgpts_curr = corners.reshape((54, 2))
-        imgpts_curr *= img_points_scale_bad_res
         imgpts_trans.append(imgpts_curr)
 
     x, toc = calc_trans(imgpts_trans, pattern_points, robot_coords_trans, ror, True)

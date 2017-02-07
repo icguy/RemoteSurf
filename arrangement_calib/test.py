@@ -27,11 +27,8 @@ pointdict2 = {
     "set1/Picture 38.jpg": (0, 0, 4)
 }
 
-cammtx = np.array(
-    [1.8435610863515064e+003, 0., 7.995e+002, 0., 1.8435610863515064e+003, 5.995e+002, 0., 0., 1.]).reshape(
-    (3, 3))
-dist_coeffs = np.array([1.1415471237383623e-001, -1.4601522229886266e+000, 0., 0.,
-                        5.1820223903354057e+000])
+cammtx = Utils.camMtx
+dist_coeffs = Utils.dist_coeffs
 
 def normalize(img):
     mmin, mmax = np.min(img), np.max(img)
