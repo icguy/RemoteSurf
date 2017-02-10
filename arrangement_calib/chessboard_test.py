@@ -338,14 +338,12 @@ def filter_contours(contours):
     contours = [c for c in contours if cv2.contourArea(c) > 5000]
     return contours
 
-"""
-todo:
--check out other calib methods
--debug arrangement_calib/test/test(), see:
-    # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
-    # robot_coords = [robot_coords[i] for i in range(len(robot_coords)) if i != 776]
 
-"""
+# todo:
+# -check out other calib methods
+# -debug arrangement_calib/test/test(), see:
+#     # img_pts = [img_pts[i] for i in range(len(img_pts)) if i != 776]
+#     # robot_coords = [robot_coords[i] for i in range(len(robot_coords)) if i != 776]
 
 def test():
     seed(0)
