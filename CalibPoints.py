@@ -91,10 +91,23 @@ def points3_gen():
             # print Utils.getTransform(c, b, a, x, y, z)
     return points, 0
 
-
-def generate_lookat(origin, target, up):
-    pass
-
+def trf_points(points, trf):
+    num = points[1]
+    points = points[0]
+    new_points = []
+    for point in points:
+        x, y, z, a, b, c = point
+        a, b, c = map(math.radians, (a, b, c))
+        point_trf = Utils.getTransform(c, b, a, x, y, z, True)
+        new_trf = trf.dot(point_trf)
+        c, b, a = Utils.rpy(new_trf[:3, :3])
+        x = new_trf[0, 3]
+        y = new_trf[1, 3]
+        z = new_trf[2, 3]
+        a, b, c = map(math.degrees, (a, b, c))
+        x, y, z, a, b, c = map(int, (x, y, z, a, b, c))
+        new_points.append([x, y, z, a, b, c])
+    return new_points, num
 
 np.set_printoptions(precision=3, suppress=True)
 points1 = points1_gen()
@@ -108,5 +121,8 @@ if __name__ == '__main__':
     #     a, b, c = map(math.radians, (a, b, c))
     #     print p
     #     print Utils.getTransform(c, b, a, x, y, z)
+
+    pprint( points1)
+    pprint( trf_points(points1, Utils.getTransform(np.pi, 0, 0, 0, 0, 0, True)))
 
     pass
