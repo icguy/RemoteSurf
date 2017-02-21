@@ -114,15 +114,21 @@ points1 = points1_gen()
 points2 = points2_gen()
 points3 = points3_gen()
 
-if __name__ == '__main__':
 
+def test():
     # for p in points3[0]:
     #     x, y, z, a, b, c = p
     #     a, b, c = map(math.radians, (a, b, c))
     #     print p
     #     print Utils.getTransform(c, b, a, x, y, z)
 
-    pprint( points1)
-    pprint( trf_points(points1, Utils.getTransform(np.pi, 0, 0, 0, 0, 0, True)))
+    points = points1
+    points = trf_points(points, Utils.getTransform(0, 0, 0, -300, 0, -500, True))
+    points = trf_points(points, Utils.getTransform(0, np.pi/2, 0, 0, 0, 0, True))
+    points = trf_points(points, Utils.getTransform(0, 0, 0, 300, 0, 500, True))
+    print points1
+    print points
 
-    pass
+if __name__ == '__main__':
+
+    test()
