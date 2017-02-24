@@ -107,7 +107,7 @@ for i in xrange(len(objpoints)):
 
     mean_error += error
 
-print "total error: ", mean_error/len(objpoints)
+print "total error (average per image): ", mean_error/len(objpoints)
 print len(objpoints)
 
 outfile.close()
