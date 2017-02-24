@@ -62,7 +62,7 @@ def points3_gen():
     angle_range_x = (-30, 30)
     angle_range_y = (-10, 30)
     resolution = (11, 11)
-    resolution = (2, 2)
+    # resolution = (2, 2)
 
     points = []
     target_vec = np.array(target).reshape((3, 1))
@@ -92,6 +92,42 @@ def points3_gen():
             # print Utils.getTransform(c, b, a, x, y, z)
     return points, 0
 
+def points4_gen():
+    homepos = [-220, -15, 310, 12, 90, -168]
+
+    x_range = (-390, -220)
+    y_range = (-80, 45)
+    z_range = (240, 360)
+
+    x_res = 11
+    y_res = x_res
+    z_res = x_res
+
+    p4 = []
+    for i in range(x_res):
+        ratio = i / (x_res - 1.0)
+        point = list(homepos)
+        point[0] = int(interp(x_range[0], x_range[1], ratio))
+        p4.append(point)
+    for i in range(y_res):
+        ratio = i / (y_res - 1.0)
+        point = list(homepos)
+        point[1] = int(interp(y_range[0], y_range[1], ratio))
+        p4.append(point)
+    for i in range(z_res):
+        ratio = i / (z_res - 1.0)
+        point = list(homepos)
+        point[2] = int(interp(z_range[0], z_range[1], ratio))
+        p4.append(point)
+
+    p4_2 = points3_gen()
+    p4_2 = trf_points(p4_2, Utils.getTransform(0, 0, 0, -300, 0, -500, True))
+    p4_2 = trf_points(p4_2, Utils.getTransform(0, np.pi / 2, 0, 0, 0, 0, True))
+    p4_2 = trf_points(p4_2, Utils.getTransform(0, 0, np.pi, 0, 0, 0, True))
+    p4_2 = trf_points(p4_2, Utils.getTransform(0, 0, 0, -250, 0, 300, True))
+
+    return p4 + p4_2[0], len(p4)
+
 def trf_points(points, trf):
     num = points[1]
     points = points[0]
@@ -114,11 +150,12 @@ np.set_printoptions(precision=3, suppress=True)
 points1 = points1_gen()
 points2 = points2_gen()
 points3 = points3_gen()
-points4 = points3_gen()
-points4 = trf_points(points4, Utils.getTransform(0, 0, 0, -300, 0, -500, True))
-points4 = trf_points(points4, Utils.getTransform(0, np.pi/2, 0, 0, 0, 0, True))
-points4 = trf_points(points4, Utils.getTransform(0, 0, np.pi, 0, 0, 0, True))
-points4 = trf_points(points4, Utils.getTransform(0, 0, 0, -250, 0, 300, True))
+points3_2 = points3_gen()
+points3_2 = trf_points(points3_2, Utils.getTransform(0, 0, 0, -300, 0, -500, True))
+points3_2 = trf_points(points3_2, Utils.getTransform(0, np.pi / 2, 0, 0, 0, 0, True))
+points3_2 = trf_points(points3_2, Utils.getTransform(0, 0, np.pi, 0, 0, 0, True))
+points3_2 = trf_points(points3_2, Utils.getTransform(0, 0, 0, -250, 0, 300, True))
+points4 = points4_gen()
 
 def test():
     # for p in points3[0]:
@@ -134,8 +171,7 @@ def test():
     # print points1
     # print points
 
-    print points4
-    print points1
+    pprint(points4)
 
 if __name__ == '__main__':
 
