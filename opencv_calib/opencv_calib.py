@@ -24,8 +24,19 @@ imgset3 = {
     "grid size" : (9, 6),
     "resolution" : (960, 720),
     "real size" : 2.615, # grid distance in cm
-    "img path" : 'D:/dokumentumok/Python/RemoteSurf/out/2016_11_18__11_51_59/*.jpg'}
-imgset = imgset3
+    "img path" : '../out/2016_11_18__11_51_59/*.jpg'}
+imgset4 = {
+    "grid size" : (9, 6),
+    "resolution" : (960, 720),
+    "real size" : 2.615, # grid distance in cm
+    "img path" : '../out/2017_2_24__13_9_23/*.jpg'}
+imgset5 = {
+    "grid size" : (9, 6),
+    "resolution" : (960, 720),
+    "real size" : 2.615, # grid distance in cm
+    "img path" : '../out/2017_2_24__13_18_27/*.jpg'}
+imgset = imgset5
+
 
 grid_size = imgset["grid size"]
 resolution = imgset["resolution"]
