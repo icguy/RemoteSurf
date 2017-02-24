@@ -35,7 +35,12 @@ imgset5 = {
     "resolution" : (960, 720),
     "real size" : 2.615, # grid distance in cm
     "img path" : '../out/2017_2_24__13_18_27/*.jpg'}
-imgset = imgset5
+imgset6 = {
+    "grid size" : (9, 6),
+    "resolution" : (960, 720),
+    "real size" : 2.615, # grid distance in cm
+    "img path" : '../out/2017_2_24__13_21_49/*.jpg'}
+imgset = imgset6
 
 
 grid_size = imgset["grid size"]
