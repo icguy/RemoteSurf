@@ -315,6 +315,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
     ttc[:3, :3] = rtc
     ttc[:3, 3] = vtc.reshape((3,))
 
+    print "vtc, vor = "
     print x # vtc, vor
     reprojectPoints(
         tor,
@@ -391,7 +392,7 @@ if __name__ == '__main__':
     # img_test_from_files(out_dir)
 
 
-    out_dir = "../out/2016_11_18__11_51_59"
+    out_dir = "../out/2017_2_24__14_41_1"
     img_test_complete_from_files(out_dir, 32)
 
 
