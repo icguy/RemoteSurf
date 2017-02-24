@@ -25,16 +25,17 @@ def getFileName(out_folder, idx):
     return fname
 
 def dumpDict(fname):
-    reg_val_widget = gui.refresh_values()
-    reg_val = {}
-    for address in reg_val_widget:
-        val, widget = reg_val_widget[address]
-        reg_val[address] = val
-    rob_pos = gui.read_robot_pos()
+    if gui:
+        reg_val_widget = gui.refresh_values()
+        reg_val = {}
+        for address in reg_val_widget:
+            val, widget = reg_val_widget[address]
+            reg_val[address] = val
+        rob_pos = gui.read_robot_pos()
 
-    f = open(fname, "wb")
-    pickle.dump([reg_val, rob_pos], f, 0)
-    f.close()
+        f = open(fname, "wb")
+        pickle.dump([reg_val, rob_pos], f, 0)
+        f.close()
 
 def run(out_folder):
     global capture
