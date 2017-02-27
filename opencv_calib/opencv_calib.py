@@ -1,14 +1,14 @@
 import numpy as np
 import cv2
 import glob
-
+from os.path import dirname, join
+from time import time
+import pickle
 
 np.set_printoptions(precision=5, suppress=True)
 
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
-
-outfile = file("out.txt", "w")
 
 imgset1 = {
     "grid size" : (29, 19),
@@ -40,13 +40,21 @@ imgset6 = {
     "resolution" : (960, 720),
     "real size" : 2.615, # grid distance in cm
     "img path" : '../out/2017_2_24__13_21_49/*.jpg'}
-imgset = imgset6
+imgset7 = dict(imgset6)
+imgset7["img path"] = '../out/2017_2_24__14_41_1/*.jpg'
+imgset = imgset7
 
 
 grid_size = imgset["grid size"]
 resolution = imgset["resolution"]
 real_size = imgset["real size"]
 imgs_path = imgset["img path"]
+outfile = open(join(dirname(imgs_path), "out_calib.txt"), "w")
+outfile.write(imgs_path)
+outfile.write("\r\n")
+datafile = open(join(dirname(imgs_path), "calib_data.p"), "wb")
+
+start_time = time()
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((grid_size[0] * grid_size[1], 3), np.float32)
@@ -109,5 +117,17 @@ for i in xrange(len(objpoints)):
 
 print "total error (average per image): ", mean_error/len(objpoints)
 print len(objpoints)
+end_time = time()
+total_time = end_time - start_time
+timestr = "\r\n time elapsed = %dm%ds" % (total_time / 60, total_time % 60)
+print timestr
+outfile.write(timestr)
 
+pickle.dump({
+    "cam_mtx" : mtx,
+    "dist_coeffs": dist,
+    "rvecs" : rvecs,
+    "tvecs" : tvecs
+    }, datafile, 2)
 outfile.close()
+datafile.close()
