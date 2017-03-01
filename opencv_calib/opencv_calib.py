@@ -4,6 +4,7 @@ import glob
 from os.path import dirname, join
 from time import time
 import pickle
+import DataCache
 
 np.set_printoptions(precision=5, suppress=True)
 
@@ -52,7 +53,6 @@ imgs_path = imgset["img path"]
 outfile = open(join(dirname(imgs_path), "out_calib.txt"), "w")
 outfile.write(imgs_path)
 outfile.write("\r\n")
-datafile = open(join(dirname(imgs_path), "calib_data.p"), "wb")
 
 start_time = time()
 
@@ -123,11 +123,6 @@ timestr = "\r\n time elapsed = %dm%ds" % (total_time / 60, total_time % 60)
 print timestr
 outfile.write(timestr)
 
-pickle.dump({
-    "cam_mtx" : mtx,
-    "dist_coeffs": dist,
-    "rvecs" : rvecs,
-    "tvecs" : tvecs
-    }, datafile, 2)
+data = {"cam_mtx" : mtx, "dist_coeffs": dist, "rvecs" : rvecs, "tvecs" : tvecs}
+DataCache.saveData(join(dirname(imgs_path), "calib_data.p"), data)
 outfile.close()
-datafile.close()
