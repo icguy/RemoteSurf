@@ -369,9 +369,7 @@ class CalibGUI:
         break_wait = False
 
         while self.next_point_idx < len(CALIB_POINTS):
-            CamGrabber.capture = True
-            time.sleep(0.5)
-
+            print "next point idx: %d" % self.next_point_idx
             point = CALIB_POINTS[self.next_point_idx]
             values = {
                 500: point[0],
@@ -382,6 +380,11 @@ class CalibGUI:
                 505: point[5],
             }
             self.parent.set_values(values, True)
+
+            time.sleep(0.5)
+            CamGrabber.capture = True
+            time.sleep(0.5)
+
             self.next_point_idx += 1
 
             if self.stop_signal:
