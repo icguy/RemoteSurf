@@ -6,6 +6,7 @@ from glob import glob
 import os
 import pickle
 from test import calc_rot, calc_trans, calc_avg_rot, reprojectPoints
+import DataCache as DC
 
 # outdir = "out0"
 # img_points_scale_bad_res = 1600.0 / 640
@@ -229,10 +230,27 @@ def img_test_from_files(out_dir):
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
 
-def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
+def img_test_complete_from_files(out_dir, num_rot_calib_imgs, use_calib_data = False):
     file_names_pattern = "%s/*.jpg" % out_dir
     files = glob(file_names_pattern)
     files_rot = files[:num_rot_calib_imgs]
+
+    calib_data_rot = None
+    calib_data_trans = None
+    if use_calib_data:
+        print "using calib data"
+        calib_file = "%s/calib_data.p" % out_dir
+        calib_data = DC.getData(calib_file)
+        if calib_data:
+            print "calib_data not None"
+            data_len = len(calib_data["tvecs"])
+            tvecs = calib_data["tvecs"]
+            rvecs = calib_data["rvecs"]
+            calib_data = [(rvecs[i], tvecs[i]) for i in range(data_len)]
+            calib_data_rot = calib_data[:num_rot_calib_imgs]
+            calib_data_trans = calib_data[num_rot_calib_imgs:]
+        else:
+            print "ERROR: calib_data is None"
 
     pattern_size = (9, 6)
     pattern_points = np.zeros((np.prod(pattern_size), 3), np.float32)
@@ -268,7 +286,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr = corners.reshape((54, 2))
         imgpts.append(imgpts_curr)
 
-    ror, toc = calc_rot(imgpts, pattern_points, robot_coords_rot, True)
+    ror, toc = calc_rot(imgpts, pattern_points, robot_coords_rot, True, calib_data_rot)
     roc = calc_avg_rot([toci[:3,:3] for toci in toc])
     rrt = Utils.getTransform(c, b, a, 0, 0, 0, True)[:3, :3]
     rtc = rrt.T.dot(ror.T.dot(roc))
@@ -305,7 +323,7 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs):
         imgpts_curr = corners.reshape((54, 2))
         imgpts_trans.append(imgpts_curr)
 
-    x, toc = calc_trans(imgpts_trans, pattern_points, robot_coords_trans, ror, True)
+    x, toc = calc_trans(imgpts_trans, pattern_points, robot_coords_trans, ror, True, calib_data_trans)
     vtc = x[:3, :]
     vor = x[3:, :]
     tor = np.eye(4)
@@ -393,7 +411,7 @@ if __name__ == '__main__':
 
 
     out_dir = "../out/2017_2_24__14_41_1"
-    img_test_complete_from_files(out_dir, 32)
+    img_test_complete_from_files(out_dir, 31, False)
 
 
 

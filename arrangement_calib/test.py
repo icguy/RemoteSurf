@@ -143,7 +143,7 @@ def img_test():
     #         print np.linalg.norm(vrt_np[i, :] - vrt_np[j, :])
     #         print np.linalg.norm(voc_np[i, :] - voc_np[j, :])
 
-def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
+def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False, pose_data = None):
     global cammtx, dist_coeffs
     numpts = len(imgpts)
     voc_np = np.zeros((numpts, 3))
@@ -155,7 +155,12 @@ def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
             objpts = objpts.T
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
-        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None, flags=cv2.CV_ITERATIVE)
+
+        if pose_data:
+            rvec, tvec = pose_data[i]
+        else:
+            retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None, flags=cv2.CV_ITERATIVE)
+
         # reproj = cv2.projectPoints(objpts.T, rvec, tvec, cammtx, dist_coeffs if use_dist_coeffs else None)[0].reshape(-1, 2)
         # diff = (imgpts_i.T - reproj)
         # print "repr err", np.sum((imgpts_i.T - reproj) ** 2)
@@ -178,7 +183,7 @@ def calc_rot(imgpts, objpts, robot_coords, use_dist_coeffs = False):
     rot = kabsch(vrt_np, voc_np)
     return rot.T, toc
 
-def calc_trans(imgpts, objpts, robot_coords, ror, use_dist_coeffs = False):
+def calc_trans(imgpts, objpts, robot_coords, ror, use_dist_coeffs = False, pose_data = None):
     global cammtx, dist_coeffs
 
     numpts = len(imgpts)
@@ -197,7 +202,11 @@ def calc_trans(imgpts, objpts, robot_coords, ror, use_dist_coeffs = False):
             objpts = objpts.T
         if imgpts_i.shape[1] == 2:
             imgpts_i = imgpts_i.T
-        retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None)
+
+        if pose_data:
+            rvec, tvec = pose_data[i]
+        else:
+            retval, rvec, tvec = cv2.solvePnP(objpts.T, imgpts_i.T, cammtx, dist_coeffs if use_dist_coeffs else None)
         # reproj = cv2.projectPoints(objpts.T, rvec, tvec, cammtx, dist_coeffs if use_dist_coeffs else None)[0].reshape(
         #     -1, 2)
         # diff = (imgpts_i.T - reproj)
