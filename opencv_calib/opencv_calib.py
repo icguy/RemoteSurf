@@ -43,8 +43,11 @@ imgset6 = {
     "img path" : '../out/2017_2_24__13_21_49/*.jpg'}
 imgset7 = dict(imgset6)
 imgset7["img path"] = '../out/2017_2_24__14_41_1/*.jpg'
-imgset = imgset7
-
+imgset8 = dict(imgset6)
+imgset8["img path"] = '../out/2017_3_1__14_59_19/*.jpg'
+imgset9 = dict(imgset6)
+imgset9["img path"] = '../out/2017_3_1__15_35_8/*.jpg'
+imgset = imgset9
 
 grid_size = imgset["grid size"]
 resolution = imgset["resolution"]
