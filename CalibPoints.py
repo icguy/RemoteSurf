@@ -94,6 +94,8 @@ def points3_gen():
 
 def points4_gen():
     homepos = [-220, -15, 310, 12, 90, -168]
+    safepos_left = [-390, -15, 310, 12, 90, -168]
+    safepos_right = [-390, 15, 310, 12, 90, -168]
 
     x_range = (-390, -220)
     y_range = (-80, 45)
@@ -126,7 +128,24 @@ def points4_gen():
     p4_2 = trf_points(p4_2, Utils.getTransform(0, 0, np.pi, 0, 0, 0, True))
     p4_2 = trf_points(p4_2, Utils.getTransform(0, 0, 0, -250, 0, 300, True))
 
-    return p4 + p4_2[0], len(p4)
+    #safety features
+    all_points = p4 + p4_2[0]
+    idx = 1
+    while idx < len(all_points):
+        p0 = all_points[idx-1]
+        p1 = all_points[idx]
+        if p0[1] < 0 and p1[1] >= 0:
+            all_points.insert(idx, safepos_left)
+            all_points.insert(idx + 1, safepos_right)
+            idx += 2
+        elif p0[1] >= 0 and p1[1] < 0:
+            all_points.insert(idx, safepos_right)
+            all_points.insert(idx + 1, safepos_left)
+            idx += 2
+        else:
+            idx += 1
+
+    return all_points, len(p4)
 
 def trf_points(points, trf):
     num = points[1]
