@@ -9,7 +9,7 @@ for dir in dirs:
         continue
 
     contents = os.listdir(curdir)
-    if len(contents) == 0 or (len(contents) == 1 and contents[0] == "out.txt"):
+    if len(contents) < 10:
         shutil.rmtree(curdir)
         print curdir
 
