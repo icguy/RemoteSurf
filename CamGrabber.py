@@ -10,6 +10,7 @@ OUT_FOLDER = None
 exit = False
 gui = None
 capture = False
+capture_if_no_chessboard = False
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -93,6 +94,8 @@ def run(out_folder):
                     key = 13
                     write_log("Chessboard found")
                 else:
+                    if capture_if_no_chessboard:
+                        key = 13
                     write_log("Chessboard not found.")
 
             if key == 13:

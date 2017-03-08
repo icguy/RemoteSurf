@@ -27,7 +27,6 @@ outfile = None
 break_wait = False
 calib_stepthrough = True
 
-
 def intToUint16(val):
     assert -32768 <= val <= 32767
     return val if val >= 0 else 65536 + val
@@ -390,6 +389,7 @@ class CalibGUI:
 
             time.sleep(0.5)
             CamGrabber.capture = True
+            CamGrabber.capture_if_no_chessboard = calib_stepthrough
             time.sleep(0.5)
 
             self.next_point_idx += 1
