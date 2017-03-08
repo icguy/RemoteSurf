@@ -190,7 +190,7 @@ def test():
     # print points1
     # print points
 
-    pprint(points4)
+    pprint(points2)
 
 if __name__ == '__main__':
 
