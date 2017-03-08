@@ -21,10 +21,12 @@ CALIBFRAME_POS = 675, 350
 OPENCV_POS = 1000, 200
 CamGrabber.WINDOW_POS = OPENCV_POS
 
-CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points2
+CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points4
 
 outfile = None
 break_wait = False
+calib_stepthrough = True
+
 
 def intToUint16(val):
     assert -32768 <= val <= 32767
@@ -329,6 +331,7 @@ class CalibGUI:
         self.next_point_idx = 0
         self.calib_thread = None
         self.stop_signal = False
+        self.stepthrough_next_point = False
 
         self.__build_ui(parent)
 
@@ -363,6 +366,10 @@ class CalibGUI:
         if self.calib_thread is None:
             self.calib_thread = Thread(target=self.__calibrate)
             self.calib_thread.start()
+        else:
+            global calib_stepthrough
+            if calib_stepthrough:
+                self.stepthrough_next_point = True
 
     def __calibrate(self):
         global break_wait
@@ -386,6 +393,11 @@ class CalibGUI:
             time.sleep(0.5)
 
             self.next_point_idx += 1
+
+            if calib_stepthrough:
+                while not self.stepthrough_next_point and not self.stop_signal:
+                    time.sleep(0.05)
+                self.stepthrough_next_point = False
 
             if self.stop_signal:
                 self.stop_signal = False
