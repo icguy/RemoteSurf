@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import cPickle as pickle
 from os.path import isfile
+from glob import glob
 
 FEATURE_SURF = "surf"
 
@@ -24,7 +25,7 @@ class FeatureLoader:
     """
     :returns kp, des
     """
-    def loadFeatures(self, filename, detectorType):
+    def loadFeatures(self, filename, detectorType = "surf"):
         detectorType = detectorType.lower()
         detector = getDetector(detectorType)
         fname = self.getFileName(filename, detectorType)
@@ -63,15 +64,7 @@ if __name__ == "__main__":
     import random
     fl = FeatureLoader()
 
-    fn = "imgs/001.jpg"
-    print("1")
-    kp, des = fl.loadFeatures(fn, "SURF")
-    kpd = fl.serializeKeyPoints(kp, des)
-    idxs = [random.randint(0, len(kp)) for i in range(20)]
-    print_rand(kpd, idxs)
+    files = glob("out/2017_3_8__14_51_22/*.jpg")
+    for f in files:
+        fl.loadFeatures(f, "surf")
 
-    print("2")
-    kp, des = fl.loadFeatures(fn, "SURF")
-    kpd = fl.serializeKeyPoints(kp, des)
-    print_rand(kpd, idxs)
-    print("3")
