@@ -1,3 +1,5 @@
+for file 0022 .. 0050
+
 Connection established
 Refresh done.
 Reading robot position:
