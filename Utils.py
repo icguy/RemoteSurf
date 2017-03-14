@@ -6,10 +6,10 @@ from numpy.linalg import inv
 calibrated from: "RemoteSurf/out/2016_11_18__11_51_59/*.jpg"
 with flags: cv2.CALIB_FIX_ASPECT_RATIO | cv2.CALIB_FIX_FOCAL_LENGTH | cv2.CALIB_FIX_PRINCIPAL_POINT
 """
-camMtx = np.array([[ 1250.57416,     0.,        479.5    ],
- [    0.,       1250.57416,   359.5    ],
- [    0.,         0.,          1.     ]] )
-dist_coeffs = np.array([[-0.06816, -0.09649,  0.00209,  0.00261,  0.93025]])
+camMtx = np.array([[ 1331.49603,     0.,        479.5    ],
+ [    0.,       1331.49603,   359.5    ],
+ [    0. ,         0. ,         1.     ]] )
+dist_coeffs = np.array( [[ 0.08974, -0.82961,  0.00807,  0.00572,  5.60383]])
 
 size = 14.1
 sh = size / 2
