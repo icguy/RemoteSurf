@@ -352,7 +352,7 @@ def print_rand(arr, idxs):
     sel = [arr[idx] for idx in idxs]
     print(sel)
 
-def drawMatches(img1, img2, pt1, pt2, scale1 = 1, scale2 = 1, num = 10):
+def drawMatches(img1, img2, pt1, pt2, scale1 = 1, scale2 = 1, num = 10, skip = 0):
     h1, w1, c1 = img1.shape
     h2, w2, c2 = img2.shape
     img1 = cv2.resize(img1, tuple(map(int, (w1 / scale1, h1 / scale1))))
@@ -378,11 +378,11 @@ def drawMatches(img1, img2, pt1, pt2, scale1 = 1, scale2 = 1, num = 10):
             p2 = (int(pt2[idx][0] / scale2 + w1), int(pt2[idx][1] / scale2))
             # text = "pt1(%d, %d), pt2(%d, %d)" % (int(pt1[0]), int(pt1[1]), int(pt2[0]), int(pt2[1]))
             # cv2.putText(out, text, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
-            color = (255 - 20 * i, 20 * i, 20 * i)
+            color = (255 - (255 * i) / num, (255 * i) / num, (255 * i) / num)
             cv2.circle(out, p1, 10, color, 1)
             cv2.circle(out, p2, 10, color, 1)
             cv2.line(out, p1, p2, color, 1)
-            idx += 1
+            idx += 1 + skip
 
         cv2.imshow("img1", out)
         cv2.waitKey()
@@ -645,7 +645,7 @@ def match_pairs():
         print len(all_matches)
         pt1 = [kp1[m.queryIdx].pt for m in all_matches]
         pt2 = [kp2[m.trainIdx].pt for m in all_matches]
-        # drawMatches(img1, img2, pt1, pt2, 2, 2)
+        drawMatches(img1, img2, pt1, pt2, 2, 2, 30, 10)
 
 
         # fl = FL.FeatureLoader()
