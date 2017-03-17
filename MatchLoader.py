@@ -424,11 +424,11 @@ if __name__ == "__main__":
     files = glob("out/2017_3_8__14_51_22/*.jpg")
     for f in files:
         print f
-        img = cv2.imread(f, 0)
+        img_orig = cv2.imread(f, 0)
         img_color = cv2.imread(f)
         scale = 2
-        h, w = img.shape
-        img = cv2.resize(img, (w / scale, h / scale))
+        h, w = img_orig.shape
+        img = cv2.resize(img_orig, (w / scale, h / scale))
         img_color = cv2.resize(img_color, (w / scale, h / scale))
         h, w = img.shape
         offset = -20
@@ -484,8 +484,9 @@ if __name__ == "__main__":
 
 
         if ret:
-            cv2.cornerSubPix(img, corners, (11, 11), (-1, -1), criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
-            corners = corners.reshape(-1, 2)
+            corners_orig = corners * scale
+            cv2.cornerSubPix(img_orig, corners_orig, (11, 11), (-1, -1), criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
+            corners = corners_orig.reshape(-1, 2) / scale
             # for i in range(max(corners.shape)):
             #     corners[i, 0] += cut
             cv2.drawChessboardCorners(img_color, grid_size, corners, ret)
@@ -514,8 +515,10 @@ if __name__ == "__main__":
                                                  flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
         print ret
         if ret:
-            cv2.cornerSubPix(img, corners2, (11, 11), (-1, -1),
+            corners2_orig = corners2 * scale
+            cv2.cornerSubPix(img_orig, corners2_orig, (11, 11), (-1, -1),
                              criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
+            corners2 = corners2_orig / scale
             cv2.drawChessboardCorners(img_color, grid_size, corners2, ret)
             idx = 0
             for i in range(grid_size[0]):
