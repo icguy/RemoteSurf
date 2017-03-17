@@ -16,6 +16,10 @@ MATCHER_BF_EPILINES_HOMOGRAPHY = "bf_epilines_homography"
 # dump file name: "cache/filename.detectorType.matcherType.version.p"
 class MatchLoader:
     def getFileName(self, fn1, fn2, dType, mType, version):
+        if fn1.startswith("out"):
+            fn1 = fn1.replace("\\", "/").replace("/", "_")
+            fn2 = fn2.replace("\\", "/").replace("/", "_")
+            return "cache/match_%s.%s.%s.%s.%s.p" % (fn1, fn2, dType, mType, version)
         fn1 = fn1[fn1.rindex("/") + 1:]
         fn2 = fn2[fn2.rindex("/") + 1:]
         return "cache/match_%s.%s.%s.%s.%s.p" % (fn1, fn2, dType, mType, version)
@@ -383,7 +387,6 @@ def drawMatches(img1, img2, pt1, pt2, scale1 = 1, scale2 = 1, num = 10):
         cv2.imshow("img1", out)
         cv2.waitKey()
 
-
 def navigate():
     files = glob("out/2017_3_8__14_51_22/*.jpg")
     imgs = [cv2.imread(f) for f in files]
@@ -410,7 +413,6 @@ def navigate():
             break
         if 0 <= newidx < len(imgs):
             idx = newidx
-
 
 def find_corners():
     objp_total = []
@@ -548,6 +550,124 @@ def find_corners():
                                                        flags=cv2.CALIB_FIX_ASPECT_RATIO | cv2.CALIB_FIX_FOCAL_LENGTH | cv2.CALIB_FIX_PRINCIPAL_POINT)
     print mtx
 
+def getTmat(fname):
+    import pickle
+    datafilename = fname.replace("\\", "/").replace("/", "_")
+    f_handle = open("cache/points_%s.p" % datafilename, "rb")
+    dct = pickle.load(f_handle) #{"objp": objp_all, "imgp": corners_all, "rvec": rvec, "tvec": tvec}, f_handle)
+    f_handle.close()
+
+    rvec = dct["rvec"]
+    tvec = dct["tvec"]
+
+    rmat, jac = cv2.Rodrigues(rvec)
+    tmat = np.zeros((3, 4))
+    tmat[:3, :3] = rmat
+    tmat[:3, 3] = tvec.T
+    return tmat
+
+def match_pairs():
+    files_dir = "out/2017_3_8__14_51_22/"
+    files = glob(join(files_dir, "*.jpg"))
+
+    pairs = []
+    for i in range(7):
+        for j in range(7):
+            img_idx = i * 7 + j
+            pairs.append((img_idx, img_idx + 7))
+            pairs.append((img_idx, img_idx - 7))
+            pairs.append((img_idx, img_idx + 1))
+            pairs.append((img_idx, img_idx - 1))
+    pairs = [p for p in pairs if 0 <= p[1] < len(files)]
+    # pprint(pairs)
+    for pair in pairs:
+        # fname1 = "out/2017_3_8__14_51_22/0000.jpg"
+        # fname2 = "out/2017_3_8__14_51_22/0007.jpg"
+        # fname2 = "imgs/004.jpg"
+
+        fname1 = files[pair[0]]
+        fname2 = files[pair[1]]
+        mask1 = fname1.replace(".jpg", "_mask.png")
+        mask2 = fname2.replace(".jpg", "_mask.png")
+        mask1 = cv2.imread(mask1, 0)
+        mask2 = cv2.imread(mask2, 0)
+
+        img1 = cv2.imread(fname1)
+        img2 = cv2.imread(fname2)
+
+        fl = FL.FeatureLoader()
+        kp1, des1 = fl.loadFeatures(fname1)
+        kp2, des2 = fl.loadFeatures(fname2)
+        if len(des1) == 0 or len(des2) == 0:
+            continue
+
+        tmat1 = getTmat(fname1)
+        tmat2 = getTmat(fname2)
+
+        res = Utils.maskKeypoints([mask1, mask2], [(kp1, des1), (kp2, des2)])
+        kp1, des1 = res[0]
+        kp2, des2 = res[1]
+
+        if False:
+            bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+            match1 = bf.match(np.asarray(des1, np.float32), np.asarray(des2, np.float32))
+            match2 = bf.match(np.asarray(des2, np.float32), np.asarray(des1, np.float32))
+
+            # union
+            match1 = [(m.queryIdx, m.trainIdx) for m in match1]
+            match2 = [(m.trainIdx, m.queryIdx) for m in match2]
+            s1 = set(match1)
+            s2 = set(match2)
+            all = s1.union(s2)
+
+            srcPts = np.float32([kp1[m[0]].pt for m in all]).reshape(-1, 1, 2)
+            dstPts = np.float32([kp2[m[1]].pt for m in all]).reshape(-1, 1, 2)
+
+            retval, mask = cv2.findHomography(srcPts, dstPts, cv2.RANSAC, 5)
+
+            all = list(all)
+            good = []
+            for i in range(len(all)):
+                if mask[i][0] == 1:
+                    good.append(all[i])
+
+            all_matches = [cv2.DMatch(
+                _queryIdx=gmatch[0],
+                _trainIdx=gmatch[1],
+                _imgIdx=0,
+                _distance=-1) for gmatch in good]
+        else:
+            ml = MatchLoader()
+            all_matches = ml.matchBFEpilinesHomogr(fname1, fname2, des1, des2, kp1, kp2, tmat1, tmat2, "surf")
+
+        print fname1, fname2
+        print "all matches:"
+        print len(all_matches)
+        pt1 = [kp1[m.queryIdx].pt for m in all_matches]
+        pt2 = [kp2[m.trainIdx].pt for m in all_matches]
+        # drawMatches(img1, img2, pt1, pt2, 2, 2)
+
+
+        # fl = FL.FeatureLoader()
+        #
+        # fn1 = "imgs/005.jpg"
+        # fn2 = "imgs/006.jpg"
+        # img1 = cv2.imread(fn1)
+        # img2 = cv2.imread(fn2)
+        # kp1, des1 = fl.loadFeatures(fn1, "SURF")
+        # kp2, des2 = fl.loadFeatures(fn2, "SURF")
+        # print(len(des1), len(des2))
+        #
+        # tmat1 = MD.loadMat(fn1)
+        # tmat2 = MD.loadMat(fn2)
+        #
+        # ml = MatchLoader()
+        # m, b = ml.matchBFEpilinesHomogr(fn1, fn2, des1, des2, kp1, kp2, tmat1, tmat2, "surf", nosave=True)
+        # print len(m), len(b)
+        # util.drawMatchesOneByOne(img1, img2, kp1, kp2, m, 1)
+        # print "bad"
+        # util.drawMatchesOneByOne(img1, img2, kp1, kp2, b, 50)
+
 
 if __name__ == "__main__":
     import FeatureLoader as FL
@@ -560,96 +680,8 @@ if __name__ == "__main__":
 
     # navigate()
 
-    find_corners()
+    # find_corners()
 
-
-        # pairs = []
-    # for i in range(7):
-    #     for j in range(7):
-    #         img_idx = i * 7 + j
-    #         pairs.append((img_idx, img_idx + 7))
-    #         pairs.append((img_idx, img_idx - 7))
-    #         pairs.append((img_idx, img_idx + 1))
-    #         pairs.append((img_idx, img_idx - 1))
-    # pairs = [p for p in pairs if 0 <= p[1] < len(files)]
-    # # pprint(pairs)
-    # for pair in pairs:
-    #     # fname1 = "out/2017_3_8__14_51_22/0000.jpg"
-    #     # fname2 = "out/2017_3_8__14_51_22/0007.jpg"
-    #     # fname2 = "imgs/004.jpg"
-    #
-    #     fname1 = files[pair[0]]
-    #     fname2 = files[pair[1]]
-    #     mask1 = fname1.replace(".jpg", "_mask.png")
-    #     mask2 = fname2.replace(".jpg", "_mask.png")
-    #     mask1 = cv2.imread(mask1, 0)
-    #     mask2 = cv2.imread(mask2, 0)
-    #
-    #     img1 = cv2.imread(fname1)
-    #     img2 = cv2.imread(fname2)
-    #
-    #     fl = FL.FeatureLoader()
-    #     kp1, des1 = fl.loadFeatures(fname1)
-    #     kp2, des2 = fl.loadFeatures(fname2)
-    #     if len(des1) == 0 or len(des2) == 0:
-    #         continue
-    #
-    #     res = Utils.maskKeypoints([mask1, mask2], [(kp1, des1), (kp2, des2)])
-    #     kp1, des1 = res[0]
-    #     kp2, des2 = res[1]
-    #
-    #     bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
-    #     match1 = bf.match(np.asarray(des1, np.float32), np.asarray(des2, np.float32))
-    #     match2 = bf.match(np.asarray(des2, np.float32), np.asarray(des1, np.float32))
-    #
-    #
-    #     # union
-    #     match1 = [(m.queryIdx, m.trainIdx) for m in match1]
-    #     match2 = [(m.trainIdx, m.queryIdx) for m in match2]
-    #     s1 = set(match1)
-    #     s2 = set(match2)
-    #     all = s1.union(s2)
-    #
-    #     srcPts = np.float32([kp1[m[0]].pt for m in all]).reshape(-1, 1, 2)
-    #     dstPts = np.float32([kp2[m[1]].pt for m in all]).reshape(-1, 1, 2)
-    #
-    #     retval, mask = cv2.findHomography(srcPts, dstPts, cv2.RANSAC, 5)
-    #
-    #     all = list(all)
-    #     good = []
-    #     for i in range(len(all)):
-    #         if mask[i][0] == 1:
-    #             good.append(all[i])
-    #
-    #     all_matches = [cv2.DMatch(
-    #         _queryIdx=gmatch[0],
-    #         _trainIdx=gmatch[1],
-    #         _imgIdx=0,
-    #         _distance=-1) for gmatch in good]
-    #
-    #     pt1 = [kp1[m.queryIdx].pt for m in all_matches]
-    #     pt2 = [kp2[m.trainIdx].pt for m in all_matches]
-    #     drawMatches(img1, img2, pt1, pt2, 2, 2)
-    #
-    #
-    #     # fl = FL.FeatureLoader()
-    #     #
-    #     # fn1 = "imgs/005.jpg"
-    #     # fn2 = "imgs/006.jpg"
-    #     # img1 = cv2.imread(fn1)
-    #     # img2 = cv2.imread(fn2)
-    #     # kp1, des1 = fl.loadFeatures(fn1, "SURF")
-    #     # kp2, des2 = fl.loadFeatures(fn2, "SURF")
-    #     # print(len(des1), len(des2))
-    #     #
-    #     # tmat1 = MD.loadMat(fn1)
-    #     # tmat2 = MD.loadMat(fn2)
-    #     #
-    #     # ml = MatchLoader()
-    #     # m, b = ml.matchBFEpilinesHomogr(fn1, fn2, des1, des2, kp1, kp2, tmat1, tmat2, "surf", nosave=True)
-    #     # print len(m), len(b)
-    #     # util.drawMatchesOneByOne(img1, img2, kp1, kp2, m, 1)
-    #     # print "bad"
-    #     # util.drawMatchesOneByOne(img1, img2, kp1, kp2, b, 50)
+    match_pairs()
 
 
