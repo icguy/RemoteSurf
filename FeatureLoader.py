@@ -19,8 +19,12 @@ class FeatureLoader:
         pass
 
     def getFileName(self, filename, dType):
-        filename = filename[filename.rindex("/") + 1:]
-        return "cache/feature_%s.%s.p" % (filename, dType)
+        if filename.startswith("out"):
+            filename = filename.replace("\\", "/").replace("/", "_")
+            return "cache/feature_%s.%s.p" % (filename, dType)
+        else:
+            filename = filename[filename.rindex("/") + 1:]
+            return "cache/feature_%s.%s.p" % (filename, dType)
 
     """
     :returns kp, des
@@ -37,6 +41,8 @@ class FeatureLoader:
 
         img = cv2.imread(filename, 0)
         kp, des = detector.detectAndCompute(img, None)
+        if des is None:
+            des = []
 
         f = open(fname, "wb")
         pickle.dump(self.serializeKeyPoints(kp, des), f, 2)
@@ -60,11 +66,19 @@ def print_rand(arr, idxs):
     sel = [arr[idx] for idx in idxs]
     print(sel)
 
+def drawKpts(img, kpts):
+    for kp in kpts:
+        cv2.circle(img, tuple(map(int, kp.pt)), 10, (0, 0, 255), 1)
+    cv2.imshow("asd", img)
+    cv2.waitKey()
+
 if __name__ == "__main__":
     import random
     fl = FeatureLoader()
 
     files = glob("out/2017_3_8__14_51_22/*.jpg")
     for f in files:
-        fl.loadFeatures(f, "surf")
+        print  f
+        kp, des = fl.loadFeatures(f, "surf")
+        # drawKpts(cv2.imread(f), kp)
 

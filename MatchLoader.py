@@ -348,29 +348,268 @@ def print_rand(arr, idxs):
     sel = [arr[idx] for idx in idxs]
     print(sel)
 
+def drawMatches(img1, img2, pt1, pt2, scale1 = 1, scale2 = 1, num = 10):
+    h1, w1, c1 = img1.shape
+    h2, w2, c2 = img2.shape
+    img1 = cv2.resize(img1, tuple(map(int, (w1 / scale1, h1 / scale1))))
+    img2 = cv2.resize(img2, tuple(map(int, (w2 / scale2, h2 / scale2))))
+    h1, w1, c1 = img1.shape
+    h2, w2, c2 = img2.shape
+
+    idx = 0
+    numMatches = len(pt1)
+
+    while True:
+        if idx >= numMatches:
+            break
+
+        out = np.zeros((max(h1, h2), w1 + w2, 3), np.uint8)
+        out[:h1, :w1, :] = img1
+        out[:h2, w1:, :] = img2
+
+        for i in range(num):
+            if idx >= numMatches:
+                break
+            p1 = (int(pt1[idx][0] / scale1), int(pt1[idx][1] / scale1))
+            p2 = (int(pt2[idx][0] / scale2 + w1), int(pt2[idx][1] / scale2))
+            # text = "pt1(%d, %d), pt2(%d, %d)" % (int(pt1[0]), int(pt1[1]), int(pt2[0]), int(pt2[1]))
+            # cv2.putText(out, text, (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
+            color = (255 - 20 * i, 20 * i, 20 * i)
+            cv2.circle(out, p1, 10, color, 1)
+            cv2.circle(out, p2, 10, color, 1)
+            cv2.line(out, p1, p2, color, 1)
+            idx += 1
+
+        cv2.imshow("img1", out)
+        cv2.waitKey()
+
+
+def navigate():
+    files = glob("out/2017_3_8__14_51_22/*.jpg")
+    imgs = [cv2.imread(f) for f in files]
+    keys = {"w": 119,
+            "a": 97,
+            "s": 115,
+            "d": 100,
+            "esc": 27}
+    idx = 0
+    while True:
+        cv2.imshow("img", imgs[idx])
+        print idx
+        key = cv2.waitKey()
+        newidx = idx
+        if key == keys["a"]:
+            newidx = idx - 7
+        elif key == keys["s"]:
+            newidx = idx - 1
+        elif key == keys["d"]:
+            newidx = idx + 7
+        elif key == keys["w"]:
+            newidx = idx + 1
+        elif key == keys["esc"]:
+            break
+        if 0 <= newidx < len(imgs):
+            idx = newidx
+
 if __name__ == "__main__":
     import FeatureLoader as FL
     import random
     from pprint import pprint
-    fl = FL.FeatureLoader()
+    import Utils
+    from glob import glob
+    import DataCache as DC
 
-    fn1 = "imgs/005.jpg"
-    fn2 = "imgs/006.jpg"
-    img1 = cv2.imread(fn1)
-    img2 = cv2.imread(fn2)
-    kp1, des1 = fl.loadFeatures(fn1, "SURF")
-    kp2, des2 = fl.loadFeatures(fn2, "SURF")
-    print(len(des1), len(des2))
+    # navigate()
 
-    tmat1 = MD.loadMat(fn1)
-    tmat2 = MD.loadMat(fn2)
+    files = glob("out/2017_3_8__14_51_22/*.jpg")
+    for f in files:
+        print f
+        img = cv2.imread(f, 0)
+        img_color = cv2.imread(f)
+        scale = 2
+        h, w = img.shape
+        img = cv2.resize(img, (w / scale, h / scale))
+        img_color = cv2.resize(img_color, (w / scale, h / scale))
+        h, w = img.shape
+        offset = -20
+        cut = w/2 + offset
+        img_left = img[:,:cut]
+        img_right = img[:,cut:]
+        cv2.imshow("left", img_left)
+        cv2.imshow("right", img_right)
+        grid_size = (3, 6)
+        real_size = 2.615
 
-    ml = MatchLoader()
-    m, b = ml.matchBFEpilinesHomogr(fn1, fn2, des1, des2, kp1, kp2, tmat1, tmat2, "surf", nosave=True)
-    print len(m), len(b)
-    util.drawMatchesOneByOne(img1, img2, kp1, kp2, m, 1)
-    print "bad"
-    util.drawMatchesOneByOne(img1, img2, kp1, kp2, b, 50)
+        if f.endswith("0006.jpg"):
+            corners = np.array([
+            541, 391,
+            491, 393,
+            437, 398,
+            557, 344,
+            507, 347,
+            453, 353,
+            575, 294,
+            522, 300,
+            469, 302,
+            591, 242,
+            537, 247,
+            483, 248,
+            611, 189,
+            558, 192,
+            501, 195,
+            626, 133,
+            573, 133,
+            515, 134], dtype="float32").reshape((-1, 2)) / scale
+            print corners[:, 0].shape
+            corners[:, 0] = corners[:, 0] - np.ones((18,)) * cut
+            corners = corners.reshape(18, 1, 2)
+            print  corners
+            ret = True
+            # cv2.drawChessboardCorners(img_color, grid_size, corners, ret)
+            # idx = 0
+            # for i in range(grid_size[0]):
+            #     for j in range(grid_size[1]):
+            #         c = (corners[idx])
+            #         cv2.putText(img_color, str(idx), tuple(corners[idx, :]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+            #         idx += 1
 
+        else:
+            ret, corners = cv2.findChessboardCorners(img_right, grid_size,
+                                                 flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
+
+        if ret:
+            cv2.cornerSubPix(img_right, corners, (11, 11), (-1, -1), criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
+            corners = corners.reshape(-1, 2)
+            for i in range(max(corners.shape)):
+                corners[i, 0] += cut
+            cv2.drawChessboardCorners(img_color, grid_size, corners, ret)
+            idx = 0
+            for i in range(grid_size[0]):
+                for j in range(grid_size[1]):
+                    c = (corners[idx])
+                    cv2.putText(img_color, str(idx), tuple(corners[idx, :]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+                    idx += 1
+        print ret
+
+        if ret:
+            objp = np.float32(np.mgrid[0:0+grid_size[0], 0: grid_size[1]].T.reshape(-1, 2))
+            H, mask = cv2.findHomography(objp, corners.reshape(-1, 2))
+            objp_h = np.ones((grid_size[0] * grid_size[1], 3), np.float32)
+            objp_h[:, :2] = np.mgrid[6:6+grid_size[0], 0:grid_size[1]].T.reshape(-1, 2)
+            # print objp_h.T
+            corners2 = np.float32(H.dot(objp_h.T)).T
+            # print corners2
+            corners2 = cv2.convertPointsFromHomogeneous(corners2).reshape((-1,2))
+            # print corners2
+            # print corners2.shape
+            # print corners2
+        else:
+            ret, corners2 = cv2.findChessboardCorners(img_left, (3, 6),
+                                                 flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
+        print ret
+        if ret:
+            cv2.cornerSubPix(img, corners2, (11, 11), (-1, -1),
+                             criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
+            cv2.drawChessboardCorners(img_color, grid_size, corners2, ret)
+            idx = 0
+            for i in range(grid_size[0]):
+                for j in range(grid_size[1]):
+                    c = (corners2[idx])
+                    cv2.putText(img_color, str(idx + len(corners)), tuple(corners2[idx, :]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+                    idx += 1
+
+        img[:, :cut] = img_left
+        img[:, cut:] = img_right
+        cv2.imshow("asd", img_color)
+        cv2.waitKey()
+
+    # pairs = []
+    # for i in range(7):
+    #     for j in range(7):
+    #         img_idx = i * 7 + j
+    #         pairs.append((img_idx, img_idx + 7))
+    #         pairs.append((img_idx, img_idx - 7))
+    #         pairs.append((img_idx, img_idx + 1))
+    #         pairs.append((img_idx, img_idx - 1))
+    # pairs = [p for p in pairs if 0 <= p[1] < len(files)]
+    # # pprint(pairs)
+    # for pair in pairs:
+    #     # fname1 = "out/2017_3_8__14_51_22/0000.jpg"
+    #     # fname2 = "out/2017_3_8__14_51_22/0007.jpg"
+    #     # fname2 = "imgs/004.jpg"
+    #
+    #     fname1 = files[pair[0]]
+    #     fname2 = files[pair[1]]
+    #     mask1 = fname1.replace(".jpg", "_mask.png")
+    #     mask2 = fname2.replace(".jpg", "_mask.png")
+    #     mask1 = cv2.imread(mask1, 0)
+    #     mask2 = cv2.imread(mask2, 0)
+    #
+    #     img1 = cv2.imread(fname1)
+    #     img2 = cv2.imread(fname2)
+    #
+    #     fl = FL.FeatureLoader()
+    #     kp1, des1 = fl.loadFeatures(fname1)
+    #     kp2, des2 = fl.loadFeatures(fname2)
+    #     if len(des1) == 0 or len(des2) == 0:
+    #         continue
+    #
+    #     res = Utils.maskKeypoints([mask1, mask2], [(kp1, des1), (kp2, des2)])
+    #     kp1, des1 = res[0]
+    #     kp2, des2 = res[1]
+    #
+    #     bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+    #     match1 = bf.match(np.asarray(des1, np.float32), np.asarray(des2, np.float32))
+    #     match2 = bf.match(np.asarray(des2, np.float32), np.asarray(des1, np.float32))
+    #
+    #
+    #     # union
+    #     match1 = [(m.queryIdx, m.trainIdx) for m in match1]
+    #     match2 = [(m.trainIdx, m.queryIdx) for m in match2]
+    #     s1 = set(match1)
+    #     s2 = set(match2)
+    #     all = s1.union(s2)
+    #
+    #     srcPts = np.float32([kp1[m[0]].pt for m in all]).reshape(-1, 1, 2)
+    #     dstPts = np.float32([kp2[m[1]].pt for m in all]).reshape(-1, 1, 2)
+    #
+    #     retval, mask = cv2.findHomography(srcPts, dstPts, cv2.RANSAC, 5)
+    #
+    #     all = list(all)
+    #     good = []
+    #     for i in range(len(all)):
+    #         if mask[i][0] == 1:
+    #             good.append(all[i])
+    #
+    #     all_matches = [cv2.DMatch(
+    #         _queryIdx=gmatch[0],
+    #         _trainIdx=gmatch[1],
+    #         _imgIdx=0,
+    #         _distance=-1) for gmatch in good]
+    #
+    #     pt1 = [kp1[m.queryIdx].pt for m in all_matches]
+    #     pt2 = [kp2[m.trainIdx].pt for m in all_matches]
+    #     drawMatches(img1, img2, pt1, pt2, 2, 2)
+    #
+    #
+    #     # fl = FL.FeatureLoader()
+    #     #
+    #     # fn1 = "imgs/005.jpg"
+    #     # fn2 = "imgs/006.jpg"
+    #     # img1 = cv2.imread(fn1)
+    #     # img2 = cv2.imread(fn2)
+    #     # kp1, des1 = fl.loadFeatures(fn1, "SURF")
+    #     # kp2, des2 = fl.loadFeatures(fn2, "SURF")
+    #     # print(len(des1), len(des2))
+    #     #
+    #     # tmat1 = MD.loadMat(fn1)
+    #     # tmat2 = MD.loadMat(fn2)
+    #     #
+    #     # ml = MatchLoader()
+    #     # m, b = ml.matchBFEpilinesHomogr(fn1, fn2, des1, des2, kp1, kp2, tmat1, tmat2, "surf", nosave=True)
+    #     # print len(m), len(b)
+    #     # util.drawMatchesOneByOne(img1, img2, kp1, kp2, m, 1)
+    #     # print "bad"
+    #     # util.drawMatchesOneByOne(img1, img2, kp1, kp2, b, 50)
 
 
