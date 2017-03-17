@@ -460,10 +460,10 @@ if __name__ == "__main__":
             626, 133,
             573, 133,
             515, 134], dtype="float32").reshape((-1, 2)) / scale
-            print corners[:, 0].shape
-            corners[:, 0] = corners[:, 0] - np.ones((18,)) * cut
+            # print corners[:, 0].shape
+            # corners[:, 0] = corners[:, 0] - np.ones((18,)) * cut
             corners = corners.reshape(18, 1, 2)
-            print  corners
+            # print  corners
             ret = True
             # cv2.drawChessboardCorners(img_color, grid_size, corners, ret)
             # idx = 0
@@ -476,12 +476,18 @@ if __name__ == "__main__":
         else:
             ret, corners = cv2.findChessboardCorners(img_right, grid_size,
                                                  flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
+            if not ret:
+                continue
+            corners = corners.reshape(-1,2)
+            corners[:, 0] = corners[:, 0] + np.ones((18,)) * cut
+            corners = corners.reshape(-1,1,2)
+
 
         if ret:
-            cv2.cornerSubPix(img_right, corners, (11, 11), (-1, -1), criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
+            cv2.cornerSubPix(img, corners, (11, 11), (-1, -1), criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
             corners = corners.reshape(-1, 2)
-            for i in range(max(corners.shape)):
-                corners[i, 0] += cut
+            # for i in range(max(corners.shape)):
+            #     corners[i, 0] += cut
             cv2.drawChessboardCorners(img_color, grid_size, corners, ret)
             idx = 0
             for i in range(grid_size[0]):
