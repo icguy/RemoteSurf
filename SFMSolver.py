@@ -46,7 +46,7 @@ class CliqueExtractor:
         return True
 
 class SFMSolver:
-    def __init__(self, filenames, masks, **settings):
+    def __init__(self, filenames, masks):
         self.filenames = filenames
         self.masks = masks
         self.detector = "surf"

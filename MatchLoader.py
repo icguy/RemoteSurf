@@ -567,6 +567,8 @@ def getTmat(fname):
     return tmat
 
 def match_pairs():
+    #BF epilines homogr (doksi: 7.4.3)
+
     files_dir = "out/2017_3_8__14_51_22/"
     files = glob(join(files_dir, "*.jpg"))
 
@@ -682,6 +684,7 @@ if __name__ == "__main__":
 
     # find_corners()
 
-    match_pairs()
+    # match_pairs()
+
 
 
