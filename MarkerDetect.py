@@ -113,14 +113,21 @@ def getParams(filename):
     return None, None, None
 
 def getFilenameMat(filename):
-    fn = filename[filename.rindex("/") + 1:]
+    """
+    :param filename:
+    :return:
+     a/b\\c.jpg  ->  cache/tmat_a.b.c.jpg.p
+    """
+    fn = filename.replace("\\", "/")
+    fn = fn.replace("/", ".")
     fn = "cache/tmat_" + fn + ".p"
     return fn
 
-def saveMat(filename):
+def saveMat(filename, tmat = None):
     fn = getFilenameMat(filename)
-    tmat, rvec, tvec = getParams(filename)
-    if tmat is None: return None
+    if tmat is None:
+        tmat, rvec, tvec = getParams(filename)
+        if tmat is None: return None
     f = open(fn, "wb")
     pickle.dump(tmat, f, 2)
     f.close()
@@ -140,11 +147,12 @@ def loadMat(filename, noload = True):
         return saveMat(filename)
 
 if __name__ == "__main__":
-    saveMat("imgs/004.jpg")
-    exit()
-
-    fn = "imgs/005.jpg"
-    print loadMat(fn)
-    for i in range(5, 10):
-        fn = "imgs/00%d.jpg" % i
-        saveMat(fn)
+    print getFilenameMat("a/b\\c.jpg")
+    # saveMat("imgs/004.jpg")
+    # exit()
+    #
+    # fn = "imgs/005.jpg"
+    # print loadMat(fn)
+    # for i in range(5, 10):
+    #     fn = "imgs/00%d.jpg" % i
+    #     saveMat(fn)
