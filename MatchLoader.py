@@ -686,5 +686,18 @@ if __name__ == "__main__":
 
     # match_pairs()
 
+    files_dir = "out/2017_3_8__14_51_22/"
+    files = glob(join(files_dir, "*.jpg"))
+
+    pairs = []
+    for i in range(7):
+        for j in range(7):
+            img_idx = i * 7 + j
+            pairs.append((img_idx, img_idx + 7))
+            pairs.append((img_idx, img_idx - 7))
+            pairs.append((img_idx, img_idx + 1))
+            pairs.append((img_idx, img_idx - 1))
+    pairs = [p for p in pairs if 0 <= p[1] < len(files)]
+
 
 
