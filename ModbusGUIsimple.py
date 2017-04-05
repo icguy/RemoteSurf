@@ -1,7 +1,7 @@
 from Tkinter import *
 import tkFont
 from pyModbusTCP.client import ModbusClient
-from threading import Thread
+from threading import Thread, RLock
 from Logger import write_log, logger
 import CamGrabber
 import CalibPoints
@@ -25,7 +25,8 @@ CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points2
 
 outfile = None
 break_wait = False
-calib_stepthrough = True
+calib_stepthrough = False
+capture_if_no_chessboard = True
 
 def intToUint16(val):
     assert -32768 <= val <= 32767
@@ -37,6 +38,7 @@ def uintToInt16(val):
 
 class ClientGUI:
     def __init__(self):
+        self.lock = RLock()
         self.calibgui = None
         self.client = ModbusClient()
         self.register_values_widgets = {}
@@ -171,7 +173,7 @@ class ClientGUI:
 
     def __calibbutton_click(self):
         if not self.calibgui:
-            self.calibgui = CalibGUI(self, self.client)
+            self.calibgui = CalibGUI(self)
 
     def __connectbutton_click(self):
         if self.client.is_open():
@@ -192,8 +194,9 @@ class ClientGUI:
         posdict = {}
         for i in range(1000, 1006):
             if self.client.is_open():
-                real_val_uint = self.client.read_input_registers(i)[0]
-                real_val_holding_uint = self.client.read_holding_registers(i)[0]
+                with self.lock:
+                    real_val_uint = self.client.read_input_registers(i)[0]
+                    real_val_holding_uint = self.client.read_holding_registers(i)[0]
                 assert real_val_uint == real_val_holding_uint
                 real_val_int = uintToInt16(real_val_uint)
                 posdict[i] = real_val_int
@@ -209,8 +212,9 @@ class ClientGUI:
         for address in self.register_values_widgets:
             if self.client.is_open():
                 value, widget = self.register_values_widgets[address]
-                real_val_uint = self.client.read_input_registers(address)[0]
-                real_val_holding_uint = self.client.read_holding_registers(address)[0]
+                with self.lock:
+                    real_val_uint = self.client.read_input_registers(address)[0]
+                    real_val_holding_uint = self.client.read_holding_registers(address)[0]
                 assert real_val_uint == real_val_holding_uint
                 real_val_int = uintToInt16(real_val_uint)
                 widget.set(str(real_val_int))
@@ -275,7 +279,8 @@ class ClientGUI:
         if wait:
             global break_wait
             while not break_wait:
-                counter = self.client.read_input_registers(COUNTER_REGISTER_IN)[0]
+                with self.lock:
+                    counter = self.client.read_input_registers(COUNTER_REGISTER_IN)[0]
                 if counter == self.counter:
                     break
                 time.sleep(0.1)
@@ -295,7 +300,8 @@ class ClientGUI:
 
         widgetvalue_uint = intToUint16(value)
         if self.client.is_open():
-            retval = self.client.write_single_register(address, widgetvalue_uint)
+            with self.lock:
+                retval = self.client.write_single_register(address, widgetvalue_uint)
             if retval:
                 write_log("Register written. Address: %d, value: %d" % (address, value))
                 return True
@@ -388,7 +394,7 @@ class CalibGUI:
 
             time.sleep(0.5)
             CamGrabber.capture = True
-            CamGrabber.capture_if_no_chessboard = calib_stepthrough
+            CamGrabber.capture_if_no_chessboard = capture_if_no_chessboard
             time.sleep(0.5)
 
             self.next_point_idx += 1
