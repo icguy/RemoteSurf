@@ -1,0 +1,9 @@
+távkapcs - kamera táv kb 2 cm
+xyzabc:
+
+362,33
+29,28
+70,31
+180
+0
+180 

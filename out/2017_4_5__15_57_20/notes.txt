@@ -1,0 +1,9 @@
+origin
+táv a kamera és a távkapcs között: kb 2 cm
+táv a kamera és a megfogó között: kb 4,5 cm
+x = 387,80
+y = 24,54
+z = 84,41
+A = -180
+B = -14
+C = -180
