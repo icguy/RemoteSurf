@@ -552,8 +552,13 @@ def find_corners():
 
 def getTmat(fname):
     import pickle
+    from os.path import isfile
+
     datafilename = fname.replace("\\", "/").replace("/", "_")
-    f_handle = open("cache/points_%s.p" % datafilename, "rb")
+    datafilename = "cache/points_%s.p" % datafilename
+    if not isfile(datafilename):
+        return None
+    f_handle = open(datafilename, "rb")
     dct = pickle.load(f_handle) #{"objp": objp_all, "imgp": corners_all, "rvec": rvec, "tvec": tvec}, f_handle)
     f_handle.close()
 
@@ -670,6 +675,42 @@ def match_pairs():
         # print "bad"
         # util.drawMatchesOneByOne(img1, img2, kp1, kp2, b, 50)
 
+def create_pos_cache():
+    files_dir = "out/2017_3_8__14_51_22/"
+    files = glob(join(files_dir, "*.jpg"))
+    masks = []
+    for f in files:
+        m = f.replace(".jpg", "_mask.png")
+        masks.append(m)
+
+    for f in files:
+        if getTmat(f) is not None:
+            MarkerDetect.saveMat(f, getTmat(f))
+
+
+def test():
+    from SFMSolver import draw_real_coords
+    files_dir = "out/2017_3_8__14_51_22/"
+    files = glob(join(files_dir, "*.jpg"))
+    masks = []
+    for f in files:
+        m = f.replace(".jpg", "_mask.png")
+        masks.append(m)
+    sfm = SFM.SFMSolver(files, masks)
+
+    # pointData is list of tuple: (des, p3d, img_idx, kpt_idx)
+    imgs, kpts, points, pointData = sfm.calc_data_from_files_triang_simple()
+
+    imidx = 1
+    skip = 100
+    pdata0 = [p for p in pointData if p[2] == imidx]
+    print len(pdata0)
+    pts3d = [p3d for _, p3d, _, kpidx in pdata0]
+    impts = [kpts[imidx][0][kpidx].pt for _, _, _, kpidx in pdata0]
+    pts3d = [pts3d[i] for i in range(0, len(pts3d), skip)]
+    impts = [impts[i] for i in range(0, len(impts), skip)]
+    draw_real_coords(imgs[imidx], impts, pts3d, True)
+
 
 if __name__ == "__main__":
     import FeatureLoader as FL
@@ -679,6 +720,8 @@ if __name__ == "__main__":
     import Utils
     from glob import glob
     import DataCache as DC
+    import SFMSolver as SFM
+    import MarkerDetect
 
     # navigate()
 
@@ -686,18 +729,7 @@ if __name__ == "__main__":
 
     # match_pairs()
 
-    files_dir = "out/2017_3_8__14_51_22/"
-    files = glob(join(files_dir, "*.jpg"))
-
-    pairs = []
-    for i in range(7):
-        for j in range(7):
-            img_idx = i * 7 + j
-            pairs.append((img_idx, img_idx + 7))
-            pairs.append((img_idx, img_idx - 7))
-            pairs.append((img_idx, img_idx + 1))
-            pairs.append((img_idx, img_idx - 1))
-    pairs = [p for p in pairs if 0 <= p[1] < len(files)]
+    # create_pos_cache()
 
 
-
+    test()

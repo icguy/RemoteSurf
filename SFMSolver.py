@@ -48,7 +48,7 @@ class CliqueExtractor:
 class SFMSolver:
     def __init__(self, filenames, masks):
         self.filenames = filenames
-        self.masks = masks
+        self.masks = [cv2.imread(m, 0) for m in masks]
         self.detector = "surf"
         assert masks is None or len(filenames) == len(masks)
 
@@ -70,7 +70,7 @@ class SFMSolver:
         print("num imgs: %d" % num)
         matches = [[None] * num for i in range(num)]
         for i in range(num):
-            print(i)
+            # print(i)
             for j in range(num):
                 if i == j: continue
 
@@ -86,17 +86,38 @@ class SFMSolver:
                 #     "surf"
                 # )
 
-                matches[i][j] = ml.matchBFEpilinesHomogr(
+                # matches[i][j] = ml.matchBFEpilinesHomogr(
+                #     self.filenames[i],
+                #     self.filenames[j],
+                #     kpts[i][1],
+                #     kpts[j][1],
+                #     kpts[i][0],
+                #     kpts[j][0],
+                #     tmats[i],
+                #     tmats[j],
+                #     "surf"
+                # )
+
+                fn, curr_matches = ml.loadMatches(
                     self.filenames[i],
                     self.filenames[j],
-                    kpts[i][1],
-                    kpts[j][1],
-                    kpts[i][0],
-                    kpts[j][0],
-                    tmats[i],
-                    tmats[j],
-                    "surf"
+                    "surf",
+                    MatchLoader.MATCHER_BF_EPILINES_HOMOGRAPHY,
+                    0
                 )
+                matches[i][j] = curr_matches
+                if curr_matches is None:
+                    matches[i][j] = []
+                # else:
+                #     print self.filenames[i], self.filenames[j], len(curr_matches)
+
+        sm = 0
+        for i in range(num):
+            for j in range(num):
+                if matches[i][j] is not None:
+                    sm += len(matches[i][j])
+        print "sum: ", sm
+
         return matches, kpts
 
     def maskKeypoints(self, kpts):
@@ -208,7 +229,7 @@ class SFMSolver:
         num = len(clique)
         pos = [[None] * num for n in clique]
         projMats = [np.dot(Utils.camMtx, tmat) for tmat in tmats]
-        imgPts = [np.array(kpts[imgidx][0][kptidx].pt)
+        imgPts = [np.array(kpts[imgidx][0][kptidx].pt, dtype="float32")
                   for imgidx, kptidx in clique]
         res = [[None] * num for n in clique]
 
@@ -217,7 +238,7 @@ class SFMSolver:
         for i in range(num):
             for j in range(i + 1, num):
                 p4d = self._triangulate(
-                    projMats[i], projMats[j], imgPts[i], imgPts[i])
+                    projMats[i], projMats[j], imgPts[i], imgPts[j])
                 pos[i][j] = p4d
                 # pos[j,i] = pos[i,j]
 
@@ -352,6 +373,137 @@ class SFMSolver:
         x = np.dot(np.linalg.pinv(G), b)
         return x
 
+    # pointData is list of tuple: (des, p3d, img_idx, kpt_idx)
+    def calc_data_from_files_triang(self, datafile=DC.POINTS4D_HOMOGR_TRIANG, noload=False):
+        imgs = [cv2.imread(f) for f in self.filenames]
+        matches, kpts = self.getMatches()
+
+        data = None if noload else DC.getData(datafile)
+        if data is None:
+            graph = self.getGraph(matches, kpts)
+
+            all_levels = self.extractCliques(graph, maxlevel=3)
+            # sfm.extendCliques(graph, all_levels[0], 1)
+            # all_levels = sfm.extractCliques(graph, maxlevel=3)
+            # sfm.extendCliques(graph, all_levels[0], 1)
+            # all_levels = sfm.extractCliques(graph, maxlevel=3)
+
+            tmats = [MarkerDetect.loadMat(f) for f in self.filenames]
+            points = []
+            pointData = []
+
+            for i in range(len(all_levels[0])):
+                if i % 1000 == 0: print i, len(all_levels[0]), len(pointData)
+                c = all_levels[0][i]
+
+                edge1 = (c[0], c[1])
+                edge2 = (c[1], c[2])
+                edge3 = (c[0], c[2])
+
+                edge = edge1
+                pt0, pt1 = self.getEdgePosTriangulate(edge, graph, kpts, tmats)
+                if pt0 is not None:
+                    img_idx, kpt_idx = edge[0]
+                    pointData.append((kpts[img_idx][1][kpt_idx], pt0, img_idx, kpt_idx))
+                if pt1 is not None:
+                    img_idx, kpt_idx = edge[1]
+                    pointData.append((kpts[img_idx][1][kpt_idx], pt1, img_idx, kpt_idx))
+
+                edge = edge2
+                pt0, pt1 = self.getEdgePosTriangulate(edge, graph, kpts, tmats)
+                if pt0 is not None:
+                    img_idx, kpt_idx = edge[0]
+                    pointData.append((kpts[img_idx][1][kpt_idx], pt0, img_idx, kpt_idx))
+                if pt1 is not None:
+                    img_idx, kpt_idx = edge[1]
+                    pointData.append((kpts[img_idx][1][kpt_idx], pt1, img_idx, kpt_idx))
+
+                edge = edge3
+                pt0, pt1 = self.getEdgePosTriangulate(edge, graph, kpts, tmats)
+                if pt0 is not None:
+                    img_idx, kpt_idx = edge[0]
+                    pointData.append((kpts[img_idx][1][kpt_idx], pt0, img_idx, kpt_idx))
+                if pt1 is not None:
+                    img_idx, kpt_idx = edge[1]
+                    pointData.append((kpts[img_idx][1][kpt_idx], pt1, img_idx, kpt_idx))
+
+            DC.saveData(datafile, (points, pointData))
+        else:
+            points, pointData = data
+
+        return imgs, kpts, points, pointData
+
+    # pointData is list of tuple: (des, p3d, img_idx, kpt_idx)
+    def calc_data_from_files_triang_simple(self, noload=False):
+        imgs = [cv2.imread(f) for f in self.filenames]
+        matches, kpts = self.getMatches()
+
+        import DataCache as DC
+        datafile = DC.POINTS4D_HOMOGR_TRIANG_SIMPLE
+        data = None if noload else DC.getData(datafile)
+        if data is None:
+            graph = self.getGraph(matches, kpts)
+
+            points = []
+            pointData = []
+            tmats = [MarkerDetect.loadMat(f) for f in self.filenames]
+            projMats = [np.dot(Utils.camMtx, tmat) for tmat in tmats]
+            for node in graph:
+                for neigh in graph[node]:
+                    im_idx1 = node[0]
+                    im_idx2 = neigh[0]
+                    kpt_idx1 = node[1]
+                    kpt_idx2 = neigh[1]
+
+                    imgPt1 = np.array(kpts[im_idx1][0][kpt_idx1].pt)
+                    imgPt2 = np.array(kpts[im_idx2][0][kpt_idx2].pt)
+
+                    p4d = self._triangulate(projMats[node[0]], projMats[neigh[0]], imgPt1, imgPt2)
+                    p4d = p4d[:3, :]
+                    pointData.append((kpts[im_idx1][1][kpt_idx1], p4d, im_idx1, kpt_idx1))
+
+            DC.saveData(datafile, (points, pointData))
+        else:
+            points, pointData = data
+
+        return imgs, kpts, points, pointData
+
+    # pointData is list of tuple: (des, p3d, img_idx, kpt_idx)
+    def calc_data_from_files_triang_ransac(self, noload=False):
+        imgs = [cv2.imread(f) for f in self.filenames]
+        matches, kpts = self.getMatches()
+
+        import DataCache as DC
+        datafile = DC.POINTS4D_HOMOGR_TRIANG_RANSAC
+        data = None if noload else DC.getData(datafile)
+        if data is None:
+            graph = self.getGraph(matches, kpts)
+
+            points = []
+            pointData = []
+            tmats = [MarkerDetect.loadMat(f) for f in self.filenames]
+
+            num_done = 0
+            for node in graph:
+                if num_done % 1000 == 0:
+                    print num_done, len(graph.keys()), len(pointData)
+                num_done += 1
+
+                nodes = [n for n in graph[node]]
+                nodes.append(node)
+                point, inliers = self.getCliquePosRANSAC(nodes, kpts, tmats, err_thresh=10)
+
+                if point is not None:
+                    im_idx = node[0]
+                    kpt_idx = node[1]
+                    pointData.append((kpts[im_idx][1][kpt_idx], point, im_idx, kpt_idx))
+
+            DC.saveData(datafile, (points, pointData))
+        else:
+            points, pointData = data
+
+        return imgs, kpts, points, pointData
+
     def _triangulate(self, projMat1, projMat2, imgPts1, imgPts2):
         p4d = cv2.triangulatePoints(projMat1, projMat2, imgPts1, imgPts2)
 
@@ -462,7 +614,20 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
     fl = FeatureLoader.FeatureLoader()
     kp, des = fl.loadFeatures(file, "surf")
     ml = MatchLoader.MatchLoader()
+
+    while len(data_des) > 2 ** 18:
+        data_des = tuple([data_des[i] for i in range(0, len(data_des), 2)])
+    print len(data_des)
+
     matches = ml.matchBFCross(file, "asd/nope.avi", des, data_des, "surf", nosave=True, noload=True)
+    print len(matches)
+    dct = {}
+    for i in range(48):
+        dct[i] = 0
+    for m in matches:
+        dct[img_indices[m.trainIdx]] += 1
+    print  dct
+
     img_pts = []
     obj_pts = []
     for m in matches:
@@ -521,13 +686,26 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
     print "est orig", est_origin
     return tmat, tmat_real
 
-def test(file, datafile):
-    files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
-    imgs, kpts, points, data = calc_data_from_files_triang_simple(files)
+def test(file):
+    from glob import glob
+    from os.path import  join
+    files_dir = "out/2017_3_8__14_51_22/"
+    files = glob(join(files_dir, "*.jpg"))
+    # files = [f for f in files if f != file]
+    # print files
+    masks = []
+    for f in files:
+        m = f.replace(".jpg", "_mask.png")
+        masks.append(m)
+    sfm = SFMSolver(files, masks)
+
+    imgs, kpts, points, data = sfm.calc_data_from_files_triang_simple(noload=True)
+
+
 
     print "len pointData %d" % len(data)
 
-    match_to_img(file, imgs, kpts, points, data, False, repr_err_thresh=5)
+    match_to_img(file, imgs, kpts, points, data, False, repr_err_thresh=20)
     return
 
     print "num points: ", len(points)
@@ -538,6 +716,48 @@ def test(file, datafile):
         if p[2] > -1.5:
             if draw_clique(c, imgs, kpts) == 27:
                 return
+
+def ransac_test():
+    from glob import glob
+    from os.path import join
+    class foo:
+        def __init__(self, pt_):
+            self.pt = pt_
+    files_dir = "out/2017_3_8__14_51_22/"
+    files = glob(join(files_dir, "*.jpg"))
+    masks = []
+    for f in files:
+        m = f.replace(".jpg", "_mask.png")
+        masks.append(m)
+
+    sfm = SFMSolver(files, masks)
+
+    numpts = 10
+    numout = 2
+    pt = np.array([1, 10, 3, 1], dtype="float64").T
+    tmats = []
+    kpts = []
+    nodes = []
+    from random import random
+    for i in range(numpts):
+        tmat = Utils.getTransform(
+            random() * 2 - 1,
+            random() * 2 - 1,
+            random() * 2 - 1,
+            random() * 30 + 30,
+            random() * 30 + 30,
+            random() * 30 + 30)
+        tmats.append(tmat)
+        projpt = Utils.camMtx.dot(tmat.dot(pt))
+        projpt /= projpt[2]
+        projpt = projpt[:2]
+        if i < numout:
+            projpt += np.random.rand(2,) * 100
+
+        kpts.append(([foo(projpt)], None))
+        nodes.append((i, 0))
+
+    print sfm.getCliquePosRANSAC(nodes, kpts, tmats, err_thresh=20)
 
 def test_two_lines():
     files = ["imgs/00%d.jpg" % (i) for i in range(5, 10)]
@@ -707,13 +927,24 @@ def calc_data_from_files_triang_simple(files, noload = False):
     return imgs, kpts, points, pointData
 
 if __name__ == '__main__':
-    # test_two_lines()
-    # exit()
+    from glob import glob
+    from os.path import join
 
-    test("imgs/001.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
-    test("imgs/002.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
-    test("imgs/003.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
-    test("imgs/004.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
+    files_dir = "out/2017_3_8__14_51_22/"
+    files = glob(join(files_dir, "*.jpg"))
+    np.set_printoptions(precision=3, suppress=True)
+
+    # test("imgs/001.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
+    # test("imgs/002.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
+    # test("imgs/003.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
+    # test("imgs/004.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
+    # test("out/2017_3_8__14_51_22/0023.jpg")
+
+    for f in files:
+        print f
+        test(f)
+
+    ransac_test()
     exit()
 
     import cProfile
