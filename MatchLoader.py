@@ -466,20 +466,16 @@ def find_corners():
         print ret
 
         objp_all = np.zeros((36, 3))
+        objp = np.float32(np.mgrid[0:0 + grid_size[0], 0: grid_size[1]].T.reshape(-1, 2))
+        objp_all[:18, :2] = objp
+        objp_h = np.ones((grid_size[0] * grid_size[1], 3), np.float32)
+        objp_h[:, :2] = np.mgrid[6:6 + grid_size[0], 0:grid_size[1]].T.reshape(-1, 2)
+        objp_all[18:, :2] = objp_h[:, :2]
+
         if ret:
-            objp = np.float32(np.mgrid[0:0 + grid_size[0], 0: grid_size[1]].T.reshape(-1, 2))
-            objp_all[:18, :2] = objp
             H, mask = cv2.findHomography(objp, corners.reshape(-1, 2))
-            objp_h = np.ones((grid_size[0] * grid_size[1], 3), np.float32)
-            objp_h[:, :2] = np.mgrid[6:6 + grid_size[0], 0:grid_size[1]].T.reshape(-1, 2)
-            objp_all[18:, :2] = objp_h[:, :2]
-            # print objp_h.T
             corners2 = np.float32(H.dot(objp_h.T)).T
-            # print corners2
             corners2 = cv2.convertPointsFromHomogeneous(corners2).reshape((-1, 2))
-            # print corners2
-            # print corners2.shape
-            # print corners2
         else:
             ret, corners2 = cv2.findChessboardCorners(img_left, (3, 6),
                                                       flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
