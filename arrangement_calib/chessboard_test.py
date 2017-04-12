@@ -343,6 +343,8 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs, use_calib_data = F
         pattern_points,
         imgpts + imgpts_trans)
 
+    DC.saveData("%s/arrangement_calib.p" % out_dir, {"ttc": ttc, "tor": tor})
+
 def filter_contours(contours):
     # print  len(contours)
     # h, w = dil.shape
