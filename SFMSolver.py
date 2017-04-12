@@ -555,9 +555,9 @@ def calc_repr_err(c, p, inl, tmats, kpts):
     avg_err = np.average(np.array(errs))
     print max_err, avg_err
 
-def draw_real_coords(img, img_pts, obj_pts, print_coords = False):
+def draw_real_coords(img, img_pts, obj_pts, print_coords = False, skip = 1):
     img2 = np.copy(img)
-    for i in range(len(img_pts)):
+    for i in range(0, len(img_pts), skip):
         img_pt = img_pts[i]
         obj_pt = obj_pts[i]
         img_pt = tuple(map(int, img_pt))
@@ -621,12 +621,13 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
 
     matches = ml.matchBFCross(file, "asd/nope.avi", des, data_des, "surf", nosave=True, noload=True)
     print len(matches)
-    dct = {}
-    for i in range(48):
-        dct[i] = 0
-    for m in matches:
-        dct[img_indices[m.trainIdx]] += 1
-    print  dct
+
+    # dct = {}
+    # for i in range(48):
+    #     dct[i] = 0
+    # for m in matches:
+    #     dct[img_indices[m.trainIdx]] += 1
+    # print  dct
 
     img_pts = []
     obj_pts = []
@@ -662,7 +663,7 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
     img_pts2 = [img_pts[i] for i in range(len(img_pts)) if i in inliers]
     obj_pts2 = [obj_pts[i] for i in range(len(obj_pts)) if i in inliers]
     if draw_coords:
-        draw_real_coords(img, img_pts2, obj_pts2)
+        draw_real_coords(img, img_pts2, obj_pts2, True, 5)
 
     rmat = cv2.Rodrigues(rvec)[0]
 
@@ -686,6 +687,7 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
     print "est orig", est_origin
     return tmat, tmat_real
 
+
 def test(file):
     from glob import glob
     from os.path import  join
@@ -699,13 +701,13 @@ def test(file):
         masks.append(m)
     sfm = SFMSolver(files, masks)
 
-    imgs, kpts, points, data = sfm.calc_data_from_files_triang_simple(noload=True)
+    imgs, kpts, points, data = sfm.calc_data_from_files_triang_simple()
 
 
 
     print "len pointData %d" % len(data)
 
-    match_to_img(file, imgs, kpts, points, data, False, repr_err_thresh=20)
+    match_to_img(file, imgs, kpts, points, data, True, repr_err_thresh=20)
     return
 
     print "num points: ", len(points)
@@ -926,26 +928,110 @@ def calc_data_from_files_triang_simple(files, noload = False):
 
     return imgs, kpts, points, pointData
 
+def projtest():
+    numpts = 10
+    tro = Utils.getTransform(0, 0, 0, 330, 0, 0, True)
+    trt = Utils.getTransform(180, 0, 180, 300, 0, 500, True)
+    ttc = Utils.getTransform(0, 0, 0, 0, 0, 20, True)
+    tco = np.linalg.inv(ttc).dot(np.linalg.inv(trt).dot(tro))
+    # print tro
+    # print np.dot(trt, ttc.dot(tco))
+    objpts = np.zeros((numpts, 4))
+    objpts[:,:2] = np.random.rand(numpts, 2) * 10
+    objpts[:,3] = np.ones((numpts,))
+    objpts = objpts.T
+    print objpts
+    imgpts = Utils.camMtx.dot(tco[:3,:].dot(objpts))
+    for i in range(numpts):
+        imgpts[:,i] /= imgpts[2,i]
+    print imgpts
+    objpts = objpts[:3, :].T.reshape(-1, 1, 3)
+    imgpts = imgpts[:2, :].T.reshape(-1, 1, 2)
+
+    imgpts_ = imgpts + (np.random.rand(numpts, 1, 2) * 2 - np.ones_like(imgpts)) * 0
+    print imgpts - imgpts_
+
+    _, rvec, tvec = cv2.solvePnP(np.array(objpts), np.array(imgpts_), Utils.camMtx, None)
+    print "--"
+
+    tco_est = np.eye(4)
+    tco_est[:3,:3] = cv2.Rodrigues(rvec)[0]
+    tco_est[:3,3] = tvec.reshape((3, ))
+
+    tro_est = trt.dot(ttc.dot(tco_est))
+    print tro-tro_est
+
+
+
 if __name__ == '__main__':
     from glob import glob
     from os.path import join
 
-    files_dir = "out/2017_3_8__14_51_22/"
-    files = glob(join(files_dir, "*.jpg"))
     np.set_printoptions(precision=3, suppress=True)
 
-    # test("imgs/001.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
-    # test("imgs/002.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
-    # test("imgs/003.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
-    # test("imgs/004.jpg", DC.POINTS4D_HOMOGR_TRIANG_SIMPLE)
-    # test("out/2017_3_8__14_51_22/0023.jpg")
+    files_dir = "out/2017_3_8__14_51_22/"
+    files = glob(join(files_dir, "*.jpg"))
+    # files = [f for f in files if f != file]
+    # print files
+    masks = []
+    for f in files:
+        m = f.replace(".jpg", "_mask.png")
+        masks.append(m)
+    sfm = SFMSolver(files, masks)
+    imgs, kpts, points, data = sfm.calc_data_from_files_triang_simple()
+    arr_calib = DC.getData("out/2017_4_5__15_6_49/arrangement_calib.p")
+    ttc = arr_calib["ttc"]
+    tor = arr_calib["tor"]
+    files_dir = "out/2017_3_8__14_51_22/"
+    files_dir = "out/2017_4_5__15_31_34/"
+    files = glob(join(files_dir, "*.jpg"))
+
+    # projtest()
+    # exit()
+
+
+    files = glob(join(files_dir, "0029.jpg"))
 
     for f in files:
         print f
-        test(f)
+        tco_est, tco_real = match_to_img(f, imgs, kpts, points, data, False, repr_err_thresh=20)
+        temp = np.eye(4)
+        temp[:3,:] = tco_est
+        tco_est = temp
 
-    ransac_test()
+        temp = np.eye(4)
+        temp[:3, :] = tco_real
+        tco_real = temp
+
+        pos_data_file = f.replace("jpg", "p")
+        posdata = DC.getData(pos_data_file)
+        x, y, z, a, b, c = [posdata[0][i] for i in [500, 501, 502, 503, 504, 505]]
+        a, b, c = map(lambda p: p * np.pi / 180     , (a, b, c))  # deg to rad
+        x, y, z = map(lambda p: p / 10.0            , (x, y, z))  # mm to cm
+
+        # print x, y, z,'|', a, b, c
+        # img = cv2.imread(f)
+        # img = cv2.pyrDown(img)
+        # cv2.imshow("asd", img)
+        # cv2.waitKey()
+
+        trt = np.linalg.inv(Utils.getTransform(c, b, a, x, y, z, True))
+        # print trt.shape, ttc.shape, tco_est.shape
+        print "---"
+        print x, y, z, a, b, c
+        print trt
+        print ttc
+        print tco_est
+        print tco_real
+        print np.linalg.inv(tco_real.dot(tor.dot(trt))) #ttc
+        tro_est = trt.dot(ttc.dot(tco_est))
+        print tro_est
+        print np.linalg.inv(tor)
+        print tro_est.dot(np.array([11, 4, -4, 1.0]).T) #becsült pozíciója a kamerának amikor közel volt lol
+
+    # ransac_test()
     exit()
 
     import cProfile
+
     cProfile.run("test()")

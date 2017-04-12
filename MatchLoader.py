@@ -417,18 +417,20 @@ def navigate():
 def find_corners():
     objp_total = []
     imgpt_total = []
-    files_dir = "out/2017_3_8__14_51_22/"
+    files_dir = "out/2017_4_5__15_31_34/"
+    # files_dir = "out/2017_3_8__14_51_22/"
     files = glob(join(files_dir, "*.jpg"))
     for f in files:
         print f
         img_orig = cv2.imread(f, 0)
+
         img_color = cv2.imread(f)
         scale = 2
         h, w = img_orig.shape
         img = cv2.resize(img_orig, (w / scale, h / scale))
         img_color = cv2.resize(img_color, (w / scale, h / scale))
         h, w = img.shape
-        offset = -20
+        offset = 0
         cut = w / 2 + offset
         img_left = img[:, :cut]
         img_right = img[:, cut:]
@@ -437,47 +439,15 @@ def find_corners():
         grid_size = (3, 6)
         real_size = 2.615
 
-        if f.endswith("0006.jpg"):
-            corners = np.array([
-                541, 391,
-                491, 393,
-                437, 398,
-                557, 344,
-                507, 347,
-                453, 353,
-                575, 294,
-                522, 300,
-                469, 302,
-                591, 242,
-                537, 247,
-                483, 248,
-                611, 189,
-                558, 192,
-                501, 195,
-                626, 133,
-                573, 133,
-                515, 134], dtype="float32").reshape((-1, 2)) / scale
-            # print corners[:, 0].shape
-            # corners[:, 0] = corners[:, 0] - np.ones((18,)) * cut
-            corners = corners.reshape(18, 1, 2)
-            # print  corners
-            ret = True
-            # cv2.drawChessboardCorners(img_color, grid_size, corners, ret)
-            # idx = 0
-            # for i in range(grid_size[0]):
-            #     for j in range(grid_size[1]):
-            #         c = (corners[idx])
-            #         cv2.putText(img_color, str(idx), tuple(corners[idx, :]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-            #         idx += 1
 
-        else:
-            ret, corners = cv2.findChessboardCorners(img_right, grid_size,
-                                                     flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
-            if not ret:
-                continue
-            corners = corners.reshape(-1, 2)
-            corners[:, 0] = corners[:, 0] + np.ones((18,)) * cut
-            corners = corners.reshape(-1, 1, 2)
+        ret, corners = cv2.findChessboardCorners(img_right, grid_size,
+                                                 flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
+        corners = np.fliplr(np.flipud(corners))
+        if not ret:
+            continue
+        corners = corners.reshape(-1, 2)
+        corners[:, 0] = corners[:, 0] + np.ones((18,)) * cut
+        corners = corners.reshape(-1, 1, 2)
 
         if ret:
             corners_orig = corners * scale
@@ -534,6 +504,9 @@ def find_corners():
         objp_all *= 2.615
         objp_total.append(objp_all)
         imgpt_total.append(corners_all)
+        for i in range(objp_all.shape[0]):
+            print i, objp_all[i, :]
+        # print objp_all
 
         retval, rvec, tvec = cv2.solvePnP(objp_all, corners_all, Utils.camMtx, Utils.dist_coeffs, flags=cv2.ITERATIVE)
         datafilename = f.replace("\\", "/").replace("/", "_")
@@ -543,7 +516,7 @@ def find_corners():
         print rvec, tvec
 
         cv2.imshow("asd", img_color)
-        # cv2.waitKey()
+        cv2.waitKey()
     # print len(objp_total)
     # print objp_total[0].shape
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objp_total, imgpt_total, (960, 720),
@@ -677,6 +650,7 @@ def match_pairs():
 
 def create_pos_cache():
     files_dir = "out/2017_3_8__14_51_22/"
+    files_dir = "out/2017_4_5__15_31_34/"
     files = glob(join(files_dir, "*.jpg"))
     masks = []
     for f in files:
@@ -711,7 +685,6 @@ def test():
     impts = [impts[i] for i in range(0, len(impts), skip)]
     draw_real_coords(imgs[imidx], impts, pts3d, True)
 
-
 if __name__ == "__main__":
     import FeatureLoader as FL
     import random
@@ -725,11 +698,13 @@ if __name__ == "__main__":
 
     # navigate()
 
-    # find_corners()
+    find_corners()
 
     # match_pairs()
 
     # create_pos_cache()
 
 
-    test()
+    # test()
+    # find_corners()
+    # create_pos_cache()
