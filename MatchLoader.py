@@ -420,6 +420,20 @@ def find_corners():
     files_dir = "out/2017_4_5__15_31_34/"
     # files_dir = "out/2017_3_8__14_51_22/"
     files = glob(join(files_dir, "*.jpg"))
+
+    grid_size = (3, 6)
+    real_size = 2.615
+    objp_right = np.float32(np.mgrid[0:0 + grid_size[0], 0: grid_size[1]].T.reshape(-1, 2))
+    objp_right_h = np.ones((grid_size[0] * grid_size[1], 3), np.float32)
+    objp_right_h[:, :2] = objp_right
+    objp_left = np.float32(np.mgrid[6:6 + grid_size[0], 0:grid_size[1]].T.reshape(-1, 2))
+    objp_left_h = np.ones((grid_size[0] * grid_size[1], 3), np.float32)
+    objp_left_h[:, :2] = objp_left
+    objp_all = np.zeros((36, 3))
+    objp_all[18:, :2] = objp_left
+    objp_all[:18, :2] = objp_right
+    objp_all *= real_size
+
     for f in files:
         print f
         img_orig = cv2.imread(f, 0)
@@ -436,17 +450,26 @@ def find_corners():
         img_right = img[:, cut:]
         cv2.imshow("left", img_left)
         cv2.imshow("right", img_right)
-        grid_size = (3, 6)
-        real_size = 2.615
 
-
-        ret, corners = cv2.findChessboardCorners(img_right, grid_size,
+        rret, rcorners = cv2.findChessboardCorners(img_right, grid_size,
                                                  flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
-        corners = np.fliplr(np.flipud(corners))
-        if not ret:
+        lret, lcorners = cv2.findChessboardCorners(img_left, grid_size,
+                                                 flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
+        if not lret and not rret:
+            print "ERR"
             continue
-        corners = corners.reshape(-1, 2)
-        corners[:, 0] = corners[:, 0] + np.ones((18,)) * cut
+
+        left = lret
+        print "left: ", left
+        if left:
+            ret, corners = lret, lcorners
+        else:
+            ret, corners = rret, rcorners
+
+        corners = np.fliplr(np.flipud(corners))
+        if not left:
+            corners = corners.reshape(-1, 2)
+            corners[:, 0] = corners[:, 0] + np.ones((18,)) * cut
         corners = corners.reshape(-1, 1, 2)
 
         if ret:
@@ -454,32 +477,24 @@ def find_corners():
             cv2.cornerSubPix(img_orig, corners_orig, (11, 11), (-1, -1),
                              criteria=(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1))
             corners = corners_orig.reshape(-1, 2) / scale
-            # for i in range(max(corners.shape)):
-            #     corners[i, 0] += cut
             cv2.drawChessboardCorners(img_color, grid_size, corners, ret)
             idx = 0
+            offset = 0 if not left else len(corners)
             for i in range(grid_size[0]):
                 for j in range(grid_size[1]):
-                    c = (corners[idx])
-                    cv2.putText(img_color, str(idx), tuple(corners[idx, :]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+                    cv2.putText(img_color, str(idx + offset), tuple(corners[idx, :]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
                     idx += 1
-        print ret
-
-        objp_all = np.zeros((36, 3))
-        objp = np.float32(np.mgrid[0:0 + grid_size[0], 0: grid_size[1]].T.reshape(-1, 2))
-        objp_all[:18, :2] = objp
-        objp_h = np.ones((grid_size[0] * grid_size[1], 3), np.float32)
-        objp_h[:, :2] = np.mgrid[6:6 + grid_size[0], 0:grid_size[1]].T.reshape(-1, 2)
-        objp_all[18:, :2] = objp_h[:, :2]
 
         if ret:
-            H, mask = cv2.findHomography(objp, corners.reshape(-1, 2))
-            corners2 = np.float32(H.dot(objp_h.T)).T
-            corners2 = cv2.convertPointsFromHomogeneous(corners2).reshape((-1, 2))
-        else:
-            ret, corners2 = cv2.findChessboardCorners(img_left, (3, 6),
-                                                      flags=cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_NORMALIZE_IMAGE)
-        print ret
+            if not left:
+                H, mask = cv2.findHomography(objp_right, corners.reshape(-1, 2))
+                corners2 = np.float32(H.dot(objp_left_h.T)).T
+                corners2 = cv2.convertPointsFromHomogeneous(corners2).reshape((-1, 2))
+            else:
+                H, mask = cv2.findHomography(objp_left, corners.reshape(-1, 2))
+                corners2 = np.float32(H.dot(objp_right_h.T)).T
+                corners2 = cv2.convertPointsFromHomogeneous(corners2).reshape((-1, 2))
+
         if ret:
             corners2_orig = corners2 * scale
             cv2.cornerSubPix(img_orig, corners2_orig, (11, 11), (-1, -1),
@@ -487,34 +502,39 @@ def find_corners():
             corners2 = corners2_orig / scale
             cv2.drawChessboardCorners(img_color, grid_size, corners2, ret)
             idx = 0
+            offset = 0 if left else len(corners)
             for i in range(grid_size[0]):
                 for j in range(grid_size[1]):
-                    c = (corners2[idx])
-                    cv2.putText(img_color, str(idx + len(corners)), tuple(corners2[idx, :]), cv2.FONT_HERSHEY_SIMPLEX,
-                                1, (0, 0, 255))
+                    cv2.putText(img_color, str(idx + offset), tuple(corners2[idx, :]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
                     idx += 1
 
         corners_all = np.zeros((36, 2))
-        corners_all[:18, :] = corners_orig.reshape(-1, 2)
-        corners_all[18:, :] = corners2_orig.reshape(-1, 2)
-        objp_all *= 2.615
+        if not left:
+            corners_all[:18, :] = corners_orig.reshape(-1, 2)
+            corners_all[18:, :] = corners2_orig.reshape(-1, 2)
+        else:
+            corners_all[:18, :] = corners2_orig.reshape(-1, 2)
+            corners_all[18:, :] = corners_orig.reshape(-1, 2)
+
         objp_total.append(objp_all)
         imgpt_total.append(corners_all)
-        for i in range(objp_all.shape[0]):
-            print i, objp_all[i, :]
-        # print objp_all
 
         retval, rvec, tvec = cv2.solvePnP(objp_all, corners_all, Utils.camMtx, Utils.dist_coeffs, flags=cv2.ITERATIVE)
+        print objp_all
+        print corners_all
         datafilename = f.replace("\\", "/").replace("/", "_")
         f_handle = open("cache/points_%s.p" % datafilename, "wb")
         pickle.dump({"objp": objp_all, "imgp": corners_all, "rvec": rvec, "tvec": tvec}, f_handle)
         f_handle.close()
         print rvec, tvec
 
+        #0 15 20 35
+        # cv2.putText(img_color, str("%.2f, %.2f, %.2f" % tuple(objp_all[0,:])), tuple(np.int32(corners_all[0, :]/2)), cv2.FONT_HERSHEY_SIMPLEX,                    0.5, (0, 0, 255))
+        # cv2.putText(img_color, str("%.2f, %.2f, %.2f" % tuple(objp_all[15,:])), tuple(np.int32(corners_all[15, :]/2)), cv2.FONT_HERSHEY_SIMPLEX,                    0.5, (0, 0, 255))
+        # cv2.putText(img_color, str("%.2f, %.2f, %.2f" % tuple(objp_all[20,:])), tuple(np.int32(corners_all[20, :]/2)), cv2.FONT_HERSHEY_SIMPLEX,                    0.5, (0, 0, 255))
+        # cv2.putText(img_color, str("%.2f, %.2f, %.2f" % tuple(objp_all[35,:])), tuple(np.int32(corners_all[35, :]/2)), cv2.FONT_HERSHEY_SIMPLEX,                    0.5, (0, 0, 255))
         cv2.imshow("asd", img_color)
         cv2.waitKey()
-    # print len(objp_total)
-    # print objp_total[0].shape
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objp_total, imgpt_total, (960, 720),
                                                        flags=cv2.CALIB_FIX_ASPECT_RATIO | cv2.CALIB_FIX_FOCAL_LENGTH | cv2.CALIB_FIX_PRINCIPAL_POINT)
     print mtx
