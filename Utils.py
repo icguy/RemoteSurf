@@ -92,7 +92,8 @@ def rpy(mat):
 
     return r, p, y
 
-def getTransform(roll,  pitch,  yaw,  tx,  ty,  tz, is4x4 = False):
+def getTransform(c, b, a,  tx,  ty,  tz, is4x4 = False):
+    roll, pitch, yaw = c, b, a
     s1 = np.sin(roll)
     c1 = np.cos(roll)
     s2 = np.sin(pitch)

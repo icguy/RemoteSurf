@@ -687,7 +687,6 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
     print "est orig", est_origin
     return tmat, tmat_real
 
-
 def test(file):
     from glob import glob
     from os.path import  join
@@ -707,7 +706,7 @@ def test(file):
 
     print "len pointData %d" % len(data)
 
-    match_to_img(file, imgs, kpts, points, data, True, repr_err_thresh=20)
+    match_to_img(file, imgs, kpts, points, data, False, repr_err_thresh=20)
     return
 
     print "num points: ", len(points)
@@ -984,16 +983,19 @@ if __name__ == '__main__':
     tor = arr_calib["tor"]
     files_dir = "out/2017_3_8__14_51_22/"
     files_dir = "out/2017_4_5__15_31_34/"
+    files_dir = "out/2017_4_5__15_57_20/"
     files = glob(join(files_dir, "*.jpg"))
 
     # projtest()
     # exit()
 
 
-    files = glob(join(files_dir, "0029.jpg"))
+    files = glob(join(files_dir, "0037.jpg"))
 
     for f in files:
         print f
+        # test(f)
+        # continue
         tco_est, tco_real = match_to_img(f, imgs, kpts, points, data, False, repr_err_thresh=20)
         temp = np.eye(4)
         temp[:3,:] = tco_est
@@ -1019,15 +1021,21 @@ if __name__ == '__main__':
         # print trt.shape, ttc.shape, tco_est.shape
         print "---"
         print x, y, z, a, b, c
-        print trt
-        print ttc
-        print tco_est
-        print tco_real
-        print np.linalg.inv(tco_real.dot(tor.dot(trt))) #ttc
+        # print trt
+        # print ttc
+        # print tco_est
+        # print tco_real
+        # print np.linalg.inv(tco_real.dot(tor.dot(trt))) #ttc
         tro_est = trt.dot(ttc.dot(tco_est))
+        print "tro est"
         print tro_est
+        print "tro real"
         print np.linalg.inv(tor)
-        print tro_est.dot(np.array([11, 4, -4, 1.0]).T) #becsült pozíciója a kamerának amikor közel volt lol
+        print "cam pos est"
+        print tro_est.dot(np.array([11, 4, -4, 1.0]).T) #becsult pozicioja a kameranak amikor kozel volt lol
+        rr, pp, yy = map(lambda v: v * np.pi / 180, (-180, -14, -180))
+        print "rpy trf real"
+        print Utils.getTransform(rr, pp, yy, 0, 0, 0)
 
     # ransac_test()
     exit()

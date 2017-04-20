@@ -418,6 +418,7 @@ def find_corners():
     objp_total = []
     imgpt_total = []
     files_dir = "out/2017_4_5__15_31_34/"
+    files_dir = "out/2017_4_5__15_57_20/"
     # files_dir = "out/2017_3_8__14_51_22/"
     files = glob(join(files_dir, "*.jpg"))
 
@@ -458,6 +459,7 @@ def find_corners():
         if not lret and not rret:
             print "ERR"
             continue
+        print f
 
         left = lret
         print "left: ", left
@@ -520,13 +522,13 @@ def find_corners():
         imgpt_total.append(corners_all)
 
         retval, rvec, tvec = cv2.solvePnP(objp_all, corners_all, Utils.camMtx, Utils.dist_coeffs, flags=cv2.ITERATIVE)
-        print objp_all
-        print corners_all
+        # print objp_all
+        # print corners_all
         datafilename = f.replace("\\", "/").replace("/", "_")
         f_handle = open("cache/points_%s.p" % datafilename, "wb")
         pickle.dump({"objp": objp_all, "imgp": corners_all, "rvec": rvec, "tvec": tvec}, f_handle)
         f_handle.close()
-        print rvec, tvec
+        # print rvec, tvec
 
         #0 15 20 35
         # cv2.putText(img_color, str("%.2f, %.2f, %.2f" % tuple(objp_all[0,:])), tuple(np.int32(corners_all[0, :]/2)), cv2.FONT_HERSHEY_SIMPLEX,                    0.5, (0, 0, 255))
@@ -534,10 +536,10 @@ def find_corners():
         # cv2.putText(img_color, str("%.2f, %.2f, %.2f" % tuple(objp_all[20,:])), tuple(np.int32(corners_all[20, :]/2)), cv2.FONT_HERSHEY_SIMPLEX,                    0.5, (0, 0, 255))
         # cv2.putText(img_color, str("%.2f, %.2f, %.2f" % tuple(objp_all[35,:])), tuple(np.int32(corners_all[35, :]/2)), cv2.FONT_HERSHEY_SIMPLEX,                    0.5, (0, 0, 255))
         cv2.imshow("asd", img_color)
-        cv2.waitKey()
-    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objp_total, imgpt_total, (960, 720),
-                                                       flags=cv2.CALIB_FIX_ASPECT_RATIO | cv2.CALIB_FIX_FOCAL_LENGTH | cv2.CALIB_FIX_PRINCIPAL_POINT)
-    print mtx
+        # cv2.waitKey()
+    # ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objp_total, imgpt_total, (960, 720),
+    #                                                    flags=cv2.CALIB_FIX_ASPECT_RATIO | cv2.CALIB_FIX_FOCAL_LENGTH | cv2.CALIB_FIX_PRINCIPAL_POINT)
+    # print mtx
 
 def getTmat(fname):
     import pickle
@@ -667,6 +669,7 @@ def match_pairs():
 def create_pos_cache():
     files_dir = "out/2017_3_8__14_51_22/"
     files_dir = "out/2017_4_5__15_31_34/"
+    files_dir = "out/2017_4_5__15_57_20/"
     files = glob(join(files_dir, "*.jpg"))
     masks = []
     for f in files:
@@ -718,7 +721,7 @@ if __name__ == "__main__":
 
     # match_pairs()
 
-    # create_pos_cache()
+    create_pos_cache()
 
 
     # test()
