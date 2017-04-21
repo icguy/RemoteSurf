@@ -18,10 +18,11 @@ START_OPENCV_THREAD = True
 
 MAINFRAME_POS = 675, 60
 CALIBFRAME_POS = 675, 350
-OPENCV_POS = 1000, 200
+OPENCV_POS = 800, 200
 CamGrabber.WINDOW_POS = OPENCV_POS
 
 CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points2
+FIND_POINTS = CalibPoints.find_points
 
 outfile = None
 break_wait = False
@@ -43,6 +44,9 @@ class ClientGUI:
         self.client = ModbusClient()
         self.register_values_widgets = {}
         self.counter = 1
+        self.find_thread = None
+        self.obj_data = None
+        self.stop_signal = False
         self.__build_ui()
 
     def run_ui(self):
@@ -77,6 +81,7 @@ class ClientGUI:
         connectbutton = Button(connectframe, text = "Connect", command = self.__connectbutton_click)
         connectlabel = Label(connectframe, text = "Not connected.")
         calibbutton = Button(connectframe, text = "Calibrate", command = self.__calibbutton_click)
+        findbutton = Button(connectframe, text = "Find", command = self.__findbutton_click)
         mainframe = Frame(root)
         registerframe = Frame(mainframe)
         reglabel = Label(registerframe, text = "Set registers")
@@ -88,6 +93,7 @@ class ClientGUI:
         # outputtext = ThreadSafeConsole(outputframe, root, vscrollbar, font = self.font, wrap = NONE)
 
         connectframe.pack(side = TOP, fill = X)
+        findbutton.pack(side = RIGHT)
         connectbutton.pack(side = RIGHT)
         connectlabel.pack(side = LEFT)
         calibbutton.pack(side = BOTTOM, anchor = E)
@@ -174,6 +180,85 @@ class ClientGUI:
     def __calibbutton_click(self):
         if not self.calibgui:
             self.calibgui = CalibGUI(self)
+
+    def __findbutton_click(self):
+        if self.find_thread is None:
+            self.find_thread = Thread(target=self.__find_object)
+            self.find_thread.start()
+
+    def __find_object(self):
+        import DataCache as DC
+        from glob import glob
+        from os.path import join
+        import numpy as np
+        from SFMSolver import SFMSolver, find_ext_params
+
+        print "FINDING"
+
+        np.set_printoptions(precision=3, suppress=True)
+
+        files_dir = "out/2017_3_8__14_51_22/"
+        files = glob(join(files_dir, "*.jpg"))
+        masks = []
+        for f in files:
+            m = f.replace(".jpg", "_mask.png")
+            masks.append(m)
+        sfm = SFMSolver(files, masks)
+        if self.obj_data is None:
+            imgs, kpts, points, data = sfm.calc_data_from_files_triang_simple()
+            self.obj_data = imgs, kpts, points, data
+        else:
+            imgs, kpts, points, data = self.obj_data
+
+        arr_calib = DC.getData("out/2017_4_5__15_6_49/arrangement_calib.p")
+        ttc = arr_calib["ttc"]
+        tor = arr_calib["tor"]
+        if self.stop_signal:
+            self.stop_signal = False
+            return
+
+        # for point in FIND_POINTS:
+        #     values = {
+        #         500: point[0],
+        #         501: point[1],
+        #         502: point[2],
+        #         503: point[3],
+        #         504: point[4],
+        #         505: point[5],
+        #     }
+        #     self.set_values(values, True)
+        #
+        #     time.sleep(0.5)
+        #     CamGrabber.capture_if_no_chessboard = True
+        #     CamGrabber.capture = True
+        #     time.sleep(0.5)
+        #
+        #     if self.stop_signal:
+        #         self.stop_signal = False
+        #         return
+
+        find_dir = logger.outputdir
+        files = glob("%s/*/.jpg" % find_dir)
+        files_dir = "out/2017_4_5__15_57_20/"
+        files = glob(join(files_dir, "*.jpg"))
+        files.sort()
+        files = files[-len(FIND_POINTS):]
+        results = []
+
+        for f in files:
+            res = find_ext_params(f, imgs, kpts, points, data, tor, ttc)
+            results.append(res)
+            if self.stop_signal:
+                self.stop_signal = False
+                return
+
+        print results
+        result = max(results, key=lambda x: x[1])
+        print result
+
+        self.find_thread = None
+
+
 
     def __connectbutton_click(self):
         if self.client.is_open():
@@ -326,6 +411,7 @@ class ClientGUI:
 
     def __delete_window(self):
         CamGrabber.exit = True
+        self.stop_signal = True
         self.client.close()
         self.root.quit()
 
@@ -393,8 +479,8 @@ class CalibGUI:
             self.parent.set_values(values, True)
 
             time.sleep(0.5)
-            CamGrabber.capture = True
             CamGrabber.capture_if_no_chessboard = capture_if_no_chessboard
+            CamGrabber.capture = True
             time.sleep(0.5)
 
             self.next_point_idx += 1
@@ -445,5 +531,5 @@ if __name__ == '__main__':
         opencvThread.start()
 
     gui.run_ui()
-    if opencvThread:
+    if opencvThread is not None:
         opencvThread.join()

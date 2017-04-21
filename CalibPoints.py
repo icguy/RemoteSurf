@@ -56,6 +56,34 @@ def points2_gen():
     points2 = [[p[i] + ORIGIN[i] for i in range(len(ORIGIN))] for p in points2]
     return points + points2, num
 
+def find_points_gen():
+    est_height = ORIGIN[2]
+    points = []
+    points.append([0, 0, 0, 0, 0, 0])
+
+    angle_deg = -9
+    angle_rad = math.radians(angle_deg)
+    delta = int(math.atan(angle_rad) * est_height)
+    points.append([-delta, 0, 0, 0, angle_deg, 0])
+
+    angle_deg = 30
+    angle_rad = math.radians(angle_deg)
+    delta = int(math.atan(angle_rad) * est_height)
+    points.append([-delta, 0, 0, 0, angle_deg, 0])
+
+    angle_deg = 15
+    angle_rad = math.radians(angle_deg)
+    delta = int(math.atan(angle_rad) * est_height)
+    points.append([0, delta, 0, angle_deg, 0, 0])
+
+    angle_deg = -15
+    angle_rad = math.radians(angle_deg)
+    delta = int(math.atan(angle_rad) * est_height)
+    points.append([0, delta, 0, angle_deg, 0, 0])
+    points = [[p[i] + ORIGIN[i] for i in range(len(ORIGIN))] for p in points]
+
+    return points
+
 def points3_gen():
     radius = 500
     target = [300, 0, 0]
@@ -175,6 +203,7 @@ points3_2 = trf_points(points3_2, Utils.getTransform(0, np.pi / 2, 0, 0, 0, 0, T
 points3_2 = trf_points(points3_2, Utils.getTransform(0, 0, np.pi, 0, 0, 0, True))
 points3_2 = trf_points(points3_2, Utils.getTransform(0, 0, 0, -250, 0, 300, True))
 points4 = points4_gen()
+find_points = find_points_gen()
 
 def test():
     # for p in points3[0]:
@@ -191,6 +220,7 @@ def test():
     # print points
 
     pprint(points2)
+    pprint(find_points)
 
 if __name__ == '__main__':
 

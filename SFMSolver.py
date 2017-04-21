@@ -572,8 +572,8 @@ def draw_real_coords(img, img_pts, obj_pts, print_coords = False, skip = 1):
     cv2.waitKey()
 
 def match_multiple_imgs(file1, file2, imgs, kpts, points, data):
-    tmat1, tmreal1 = match_to_img(file1, imgs, kpts, points, data, False, True)
-    tmat2, tmreal2 = match_to_img(file2, imgs, kpts, points, data)
+    tmat1, tmreal1, numinl = match_to_img(file1, imgs, kpts, points, data, False, True)
+    tmat2, tmreal2, numinl = match_to_img(file2, imgs, kpts, points, data)
 
     tmat1 = Utils.cvt_3x4_to_4x4(tmat1)
     tmat2 = Utils.cvt_3x4_to_4x4(tmat2)
@@ -667,7 +667,7 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
 
     rmat = cv2.Rodrigues(rvec)[0]
 
-    tmat_real = MarkerDetect.loadMat(file, False)
+    tmat_real = MarkerDetect.loadMat(file)
     tmat = np.zeros((3,4))
     tmat[:3,:3] = rmat
     tmat[:3,3] = tvec.T
@@ -677,15 +677,20 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
     print "num inliers: ", len(inliers)
     print "rmat", rmat
     print "tvec", tvec
-    print "tmat load", tmat_real
-    print "combined trf diff", tmat_real.dot(tmat4x4inv)
-    world_origin = np.array([0, 0, 0, 1], dtype=np.float32).T
-    world_origin = tmat_real.dot(world_origin)
-    est_origin = np.array([0, 0, 0, 1], dtype=np.float32).T
-    est_origin = tmat.dot(est_origin)
-    print "real orig", world_origin
-    print "est orig", est_origin
-    return tmat, tmat_real
+    if tmat_real is not None:
+        print "tmat load", tmat_real
+        print "combined trf diff", tmat_real.dot(tmat4x4inv)
+        world_origin = np.array([0, 0, 0, 1], dtype=np.float32).T
+        world_origin = tmat_real.dot(world_origin)
+        est_origin = np.array([0, 0, 0, 1], dtype=np.float32).T
+        est_origin = tmat.dot(est_origin)
+        print "real orig", world_origin
+        print "est orig", est_origin
+    else:
+        est_origin = np.array([0, 0, 0, 1], dtype=np.float32).T
+        est_origin = tmat.dot(est_origin)
+        print "est orig", est_origin
+    return tmat, tmat_real, len(inliers)
 
 def test(file):
     from glob import glob
@@ -960,9 +965,7 @@ def projtest():
     tro_est = trt.dot(ttc.dot(tco_est))
     print tro-tro_est
 
-
-
-if __name__ == '__main__':
+def findtest():
     from glob import glob
     from os.path import join
 
@@ -983,63 +986,60 @@ if __name__ == '__main__':
     tor = arr_calib["tor"]
     files_dir = "out/2017_3_8__14_51_22/"
     files_dir = "out/2017_4_5__15_31_34/"
-    files_dir = "out/2017_4_5__15_57_20/"
+    # files_dir = "out/2017_4_5__15_57_20/"
+
     files = glob(join(files_dir, "*.jpg"))
-
-    # projtest()
-    # exit()
-
-
     files = glob(join(files_dir, "0037.jpg"))
 
     for f in files:
-        print f
-        # test(f)
-        # continue
-        tco_est, tco_real = match_to_img(f, imgs, kpts, points, data, False, repr_err_thresh=20)
-        temp = np.eye(4)
-        temp[:3,:] = tco_est
-        tco_est = temp
+        find_ext_params(f, imgs, kpts, points, data, tor, ttc)
 
-        temp = np.eye(4)
-        temp[:3, :] = tco_real
-        tco_real = temp
 
-        pos_data_file = f.replace("jpg", "p")
-        posdata = DC.getData(pos_data_file)
-        x, y, z, a, b, c = [posdata[0][i] for i in [500, 501, 502, 503, 504, 505]]
-        a, b, c = map(lambda p: p * np.pi / 180     , (a, b, c))  # deg to rad
-        x, y, z = map(lambda p: p / 10.0            , (x, y, z))  # mm to cm
+def find_ext_params(filename, imgs, kpts, points, data, tor, ttc):
+    print filename
+    tco_est, tco_real, numinl = match_to_img(filename, imgs, kpts, points, data, False, repr_err_thresh=20)
+    temp = np.eye(4)
+    temp[:3, :] = tco_est
+    tco_est = temp
+    temp = np.eye(4)
+    temp[:3, :] = tco_real
+    tco_real = temp
+    pos_data_file = filename.replace("jpg", "p")
+    posdata = DC.getData(pos_data_file)
+    x, y, z, a, b, c = [posdata[0][i] for i in [500, 501, 502, 503, 504, 505]]
+    a, b, c = map(lambda p: p * np.pi / 180, (a, b, c))  # deg to rad
+    x, y, z = map(lambda p: p / 10.0, (x, y, z))  # mm to cm
+    # print x, y, z,'|', a, b, c
+    # img = cv2.imread(f)
+    # img = cv2.pyrDown(img)
+    # cv2.imshow("asd", img)
+    # cv2.waitKey()
+    trt = np.linalg.inv(Utils.getTransform(c, b, a, x, y, z, True))
+    # print trt.shape, ttc.shape, tco_est.shape
+    print "---"
+    print x, y, z, a, b, c
+    # print trt
+    # print ttc
+    # print tco_est
+    # print tco_real
+    # print np.linalg.inv(tco_real.dot(tor.dot(trt))) #ttc
+    tro_est = trt.dot(ttc.dot(tco_est))
+    print "tro est"
+    print tro_est
+    print "tro real"
+    print np.linalg.inv(tor)
+    print "cam pos est"
+    print tro_est.dot(np.array([11, 4, -4, 1.0]).T)  # becsult pozicioja a kameranak amikor kozel volt
+    rr, pp, yy = map(lambda v: v * np.pi / 180, (-180, -14, -180))
+    print "rpy trf real"
+    print Utils.getTransform(rr, pp, yy, 0, 0, 0)
+    return tro_est.dot(np.array([11, 4, -4, 1.0]).T)[:3], numinl
 
-        # print x, y, z,'|', a, b, c
-        # img = cv2.imread(f)
-        # img = cv2.pyrDown(img)
-        # cv2.imshow("asd", img)
-        # cv2.waitKey()
 
-        trt = np.linalg.inv(Utils.getTransform(c, b, a, x, y, z, True))
-        # print trt.shape, ttc.shape, tco_est.shape
-        print "---"
-        print x, y, z, a, b, c
-        # print trt
-        # print ttc
-        # print tco_est
-        # print tco_real
-        # print np.linalg.inv(tco_real.dot(tor.dot(trt))) #ttc
-        tro_est = trt.dot(ttc.dot(tco_est))
-        print "tro est"
-        print tro_est
-        print "tro real"
-        print np.linalg.inv(tor)
-        print "cam pos est"
-        print tro_est.dot(np.array([11, 4, -4, 1.0]).T) #becsult pozicioja a kameranak amikor kozel volt lol
-        rr, pp, yy = map(lambda v: v * np.pi / 180, (-180, -14, -180))
-        print "rpy trf real"
-        print Utils.getTransform(rr, pp, yy, 0, 0, 0)
-
+if __name__ == '__main__':
+    findtest()
     # ransac_test()
     exit()
 
-    import cProfile
-
-    cProfile.run("test()")
+    # import cProfile
+    # cProfile.run("test()")
