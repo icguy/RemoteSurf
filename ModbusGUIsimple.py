@@ -253,7 +253,7 @@ class ClientGUI:
                 return
 
         print results
-        result = max(results, key=lambda x: x[1])
+        result = max(results, key=lambda x: x[2])
         print result
 
         self.find_thread = None

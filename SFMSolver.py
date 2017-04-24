@@ -986,7 +986,7 @@ def findtest():
     tor = arr_calib["tor"]
     files_dir = "out/2017_3_8__14_51_22/"
     files_dir = "out/2017_4_5__15_31_34/"
-    # files_dir = "out/2017_4_5__15_57_20/"
+    files_dir = "out/2017_4_5__15_57_20/"
 
     files = glob(join(files_dir, "*.jpg"))
     files = glob(join(files_dir, "0037.jpg"))
@@ -1029,11 +1029,20 @@ def find_ext_params(filename, imgs, kpts, points, data, tor, ttc):
     print "tro real"
     print np.linalg.inv(tor)
     print "cam pos est"
-    print tro_est.dot(np.array([11, 4, -4, 1.0]).T)  # becsult pozicioja a kameranak amikor kozel volt
+    xyz_goal = tro_est.dot(np.array([11, 4, -4, 1.0]).T)
+    print xyz_goal  # becsult pozicioja a kameranak amikor kozel volt
     rr, pp, yy = map(lambda v: v * np.pi / 180, (-180, -14, -180))
-    print "rpy trf real"
+    # print "rpy trf real"
+    # print Utils.getTransform(rr, pp, yy, 0, 0, 0)
+    print "trt_goal \n a, b, c "
+    pos_goal = [11, 4, -4]
+    toc_goal = np.array([-1, 0, 0, pos_goal[0], 0, -1, 0, pos_goal[1], 0, 0, 1, pos_goal[2], 0, 0, 0, 1]).reshape((4, 4))
+    trt_goal = tro_est.dot(toc_goal.dot(np.linalg.inv(ttc)))
+    cba_goal = np.array(map(lambda v: v / (np.pi / 180), Utils.rpy(trt_goal[:3, :3])))
+    print trt_goal
+    print cba_goal
     print Utils.getTransform(rr, pp, yy, 0, 0, 0)
-    return tro_est.dot(np.array([11, 4, -4, 1.0]).T)[:3], numinl
+    return xyz_goal[:3], cba_goal, numinl
 
 
 if __name__ == '__main__':
