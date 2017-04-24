@@ -7,6 +7,7 @@ import CamGrabber
 import CalibPoints
 import time
 from arrangement_calib.chessboard_test import img_test_from_files
+from pprint import  pprint
 
 SERVER_HOST = "192.168.0.104"
 SERVER_PORT = 502
@@ -16,13 +17,14 @@ COUNTER_REGISTER_IN = 1041
 PRINT_ALL_MEMORY_ON_WRITE = True
 START_OPENCV_THREAD = True
 
-MAINFRAME_POS = 675, 60
-CALIBFRAME_POS = 675, 350
+MAINFRAME_POS = 475, 60
+CALIBFRAME_POS = 475, 350
 OPENCV_POS = 800, 200
 CamGrabber.WINDOW_POS = OPENCV_POS
 
 CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points2
 FIND_POINTS = CalibPoints.find_points
+ARRANGEMENT_CALIB_DIR = "2017_4_24__16_14_22"
 
 outfile = None
 break_wait = False
@@ -81,6 +83,7 @@ class ClientGUI:
         connectbutton = Button(connectframe, text = "Connect", command = self.__connectbutton_click)
         connectlabel = Label(connectframe, text = "Not connected.")
         calibbutton = Button(connectframe, text = "Calibrate", command = self.__calibbutton_click)
+        homebutton = Button(connectframe, text = "Home", command = self.__homebutton_click)
         findbutton = Button(connectframe, text = "Find", command = self.__findbutton_click)
         mainframe = Frame(root)
         registerframe = Frame(mainframe)
@@ -93,10 +96,11 @@ class ClientGUI:
         # outputtext = ThreadSafeConsole(outputframe, root, vscrollbar, font = self.font, wrap = NONE)
 
         connectframe.pack(side = TOP, fill = X)
+        connectlabel.pack(side = BOTTOM, anchor = W)
+        homebutton.pack(side = RIGHT)
         findbutton.pack(side = RIGHT)
+        calibbutton.pack(side = RIGHT)
         connectbutton.pack(side = RIGHT)
-        connectlabel.pack(side = LEFT)
-        calibbutton.pack(side = BOTTOM, anchor = E)
         mainframe.pack(side = BOTTOM, fill = BOTH, expand = YES)
         registerframe.pack(side = TOP, expand = YES, anchor = W)
         # outputframe.pack(side = BOTTOM, fill = BOTH, expand = YES)
@@ -161,6 +165,17 @@ class ClientGUI:
         x, y = MAINFRAME_POS
         root.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
+    def __homebutton_click(self):
+        values = {
+            500: 300,
+            501: 0,
+            502: 500,
+            503: 180,
+            504: 0,
+            505: 180,
+        }
+        self.set_values(values, go_to_value = False)
+
     def __add_register(self, master, data, row, widget_list):
         regaddresslabel = Label(master, text=str(data[0]))
         regaddresslabel.grid(row=row, column=0)
@@ -210,37 +225,38 @@ class ClientGUI:
         else:
             imgs, kpts, points, data = self.obj_data
 
-        arr_calib = DC.getData("out/2017_4_5__15_6_49/arrangement_calib.p")
+        arr_calib = DC.getData("out/%s/arrangement_calib.p" % ARRANGEMENT_CALIB_DIR)
         ttc = arr_calib["ttc"]
         tor = arr_calib["tor"]
         if self.stop_signal:
             self.stop_signal = False
             return
 
-        # for point in FIND_POINTS:
-        #     values = {
-        #         500: point[0],
-        #         501: point[1],
-        #         502: point[2],
-        #         503: point[3],
-        #         504: point[4],
-        #         505: point[5],
-        #     }
-        #     self.set_values(values, True)
-        #
-        #     time.sleep(0.5)
-        #     CamGrabber.capture_if_no_chessboard = True
-        #     CamGrabber.capture = True
-        #     time.sleep(0.5)
-        #
-        #     if self.stop_signal:
-        #         self.stop_signal = False
-        #         return
+        for point in FIND_POINTS:
+            values = {
+                500: point[0],
+                501: point[1],
+                502: point[2],
+                503: point[3],
+                504: point[4],
+                505: point[5],
+            }
+            self.set_values(values, True)
+
+            time.sleep(0.5)
+            CamGrabber.capture_if_no_chessboard = True
+            CamGrabber.capture = True
+            time.sleep(0.5)
+
+            if self.stop_signal:
+                self.stop_signal = False
+                return
 
         find_dir = logger.outputdir
-        files = glob("%s/*/.jpg" % find_dir)
-        files_dir = "out/2017_4_5__15_57_20/"
-        files = glob(join(files_dir, "*.jpg"))
+        files = glob("%s/*.jpg" % find_dir)
+        print files
+        # files_dir = "out/2017_4_5__15_57_20/"
+        # files = glob(join(files_dir, "*.jpg"))
         files.sort()
         files = files[-len(FIND_POINTS):]
         results = []
@@ -255,7 +271,18 @@ class ClientGUI:
         print results
         result = max(results, key=lambda x: x[2])
         print result
+        values = {
+            500: int(result[0][0] * 10),
+            501: int(result[0][1] * 10),
+            502: int(result[0][2] * 10) + 200,
+            503: int(result[1][2]),
+            504: int(result[1][1]),
+            505: int(result[1][0]),
+        }
 
+        print "num inl: ", result[2]
+        pprint(values)
+        self.set_values(values, go_to_value=False)
         self.find_thread = None
 
 
@@ -396,7 +423,7 @@ class ClientGUI:
             write_log("ERROR: client not connected.")
         return False
 
-    def set_values(self, values, wait = True):
+    def set_values(self, values, wait = True, go_to_value = True):
         """
         :param values: dictionary of { address : value} both int
         :return:
@@ -407,7 +434,8 @@ class ClientGUI:
 
             val, widget = self.register_values_widgets[address]
             widget.set(str(values[address]))
-        self.__setbutton_click(wait)
+        if go_to_value:
+            self.__setbutton_click(wait)
 
     def __delete_window(self):
         CamGrabber.exit = True

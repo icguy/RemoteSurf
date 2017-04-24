@@ -48,7 +48,7 @@ imgset8["img path"] = '../out/2017_3_1__14_59_19/*.jpg'
 imgset9 = dict(imgset6)
 imgset9["img path"] = '../out/2017_3_1__15_35_8/*.jpg'
 imgset10 = dict(imgset6)
-imgset10["img path"] = '../out/2017_4_5__15_6_49/*.jpg'
+imgset10["img path"] = '../out/2017_4_24__16_14_22/*.jpg'
 imgset = imgset10
 
 grid_size = imgset["grid size"]
