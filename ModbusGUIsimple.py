@@ -24,7 +24,7 @@ CamGrabber.WINDOW_POS = OPENCV_POS
 
 CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points2
 FIND_POINTS = CalibPoints.find_points
-ARRANGEMENT_CALIB_DIR = "2017_4_24__16_14_22"
+ARRANGEMENT_CALIB_DIR = "2017_4_26__12_8_12"
 
 outfile = None
 break_wait = False
@@ -241,7 +241,9 @@ class ClientGUI:
                 504: point[4],
                 505: point[5],
             }
+            print "set_values call"
             self.set_values(values, True)
+            print "set_values return"
 
             time.sleep(0.5)
             CamGrabber.capture_if_no_chessboard = True
