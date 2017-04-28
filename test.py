@@ -42,8 +42,74 @@ def connected_to_all(graph, node, clique):
             return False
     return True
 
+
+def __find_object():
+    import DataCache as DC
+    from glob import glob
+    from os.path import join
+    import numpy as np
+    from SFMSolver import SFMSolver, find_ext_params
+    from pprint import pprint
+    import DataCache as DC
+
+    print "FINDING"
+
+    np.set_printoptions(precision=3, suppress=True)
+
+    SFM_files_dir = "out/2017_3_8__14_51_22/"
+    SFM_files = glob(join(SFM_files_dir, "*.jpg"))
+    masks = []
+    for f in SFM_files:
+        m = f.replace(".jpg", "_mask.png")
+        masks.append(m)
+    sfm = SFMSolver(SFM_files, masks)
+
+    imgs, kpts, points, data = sfm.calc_data_from_files_triang_simple()
+
+    arr_calib = DC.getData("out/%s/arrangement_calib.p" % "2017_4_28__13_51_30")
+    ttc = arr_calib["ttc"]
+    tor = arr_calib["tor"]
+
+    find_dir = "out/2017_4_28__17_21_0"
+    files = glob("%s/*.jpg" % find_dir)
+    print files
+    # files_dir = "out/2017_4_5__15_57_20/"
+    # files = glob(join(files_dir, "*.jpg"))
+    files.sort()
+    files = files[-5:]
+    results = []
+
+    for f in files:
+        # datafile = "cache/%s.p" % str(f).replace("\\", "/").replace("/", "_")
+        # res = DC.getData(datafile)
+        # if res is None:
+        #     res = find_ext_params(f, imgs, kpts, points, data, tor, ttc)
+        #     DC.saveData(datafile, res)
+
+        res = find_ext_params(f, imgs, kpts, points, data, tor, ttc, True, True)
+        results.append(res)
+
+    for i in range(len(results)):
+        print i, results[i]
+    result = max(results, key=lambda x: x[2])
+    print result
+    values = {
+        500: int(result[0][0] * 10),
+        501: int(result[0][1] * 10),
+        502: int(result[0][2] * 10) + 200,
+        503: int(result[1][2]),
+        504: int(result[1][1]),
+        505: int(result[1][0]),
+    }
+
+    print "num inl: ", result[2]
+    pprint(values)
+
+
 if __name__ == '__main__':
-    a = (1, 2, 3)
-    b = (4, 5, 6)
-    c = [aa - bb for aa, bb in zip(a, b)]
-    print c
+    # a = (1, 2, 3)
+    # b = (4, 5, 6)
+    # c = [aa - bb for aa, bb in zip(a, b)]
+    # print c
+
+    __find_object()
