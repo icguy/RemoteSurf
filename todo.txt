@@ -6,7 +6,7 @@ TODO:
 4	ok	tesztelni a transzformáció-meghatározó kalibrációt  pre: 6
 5	ok	fixelni a pc-plc kommunikációt      pre: -
 6	ok	fixelni a pc-robot kommunikációt    pre: 5
-7		implementálni az egészet a retekbe  pre: all
+7	ok	implementálni az egészet a retekbe  pre: all
 
 kipróbálni több kéz-szem kalibráló algoritmust
 kipróbálni, mi van ha nagyobb látószögből nézek rá a sakktáblára
