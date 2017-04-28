@@ -80,6 +80,7 @@ def run(out_folder):
                     break
                 continue
 
+            # cv2.circle(frame, (960 / 2, 720 / 2), 10, (255, 0, 0), 4)
             cv2.imshow("frame", frame)
             # enter: 13, escape: 27, space: 32
             key = cv2.waitKey(1)

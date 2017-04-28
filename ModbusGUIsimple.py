@@ -24,7 +24,7 @@ CamGrabber.WINDOW_POS = OPENCV_POS
 
 CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points2
 FIND_POINTS = CalibPoints.find_points
-ARRANGEMENT_CALIB_DIR = "2017_4_26__12_8_12"
+ARRANGEMENT_CALIB_DIR = "2017_4_28__13_51_30"
 
 outfile = None
 break_wait = False
