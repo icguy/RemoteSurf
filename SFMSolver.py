@@ -1055,8 +1055,54 @@ def estimate(filename, tco_est, tco_real, tor, ttc):
     return cba_goal, xyz_goal
 
 
+def estimate_test():
+    np.set_printoptions(3, suppress=True)
+    filename = "out/test/test.p"
+    tro = Utils.getTransform(1, 2, 3, 4, 5, 6, True)
+    tor = np.linalg.inv(tro)
+    x, y, z = 1, 2, 3
+    da, db, dc = 10, 20, 30
+    ra, rb, rc = map(np.deg2rad, (da, db, dc))
+    trt = Utils.getTransform(rc, rb, ra, x, y, z, True)
+    ttr = np.linalg.inv(trt)
+    ttc = Utils.getTransform(2, 3, 5, 4, 6, 1, True)
+    tct = np.linalg.inv(ttc)
+    tco = tct.dot(ttr).dot(tro)
+    toc = np.linalg.inv(tco)
+    print trt
+    print ttc
+    print tco
+    print trt.dot(ttc.dot(tco))
+
+    data = [{
+        500: x * 10,
+        501: y * 10,
+        502: z * 10,
+        503: da,
+        504: db,
+        505: dc
+    }]
+    DC.saveData(filename, data)
+    print "estimate call"
+    cba_g, xyz_g = estimate(filename.replace(".p", ".jpg"), tco[:3, :], tco[:3, :], tor, ttc)
+    print "estimate return"
+    print "----"
+    print cba_g, xyz_g
+    trf_orig = Utils.getTransform(rc, rb, ra, x, y, z)
+    print trf_orig
+    rc, rb, ra = np.deg2rad(cba_g)
+    x, y, z = xyz_g[:3]
+    trf_est = Utils.getTransform(rc, rb, ra, x, y, z)
+    print trf_est
+    print np.max(np.abs(trf_est-trf_orig))
+
+
+
 if __name__ == '__main__':
-    findtest()
+    findtest() #<---- EREDMENYEK!!!!!!!!!!!!!!!
+
+    # estimate_test()
+
     # ransac_test()
     exit()
 
