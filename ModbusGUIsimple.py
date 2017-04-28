@@ -270,7 +270,8 @@ class ClientGUI:
                 self.stop_signal = False
                 return
 
-        print results
+        for i in range(len(results)):
+            print i, results[i]
         result = max(results, key=lambda x: x[2])
         print result
         values = {
