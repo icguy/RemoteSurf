@@ -995,9 +995,14 @@ def findtest():
         find_ext_params(f, imgs, kpts, points, data, tor, ttc)
 
 
-def find_ext_params(filename, imgs, kpts, points, data, tor, ttc):
+def find_ext_params(filename, imgs, kpts, points, data, tor, ttc, draw_coords = False, draw_inl = False):
     print filename
-    tco_est, tco_real, numinl = match_to_img(filename, imgs, kpts, points, data, False, repr_err_thresh=20)
+    tco_est, tco_real, numinl = match_to_img(filename, imgs, kpts, points, data, draw_coords=draw_coords, draw_inl=draw_inl, repr_err_thresh=10)
+    cba_goal, xyz_goal = estimate(filename, tco_est, tco_real, tor, ttc)
+    return xyz_goal[:3], cba_goal, numinl
+
+
+def estimate(filename, tco_est, tco_real, tor, ttc):
     temp = np.eye(4)
     temp[:3, :] = tco_est
     tco_est = temp
@@ -1018,10 +1023,11 @@ def find_ext_params(filename, imgs, kpts, points, data, tor, ttc):
     # print trt.shape, ttc.shape, tco_est.shape
     print "---"
     print x, y, z, a, b, c
-    # print trt
-    # print ttc
-    # print tco_est
+    print trt
+    print ttc
+    print tco_est
     # print tco_real
+    print "---"
     # print np.linalg.inv(tco_real.dot(tor.dot(trt))) #ttc
     tro_est = trt.dot(ttc.dot(tco_est))
     print "tro est"
@@ -1029,20 +1035,24 @@ def find_ext_params(filename, imgs, kpts, points, data, tor, ttc):
     print "tro real"
     print np.linalg.inv(tor)
     print "cam pos est"
-    xyz_goal = tro_est.dot(np.array([11, 5.2, -4, 1.0]).T)
+    pos_goal = [11, 5.2, -4, 1.0]
+    # pos_goal = [0, 0, 0, 1.0]
+    xyz_goal = tro_est.dot(np.array(pos_goal).T)
     print xyz_goal  # becsult pozicioja a kameranak amikor kozel volt
     rr, pp, yy = map(lambda v: v * np.pi / 180, (-180, -14, -180))
     # print "rpy trf real"
     # print Utils.getTransform(rr, pp, yy, 0, 0, 0)
     print "trt_goal \n a, b, c "
-    pos_goal = [11, 5.2, -4]
-    toc_goal = np.array([-1, 0, 0, pos_goal[0], 0, -1, 0, pos_goal[1], 0, 0, 1, pos_goal[2], 0, 0, 0, 1]).reshape((4, 4))
+    toc_goal = np.array([-1, 0, 0, pos_goal[0], 0, -1, 0, pos_goal[1], 0, 0, 1, pos_goal[2], 0, 0, 0, 1]).reshape(
+        (4, 4))
+    # toc_goal = np.array([1, 0, 0, pos_goal[0], 0, 1, 0, pos_goal[1], 0, 0, 1, pos_goal[2], 0, 0, 0, 1]).reshape(
+    #     (4, 4))
     trt_goal = tro_est.dot(toc_goal.dot(np.linalg.inv(ttc)))
-    cba_goal = np.array(map(lambda v: v / (np.pi / 180), Utils.rpy(trt_goal[:3, :3])))
+    cba_goal = np.array(map(np.rad2deg, Utils.rpy(trt_goal[:3, :3])))
     print trt_goal
     print cba_goal
     print Utils.getTransform(rr, pp, yy, 0, 0, 0)
-    return xyz_goal[:3], cba_goal, numinl
+    return cba_goal, xyz_goal
 
 
 if __name__ == '__main__':
