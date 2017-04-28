@@ -1019,7 +1019,7 @@ def estimate(filename, tco_est, tco_real, tor, ttc):
     # img = cv2.pyrDown(img)
     # cv2.imshow("asd", img)
     # cv2.waitKey()
-    trt = np.linalg.inv(Utils.getTransform(c, b, a, x, y, z, True))
+    trt = Utils.getTransform(c, b, a, x, y, z, True)
     # print trt.shape, ttc.shape, tco_est.shape
     print "---"
     print x, y, z, a, b, c
