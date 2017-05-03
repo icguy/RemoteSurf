@@ -70,13 +70,15 @@ def __find_object():
     ttc = arr_calib["ttc"]
     tor = arr_calib["tor"]
 
-    find_dir = "out/2017_4_28__17_21_0"
+    find_dir = "out/2017_5_3__13_17_25"
+    # find_dir = "out/2017_5_3__12_53_1"
     files = glob("%s/*.jpg" % find_dir)
     print files
     # files_dir = "out/2017_4_5__15_57_20/"
     # files = glob(join(files_dir, "*.jpg"))
     files.sort()
-    files = files[-5:]
+    offset = 0
+    files = files[offset:offset+5]
     results = []
 
     for f in files:
@@ -86,7 +88,7 @@ def __find_object():
         #     res = find_ext_params(f, imgs, kpts, points, data, tor, ttc)
         #     DC.saveData(datafile, res)
 
-        res = find_ext_params(f, imgs, kpts, points, data, tor, ttc, True, True)
+        res = find_ext_params(f, imgs, kpts, points, data, tor, ttc, False, False, False)
         results.append(res)
 
     for i in range(len(results)):
