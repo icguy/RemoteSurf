@@ -9,7 +9,7 @@ for dir in dirs:
         continue
 
     contents = os.listdir(curdir)
-    if len(contents) < 10:
+    if len(contents) < 10 and '_' in curdir:
         shutil.rmtree(curdir)
         print curdir
 
