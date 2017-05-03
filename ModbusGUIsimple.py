@@ -24,7 +24,7 @@ CamGrabber.WINDOW_POS = OPENCV_POS
 
 CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points2
 FIND_POINTS = CalibPoints.find_points
-ARRANGEMENT_CALIB_DIR = "2017_4_28__13_51_30"
+ARRANGEMENT_CALIB_DIR = "2017_5_3__12_31_27"
 
 outfile = None
 break_wait = False
@@ -207,6 +207,7 @@ class ClientGUI:
         from os.path import join
         import numpy as np
         from SFMSolver import SFMSolver, find_ext_params
+        import Utils
 
         print "FINDING"
 
@@ -228,6 +229,11 @@ class ClientGUI:
         arr_calib = DC.getData("out/%s/arrangement_calib.p" % ARRANGEMENT_CALIB_DIR)
         ttc = arr_calib["ttc"]
         tor = arr_calib["tor"]
+        if "cam_mtx" in arr_calib:
+            print "camMtx, distcoeffs load"
+            Utils.camMtx = arr_calib["cam_mtx"]
+            Utils.dist_coeffs = arr_calib["dist_coeffs"]
+
         if self.stop_signal:
             self.stop_signal = False
             return

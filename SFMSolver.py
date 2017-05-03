@@ -606,7 +606,7 @@ def calc_midpoint(p1, p2, v1, v2):
     mp = (t * v1 + p1 + u * v2 + p2) / 2
     return mp
 
-def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = False, repr_err_thresh = 20):
+def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = False, repr_err_thresh = 20, draw_outliers = True):
     print "match_to_img:  %s" % (file)
     img = cv2.imread(file)
     data_des, data_pts, img_indices, kpt_indices = zip(*data)
@@ -654,10 +654,12 @@ def match_to_img(file, imgs, kpts, points, data, draw_coords = True, draw_inl = 
             kpt1 = kpts[imidx][0][kptidx].pt
             img2 = img
             kpt2 = img_pts[i]
-            Utils.drawMatch(img1, img2, kpt1, kpt2, is_inlier, 4)
-            c = cv2.waitKey()
-            if c == 27:
-                break
+            if is_inlier or draw_outliers:
+                Utils.drawMatch(img1, img2, kpt1, kpt2, is_inlier, 2)
+                print i
+                c = cv2.waitKey()
+                if c == 27:
+                    break
 
 
     img_pts2 = [img_pts[i] for i in range(len(img_pts)) if i in inliers]
@@ -995,9 +997,9 @@ def findtest():
         find_ext_params(f, imgs, kpts, points, data, tor, ttc)
 
 
-def find_ext_params(filename, imgs, kpts, points, data, tor, ttc, draw_coords = False, draw_inl = False):
+def find_ext_params(filename, imgs, kpts, points, data, tor, ttc, draw_coords = False, draw_inl = False, draw_outliers = True):
     print filename
-    tco_est, tco_real, numinl = match_to_img(filename, imgs, kpts, points, data, draw_coords=draw_coords, draw_inl=draw_inl, repr_err_thresh=10)
+    tco_est, tco_real, numinl = match_to_img(filename, imgs, kpts, points, data, draw_coords=draw_coords, draw_inl=draw_inl, repr_err_thresh=10, draw_outliers=draw_outliers)
     cba_goal, xyz_goal = estimate(filename, tco_est, tco_real, tor, ttc)
     return xyz_goal[:3], cba_goal, numinl
 
@@ -1039,7 +1041,7 @@ def estimate(filename, tco_est, tco_real, tor, ttc):
     # pos_goal = [0, 0, 0, 1.0]
     xyz_goal = tro_est.dot(np.array(pos_goal).T)
     print xyz_goal  # becsult pozicioja a kameranak amikor kozel volt
-    rr, pp, yy = map(lambda v: v * np.pi / 180, (-180, -14, -180))
+    # rr, pp, yy = map(lambda v: v * np.pi / 180, (-180, -14, -180))
     # print "rpy trf real"
     # print Utils.getTransform(rr, pp, yy, 0, 0, 0)
     print "trt_goal \n a, b, c "
@@ -1051,7 +1053,7 @@ def estimate(filename, tco_est, tco_real, tor, ttc):
     cba_goal = np.array(map(np.rad2deg, Utils.rpy(trt_goal[:3, :3])))
     print trt_goal
     print cba_goal
-    print Utils.getTransform(rr, pp, yy, 0, 0, 0)
+    # print Utils.getTransform(rr, pp, yy, 0, 0, 0)
     return cba_goal, xyz_goal
 
 
@@ -1069,6 +1071,11 @@ def estimate_test():
     tct = np.linalg.inv(ttc)
     tco = tct.dot(ttr).dot(tro)
     toc = np.linalg.inv(tco)
+    xyz_g_ex = np.array([11, 5.2, -4, 1.0]).reshape((4, 1)) #objectben
+    xyz_g_ex = tro.dot(xyz_g_ex)
+    toc_goal = np.array([-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]).reshape((4, 4))
+    rot_g_ex = tro.dot(toc_goal).dot(tct)[:3, :3]
+    cba_g_ex = map(np.rad2deg, Utils.rpy(rot_g_ex))
     print trt
     print ttc
     print tco
@@ -1088,6 +1095,9 @@ def estimate_test():
     print "estimate return"
     print "----"
     print cba_g, xyz_g
+    print "exact: "
+    print cba_g_ex
+    print xyz_g_ex
     trf_orig = Utils.getTransform(rc, rb, ra, x, y, z)
     print trf_orig
     rc, rb, ra = np.deg2rad(cba_g)
@@ -1099,9 +1109,9 @@ def estimate_test():
 
 
 if __name__ == '__main__':
-    findtest() #<---- EREDMENYEK!!!!!!!!!!!!!!!
+    # findtest() #<---- EREDMENYEK!!!!!!!!!!!!!!!
 
-    # estimate_test()
+    estimate_test()
 
     # ransac_test()
     exit()

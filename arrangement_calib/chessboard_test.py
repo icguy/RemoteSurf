@@ -246,6 +246,8 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs, use_calib_data = F
             data_len = len(calib_data["tvecs"])
             tvecs = calib_data["tvecs"]
             rvecs = calib_data["rvecs"]
+            Utils.camMtx = calib_data["cam_mtx"]
+            Utils.dist_coeffs = calib_data["dist_coeffs"]
             calib_data = [(rvecs[i], tvecs[i]) for i in range(data_len)]
             calib_data_rot = calib_data[:num_rot_calib_imgs]
             calib_data_trans = calib_data[num_rot_calib_imgs:]
@@ -342,8 +344,10 @@ def img_test_complete_from_files(out_dir, num_rot_calib_imgs, use_calib_data = F
         cammtx,
         pattern_points,
         imgpts + imgpts_trans)
+    print "cammtx"
+    print Utils.camMtx
 
-    DC.saveData("%s/arrangement_calib.p" % out_dir, {"ttc": ttc, "tor": tor})
+    DC.saveData("%s/arrangement_calib.p" % out_dir, {"ttc": ttc, "tor": tor, "cam_mtx": Utils.camMtx, "dist_coeffs": Utils.dist_coeffs})
 
 def filter_contours(contours):
     # print  len(contours)
@@ -412,7 +416,7 @@ if __name__ == '__main__':
     # img_test_from_files(out_dir)
 
 
-    out_dir = "../out/2017_4_28__13_51_30"
+    out_dir = "../out/2017_5_3__12_31_27"
     img_test_complete_from_files(out_dir, 34, True)
 
 
