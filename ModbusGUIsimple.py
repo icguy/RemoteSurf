@@ -24,7 +24,7 @@ CamGrabber.WINDOW_POS = OPENCV_POS
 
 CALIB_POINTS, CALIB_NUM_ROT_IMGS = CalibPoints.points2
 FIND_POINTS = CalibPoints.find_points
-ARRANGEMENT_CALIB_DIR = "2017_5_3__12_31_27"
+ARRANGEMENT_CALIB_DIR = "2017_5_17__13_48_29"
 
 outfile = None
 break_wait = False
@@ -278,8 +278,11 @@ class ClientGUI:
 
         for i in range(len(results)):
             print i, results[i]
+            write_log((i, results[i]))
         result = max(results, key=lambda x: x[2])
-        print result
+        write_log(result)
+
+
         values = {
             500: int(result[0][0] * 10),
             501: int(result[0][1] * 10),

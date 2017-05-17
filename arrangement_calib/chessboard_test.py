@@ -416,7 +416,7 @@ if __name__ == '__main__':
     # img_test_from_files(out_dir)
 
 
-    out_dir = "../out/2017_5_3__12_31_27"
+    out_dir = "../out/2017_5_17__13_48_29"
     img_test_complete_from_files(out_dir, 34, True)
 
 
