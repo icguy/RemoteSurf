@@ -294,8 +294,6 @@ class ClientGUI:
         self.set_values(values, go_to_value=False)
         self.find_thread = None
 
-
-
     def __connectbutton_click(self):
         if self.client.is_open():
             self.client.close()
