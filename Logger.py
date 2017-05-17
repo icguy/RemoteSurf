@@ -48,4 +48,4 @@ class MyLogger:
 logger = MyLogger(None)
 
 def write_log(text):
-    logger.write_log(text)
+    logger.write_log(str(text))
