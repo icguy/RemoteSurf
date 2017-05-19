@@ -50,6 +50,9 @@ def run(out_folder):
     cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, resolution[0])
     cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, resolution[1])
 
+    diff_frame = cv2.imread("out/2017_5_17__14_15_12/0000.jpg")
+    diff_frame = np.zeros_like(diff_frame, dtype="uint8")
+
     fileIdx = getNextFileIdx(out_folder)
     if not cap.isOpened():
         write_log("ERROR: webcam open failed")
@@ -82,6 +85,8 @@ def run(out_folder):
 
             # cv2.circle(frame, (960 / 2, 720 / 2), 10, (255, 0, 0), 4)
             cv2.imshow("frame", frame)
+            diff = np.uint8(np.abs(np.int16(diff_frame) - np.int16(frame)))
+            cv2.imshow("frame", diff)
             # enter: 13, escape: 27, space: 32
             key = cv2.waitKey(1)
             if key == 27:
