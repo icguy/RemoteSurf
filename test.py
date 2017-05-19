@@ -256,7 +256,7 @@ def getdatapts(data):
         inliers = data[i][-1]
         err = np.sqrt(np.sum(np.square(goodpos - endpos)))
         goodrpy = Utils.getTransform(goodrot[2], goodrot[1], goodrot[0], 0, 0, 0)[:3, :3]
-        endrpy = Utils.getTransform(endrot[2], endrot[1], endrot[0], 0, 0, 0)[:3, :3]
+        endrpy = Utils.getTransform(endrot[0], endrot[1], endrot[2], 0, 0, 0)[:3, :3]
         print goodrpy
         print endrpy
         errot_mat = np.diag(rotdiff(goodrpy, endrpy))
@@ -310,7 +310,6 @@ def procdata(data, filename = None):
         plt.savefig(filename+".png", format = "png")
 
 if __name__ == '__main__':
-    import matplotlib as mpl
     import matplotlib.pyplot as plt
     plt.interactive(False)
     np.set_printoptions(precision=2, suppress=True)
@@ -319,12 +318,12 @@ if __name__ == '__main__':
     print rotdiff(A, A)
     print rotdiff(A, -A)
 
-    # print "data4"
-    # procdata(data4, "err1")
+    print "data4"
+    procdata(data4, "err1")
     print "data5"
     procdata(data5, "err2")
-    # print "data6"
-    # procdata(data6, "err3")
+    print "data6"
+    procdata(data6, "err3")
 
     # print "data1"
     # procdata(data1)
