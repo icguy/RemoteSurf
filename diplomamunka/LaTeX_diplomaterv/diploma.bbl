@@ -1,0 +1,55 @@
+\begin{thebibliography}{1}
+
+\bibitem{HerbertSURF}
+Herbert Bay, Andreas Ess, Tinne Tuytelaars, and Luc~Van Gool.
+\newblock {SURF}: {S}peeded {U}p {R}obust {F}eatures.
+\newblock {\em Computer Vision and Image Understanding (CVIU)},
+  110(3):346–359, 2008.
+
+\bibitem{OpenCV}
+Daniel Lelis~Baggio et~al.
+\newblock {\em Mastering {OpenCV} with practical computer vision projects}.
+\newblock Packt Publishing, 2012.
+
+\bibitem{FischerRANSAC}
+Martin~A. Fischler and Robert~C. Bolles.
+\newblock Random sample consensus: a paradigm for model fitting with
+  applications to image analysis and automated cartography.
+\newblock {\em Communications of the ACM}, 24(6):381--395, 1981.
+
+\bibitem{XiaoPnP}
+Xiao-Shan Gao.
+\newblock Complete solution classification for the perspective-three-point
+  problem.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  25(8):930--943, 2003.
+
+\bibitem{ransac5}
+Anders Hast, Johan Nysjö, and Andrea Marchetti.
+\newblock Optimal {RANSAC} - {T}owards a repeatable algorithm for finding the
+  optimal set.
+\newblock {\em Journal of WSCG}, 21(1):21--30, 2013.
+
+\bibitem{Kabsch}
+Wolfgang Kabsch.
+\newblock A solution for the best rotation to relate two sets of vectors.
+\newblock {\em Acta Crystallographica Section A}, 32(5):922--923, 1976.
+
+\bibitem{kabschGithub}
+Jimmy~Charnley Kromann and Lars~Andersen Bratholm.
+\newblock Root-mean-square deviation ({RMSD}) of two {XYZ} structures.
+\newblock \url{https://github.com/charnley/rmsd}.
+
+\bibitem{LoweSIFT}
+David~G. Lowe.
+\newblock Distinctive image features from scale-invariant keypoints.
+\newblock {\em International Journal of Computer Vision}, 60(2):91--110, 2004.
+
+\bibitem{muja_flann_2009}
+Marius Muja and David~G. Lowe.
+\newblock Fast approximate nearest neighbors with automatic algorithm
+  configuration.
+\newblock In {\em International Conference on Computer Vision Theory and
+  Application VISSAPP'09)}, pages 331--340. INSTICC Press, 2009.
+
+\end{thebibliography}

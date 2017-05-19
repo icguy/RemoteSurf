@@ -1,0 +1,19 @@
+%----------------------------------------------------------------------------
+\chapter{Bevezetés, feladatkitűzés}
+%----------------------------------------------------------------------------
+
+%A bevezető tartalmazza a diplomaterv-kiírás elemzését, történelmi előzményeit, a feladat indokoltságát (a motiváció leírását), az eddigi megoldásokat, és ennek tükrében a hallgató megoldásának összefoglalását.
+%
+%A bevezető szokás szerint a diplomaterv felépítésével záródik, azaz annak rövid leírásával, hogy melyik fejezet mivel foglalkozik.
+
+A ma használatos robotok legtöbb esetben előre meghatározott környezetben, és körülmények között működnek. Az ipari robotkarok például jellemzően ugyanazt az alkatrészt szerelik folyamatosan ugyanabban a gyártócellában, a gyárakban működő mobilis robotok pedig jellemzően egy, a padlóra ragasztott csíkot követve előre meghatározott útvonalakon közlekednek. A robotikában jelenleg ezeket az alkalmazásokat részesítik előnyben, ugyanis reprodukálható körülmények között érhető el a leginkább robusztus működés.
+
+Az előre szigorúan nem definiált környezetben való működés kevés alkalmazásra jellemző, bár azért ilyen is előfordul, például az otthoni takarítórobotok (amelyek robusztussága szintén hagy némi kívánnivalót maga után). Az ilyen környezetben való működés egyik feladata lehet tetszőleges környezetben elhelyezkedő ismert tárgyak megtalálása és megfogása robotkar és megfogó segítségével. Ezt a feladatot kell például lakásokban működő robotoknak megoldaniuk, ha egy adott tárgyat a lakásban meg kell keresniük. Ez idős vagy mozgássérült személyeket segítő robotok esetében bírhat különös jelentőséggel. A tárgy pozíciójának alacsony pontosságú becslése történhet RFID technológiával, pontos meghatározása pedig képfeldolgozással.
+
+Diplomatervem témája egy olyan alkalmazás fejlesztése, amely képes tetszőleges környezetben egy előre betanított tárgy térbeli pozícióját és orientációját meghatározni képfeldolgozás segítségével. Feltesszük, hogy a tárgy pozíciója olyan pontossággal ismert, hogy képesek vagyunk róla kamerával képet készíteni, tehát otthonban működő robot esetében nem a másik szobában, nagyon messze, vagy a szekrény mögött van. Az algoritmusokat egy Mitsubishi RV-2F-Q robotkarral kellett megvalósítanom.
+
+Az általam választott módszer kulcspontok keresésén alapul. Ezeknek a jellemző pontoknak a megkeresése után meghatározható a tárgy térbeli orientációja. Ehhez azonban szükség van a jellemző pontokhoz tartozó, a tárgyhoz kötött koordináta-rendszerben értelmezett térbeli koordinátákra, vagyis a 3D rekonstrukcióra.
+
+A megvalósítás során OpenCV-t használtam, ami egy C++-ban fejlesztett képfeldolgozási függvénykönyvtár.
+
+A dolgozat felépítése a következő. A 2. fejezetben részleteiben leírom a megvalósítandó feladatot. A 3. fejezetben a 3D látásnál használt alapvető modellt és algoritmusokat mutatom be. A 4. fejezet a különböző térbeli koordináta-transzformációk meghatározására szolgáló kéz-szem kalibrációról szól. Az 5. fejezetben a kulcspontok keresését tárgyalom, valamint, hogy a két képen megtalált kulcspontokat mi alapján lehet összepárosítani. A 6. fejezetben a 3D rekonstrukciót mutatom be. A 7. fejezet a megvalósítás részleteiről szól, valamint a szoftvernek azon részeiről, amelyek nem szigorúan a gépi látáshoz kapcsolódnak, de a működéshez elengedhetetlenek. A 8. fejezet az eredményeket tárgyalja be, a 9.-ben pedig értékelem a munkát és vázolom a továbbfejlesztési lehetőségeket.

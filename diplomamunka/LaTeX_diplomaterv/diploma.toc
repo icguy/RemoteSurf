@@ -1,0 +1,44 @@
+\select@language {magyar} \contentsline {chapter}{Kivonat}{4}{chapter*.2}
+\select@language {magyar} \contentsline {chapter}{Abstract}{5}{chapter*.3}
+\select@language {magyar} \contentsline {chapter}{\numberline {1}Bevezet\IeC {\'e}s, feladatkit\IeC {\H u}z\IeC {\'e}s}{6}{chapter.1}
+\select@language {magyar} \contentsline {chapter}{\numberline {2}Kameramodell, t\IeC {\'e}r\IeC {\'e}rz\IeC {\'e}kel\IeC {\'e}s kamer\IeC {\'a}val}{8}{chapter.2}
+\select@language {magyar} \contentsline {section}{\numberline {2.1}Kameramodell, kamerakalibr\IeC {\'a}ci\IeC {\'o}}{8}{section.2.1}
+\select@language {magyar} \contentsline {section}{\numberline {2.2}K\IeC {\"u}ls\IeC {\H o} param\IeC {\'e}terek meghat\IeC {\'a}roz\IeC {\'a}sa, PnP probl\IeC {\'e}ma}{10}{section.2.2}
+\select@language {magyar} \contentsline {section}{\numberline {2.3}RANSAC algoritmus}{10}{section.2.3}
+\select@language {magyar} \contentsline {chapter}{\numberline {3}Koordin\IeC {\'a}ta-rendszerek, K\IeC {\'e}z-szem kalibr\IeC {\'a}ci\IeC {\'o}}{13}{chapter.3}
+\select@language {magyar} \contentsline {section}{\numberline {3.1}Kabsch algoritmus}{14}{section.3.1}
+\select@language {magyar} \contentsline {section}{\numberline {3.2}A rot\IeC {\'a}ci\IeC {\'o}k becsl\IeC {\'e}se}{15}{section.3.2}
+\select@language {magyar} \contentsline {section}{\numberline {3.3}A transzl\IeC {\'a}ci\IeC {\'o}k becsl\IeC {\'e}se}{17}{section.3.3}
+\select@language {magyar} \contentsline {chapter}{\numberline {4}Kulcspontkeres\IeC {\'e}s \IeC {\'e}s -p\IeC {\'a}ros\IeC {\'\i }t\IeC {\'a}s}{19}{chapter.4}
+\select@language {magyar} \contentsline {section}{\numberline {4.1}Kulcspontkeres\IeC {\H o} algoritmusok}{19}{section.4.1}
+\select@language {magyar} \contentsline {subsection}{\numberline {4.1.1}SIFT kulcspontkeres\IeC {\'e}s}{19}{subsection.4.1.1}
+\select@language {magyar} \contentsline {subsubsection}{Kulcspont-jel\IeC {\"o}ltek sk\IeC {\'a}lainvari\IeC {\'a}ns detekt\IeC {\'a}l\IeC {\'a}sa}{20}{section*.6}
+\select@language {magyar} \contentsline {subsubsection}{Szubpixeles lokaliz\IeC {\'a}ci\IeC {\'o}}{20}{section*.7}
+\select@language {magyar} \contentsline {subsubsection}{Kulcspont-jel\IeC {\"o}ltek sz\IeC {\H u}r\IeC {\'e}se}{20}{section*.8}
+\select@language {magyar} \contentsline {subsubsection}{Jellemz\IeC {\H o} orient\IeC {\'a}ci\IeC {\'o} meghat\IeC {\'a}roz\IeC {\'a}sa}{20}{section*.9}
+\select@language {magyar} \contentsline {subsubsection}{Lok\IeC {\'a}lis orient\IeC {\'a}ci\IeC {\'o}-hisztogramok sz\IeC {\'a}m\IeC {\'\i }t\IeC {\'a}sa}{20}{section*.10}
+\select@language {magyar} \contentsline {subsubsection}{Le\IeC {\'\i }r\IeC {\'o}-gener\IeC {\'a}l\IeC {\'a}s}{21}{section*.11}
+\select@language {magyar} \contentsline {subsection}{\numberline {4.1.2}SURF kulcspont-keres\IeC {\'e}s}{21}{subsection.4.1.2}
+\select@language {magyar} \contentsline {section}{\numberline {4.2}Le\IeC {\'\i }r\IeC {\'o}-p\IeC {\'a}ros\IeC {\'\i }t\IeC {\'o} algoritmusok, p\IeC {\'a}ros\IeC {\'\i }t\IeC {\'a}s-sz\IeC {\H u}r\IeC {\'e}sek}{21}{section.4.2}
+\select@language {magyar} \contentsline {subsection}{\numberline {4.2.1}Ar\IeC {\'a}nyteszt alap\IeC {\'u} p\IeC {\'a}ros\IeC {\'\i }t\IeC {\'a}s-sz\IeC {\H u}r\IeC {\'e}s}{22}{subsection.4.2.1}
+\select@language {magyar} \contentsline {subsection}{\numberline {4.2.2}Keresztellen\IeC {\H o}rz\IeC {\'e}ses sz\IeC {\H u}r\IeC {\'e}s}{22}{subsection.4.2.2}
+\select@language {magyar} \contentsline {subsection}{\numberline {4.2.3}Epipol\IeC {\'a}ris egyenes haszn\IeC {\'a}lata}{22}{subsection.4.2.3}
+\select@language {magyar} \contentsline {subsection}{\numberline {4.2.4}Homogr\IeC {\'a}fia-alap\IeC {\'u} sz\IeC {\H u}r\IeC {\'e}s}{23}{subsection.4.2.4}
+\select@language {magyar} \contentsline {chapter}{\numberline {5}3D rekonstrukci\IeC {\'o}}{24}{chapter.5}
+\select@language {magyar} \contentsline {section}{\numberline {5.1}T\IeC {\"o}bbn\IeC {\'e}zetes h\IeC {\'a}romsz\IeC {\"o}gel\IeC {\'e}s}{24}{section.5.1}
+\select@language {magyar} \contentsline {section}{\numberline {5.2}Le\IeC {\'\i }r\IeC {\'o}-p\IeC {\'a}ros\IeC {\'\i }t\IeC {\'o} algoritmusok saj\IeC {\'a}toss\IeC {\'a}gaib\IeC {\'o}l ad\IeC {\'o}d\IeC {\'o} probl\IeC {\'e}m\IeC {\'a}k}{26}{section.5.2}
+\select@language {magyar} \contentsline {subsection}{\numberline {5.2.1}A ritkas\IeC {\'a}g korrig\IeC {\'a}l\IeC {\'a}sa}{26}{subsection.5.2.1}
+\select@language {magyar} \contentsline {subsection}{\numberline {5.2.2}T\IeC {\'e}ves p\IeC {\'a}ros\IeC {\'\i }t\IeC {\'a}sok sz\IeC {\H u}r\IeC {\'e}se}{26}{subsection.5.2.2}
+\select@language {magyar} \contentsline {chapter}{\numberline {6}Megval\IeC {\'o}s\IeC {\'\i }t\IeC {\'a}s}{27}{chapter.6}
+\select@language {magyar} \contentsline {section}{\numberline {6.1}A szoftver feladatai}{27}{section.6.1}
+\select@language {magyar} \contentsline {section}{\numberline {6.2}Kiv\IeC {\'a}lasztott implement\IeC {\'a}ci\IeC {\'o}}{27}{section.6.2}
+\select@language {magyar} \contentsline {subsection}{\numberline {6.2.1}Kulcspontkeres\IeC {\'e}s \IeC {\'e}s -p\IeC {\'a}ros\IeC {\'\i }t\IeC {\'a}s implement\IeC {\'a}ci\IeC {\'o}ja}{27}{subsection.6.2.1}
+\select@language {magyar} \contentsline {subsection}{\numberline {6.2.2}A k\IeC {\'e}z-szem kalibr\IeC {\'a}ci\IeC {\'o} implement\IeC {\'a}ci\IeC {\'o}ja}{28}{subsection.6.2.2}
+\select@language {magyar} \contentsline {subsection}{\numberline {6.2.3}3D rekonstrukci\IeC {\'o} \IeC {\'e}s a k\IeC {\'e}z-szem kalibr\IeC {\'a}ci\IeC {\'o} implement\IeC {\'a}ci\IeC {\'o}ja}{28}{subsection.6.2.3}
+\select@language {magyar} \contentsline {subsection}{\numberline {6.2.4}A poz\IeC {\'\i }ci\IeC {\'o} \IeC {\'e}s orient\IeC {\'a}ci\IeC {\'o} meghat\IeC {\'a}roz\IeC {\'a}s\IeC {\'a}nak implement\IeC {\'a}ci\IeC {\'o}ja}{29}{subsection.6.2.4}
+\select@language {magyar} \contentsline {section}{\numberline {6.3}A robotir\IeC {\'a}ny\IeC {\'\i }t\IeC {\'o} rendszer fel\IeC {\'e}p\IeC {\'\i }t\IeC {\'e}se}{30}{section.6.3}
+\select@language {magyar} \contentsline {section}{\numberline {6.4}A PLC \IeC {\'e}s robotprogram}{32}{section.6.4}
+\select@language {magyar} \contentsline {section}{\numberline {6.5}A PC program}{32}{section.6.5}
+\select@language {magyar} \contentsline {chapter}{\numberline {7}Eredm\IeC {\'e}nyek}{34}{chapter.7}
+\select@language {magyar} \contentsline {chapter}{\numberline {8}\IeC {\'E}rt\IeC {\'e}kel\IeC {\'e}s, tov\IeC {\'a}bbfejleszt\IeC {\'e}si lehet\IeC {\H o}s\IeC {\'e}gek}{37}{chapter.8}
+\select@language {magyar} \contentsline {chapter}{Irodalomjegyz\IeC {\'e}k}{39}{chapter*.23}

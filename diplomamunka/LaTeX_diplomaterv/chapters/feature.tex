@@ -1,0 +1,82 @@
+\chapter{Kulcspontkeresés és -párosítás}
+\section{Kulcspontkereső algoritmusok}
+	
+	A kulcspontkereső algoritmusok célja olyan pontok megtalálása a képen, amelyek valamely környezete vizuálisan érdekes, jól elkülöníthető, egyedi. Céljuk továbbá, hogy ezekhez a pontokhoz olyan jellemző mennyiséget rendeljenek, amely alapján az adott pont egy másik képen is megtalálható. Ennek a mennyiségnek minél inkább függetlennek kell lennie a kép készítésének minél több körülményétől. A mennyiséggel szemben támasztott követelmény tehát, hogy legyen invariáns a képalkotáskor előforduló minél többféle transzformációra, mint például a skálázás, az elforgatás, vagy a fényerő változása. A jellemző mennyiség a legtöbb algoritmus esetében egy tulajdonság-leíró vektor, vagy leíróvektor, röviden csak leíró.
+	
+	\subsection{SIFT kulcspontkeresés}
+	
+	A SIFT (Scale Invariant Feature Transform) \cite{LoweSIFT} egy kulcspontkereső algoritmus. Az általa generált leíró egy 128-elemű vektor, amely invariáns eltolásra, elforgatásra, skálázásra, a megvilágítás kismértékű megváltozására, zajra, és a kamera pozíciójának kismértékű megváltozására. Nem invariáns a projektív transzformációra, tehát a kamera helyzetének jelentős megváltozására.
+	
+	Az algoritmus főbb lépései a következők:
+	
+	\begin{enumerate}
+	\item Kulcspont-jelöltek skálainvariáns detektálása
+	\item Szubpixeles lokalizáció
+	\item Kulcspont-jelöltek szűrése
+	\item Jellemző orientáció meghatározása
+	\item Lokális orientáció-hisztogramok számítása
+	\item Leíró-generálás
+	\end{enumerate}
+	
+	\subsubsection{Kulcspont-jelöltek skálainvariáns detektálása}
+	Az algoritmus első lépéseként a képen érdekesnek tűnő pontokat keresünk. Ezt DoG (Difference of Gaussians) szűrőkkel érjük el. A DoG szűrő a képet különböző mértékű (szórású) Gauss-szűrésnek veti alá, majd ezek különbségét veszi. Így az élkiemeléshez hasonló képet kapunk, ám legjobban a szórás méretébe eső térfrekvenciájú részletek kerülnek kiemelésre. A szűrést különböző szórású kernelekkel elvégezve különböző mérettartományokba eső képrészleteket emelhetünk ki. Az így megtalált szélsőértékeket tekintjük kulcspont-jelöltnek.
+	
+	\subsubsection{Szubpixeles lokalizáció}
+	A kulcspontok szubpixeles lokalizációjához az egyes dimenziókban (x, y, skála) másodfokú közelítést alkalmazunk, és így keressük meg a valódi szélsőérték helyét pixel alatti és skálafaktornál nagyobb pontossággal.
+	
+	\subsubsection{Kulcspont-jelöltek szűrése}
+	Az algoritmus eddig a lépésig sok olyan pontot is megjelölt, amelynek képi helyzete nem egyértelmű, pl. egy homogén régiót, vagy élt jellemeznek a képen, nem pedig egy pontot. Ezek kerülnek kiszűrésre ebben a lépésben. A szűrés során az adott pontban kiszámoljuk a másodfokú deriváltakból álló Hesse-mátrixot. Ennek a mátrixnak a sajátértékei szolgálnak információval a pont környezetéről. Amennyiben mindkét sajátérték kicsi, a pont környezete homogén. Ha az egyik kicsi, a másik pedig nagy, élszerű pontról beszélhetünk. A "kicsi" és "nagy" fogalmak természetesen kvalitatívak, a számszerű értékek tapasztalati úton kerülnek meghatározásra, az algoritmus paraméterei. Ezeket az élszerű és homogén környezetű pontokat ebben a lépésben eldobjuk.
+	
+	\subsubsection{Jellemző orientáció meghatározása}
+	Az orientációhoz hisztogramot használunk, amelynek 36 osztálya van, mindegyik 10°-ot fed le. A kulcspont környezetében minden pontban kiszámítjuk a gradiensvektort, majd ennek irányának megfelelően a hisztogram adott osztályába tesszük. A maximális orientációt másodfokú interpolációnak alávetve határozzuk meg a jellemző orientációt. Amennyiben több kiugróan gyakori orientáció van a hisztogramban, a kulcspontot lemásoljuk, és mindegyik jellemző orientációval újat hozunk létre. Így érjük el az elforgatás-invarianciát.
+	
+	\subsubsection{Lokális orientáció-hisztogramok számítása}
+	A képpont 16x16 pixeles környezetét felosztjuk 4x4 darab 4x4-es blokkra. Minden blokkhoz létrehozunk egy 8-osztályos orientáció-hisztogramot, amibe az adott pixeleknek az előző lépésben meghatározott orientációhoz képesti relatív gradiens-iránya kerül.
+	
+	\subsubsection{Leíró-generálás}
+	A leíró-vektor elemeit az előző lépésben kiszámolt hisztogram osztályainak gyakoriságai adják. A 4x4 darab 8-osztályos hisztogramból így 128-elemű vektort kapunk. Ezt a vektort megvilágítás-invariancia céljából normalizáljuk.
+	
+	\subsection{SURF kulcspont-keresés}
+	A SURF (Speeded Up Robust Features) \cite{HerbertSURF} algoritmus hasonló elven működik, mint a SIFT, ám az egyes lépésekhez különböző megoldásokat alkalmaz. A kulcspont-jelöltek keresésénél a Gauss-szűrést ún. box-filterrel közelíti, amit az integrális képből számol. Az integrális kép $(x,y)$ koordinátájú pixelének intenzitását az alábbi összefüggés adja:
+	
+\begin{equation}
+S(x, y) = \sum_{i=0}^x \sum_{j=0}^y I(i, j)
+\end{equation}
+
+Ahol $S(x, y)$ az integrális kép intenzitása az $(x, y)$ pontban, $I(i, j)$ pedig az eredeti kép intenzitása az $(i, j)$ pontban.
+	
+	Az integrális kép tehát azon pixelek összegét tartalmazza, amelyek egy megadott téglalapon belül találhatók. E téglalap bal felső sarka a kép bal felső sarkával esik egybe, a jobb alsó pedig az $(x,y)$ pixel. Az integrális kép használatának előnye, hogy egy adott téglalapon belüli pixelek összegzését nagyon meggyorsítja, amire mind a box-filterhez, mind a Hesse-mátrix közelítéséhez szükség van.
+	
+	Az algoritmus azokat fogja érdekes pontoknak venni, ahol a Hesse-mátrix determinánsa lokálisan maximális. A pontosság érdekében itt is interpoláljuk a megoldást. Az orientáció meghatározásnál egy adott Euklideszi norma szerinti (kör alakú) környezeten belül található pontok (Haar-wavelet válaszával közelített) gradiens-irányát veszi figyelembe, és egy csúszóablakkal történő kereséssel határozza meg a domináns orientációt. A leíró-generálásnál a kulcspont környezetét 4x4-es blokkokra osztja, és ezekhez a blokkokhoz rendel egy négyelemű vektort, amit a gradiensek alapján számít. Így 4x4x4, azaz 64-elemű leíróvektort kapunk.
+	
+	\section{Leíró-párosító algoritmusok, párosítás-szűrések}
+	\label{matching}
+	A kulcspontdetektáló algoritmus megkereste a képen az érdekes pontokat, leíró-vektort generált hozzájuk. Ezt két különböző képen elvégezve az így kapott leírókat párosítanunk kell, ha megfeleltetéseket akarunk találni a kulcspontok között. Mivel a leírók n-dimenziós vektorok, ezért két leíró közötti hasonlóságot egyszerűen lehet számszerűsíteni, pl. a különbségük L2 normájával. A probléma abból adódik, hogy nagyméretű képeken sok (1000-es nagyságrendű) leírónk van, és ezeket kell másik, hasonló méretű leíró-halmazhoz párosítani.
+	
+	A legegyszerűbb megoldás a brute force módszer, vagyis mindegyiket mindegyikkel összehasonlítjuk. Ez lassú ugyan, de garantáltan a legjobb megoldást adja. Egy másik megoldás a FLANN (Fast Library for Approximate Nearest Neighbors) algoritmus \cite{muja_flann_2009}, ami gyors, de csak közelítő megoldást ad.
+	
+	Az algoritmusok garantáltan sok hibás párosítást is eredményeznek, ezeket feltétlenül szűrni kell, amelyekre több módszer is van, a következőkben ezeket mutatom be. Mindegyik algoritmus bemutatása során egy $d$ vektorhoz keresünk párt a $B$ halmazból, ahol $d$ egy leíróvektor az egyik képen megtaláltak közül, $B$ pedig a másik képen megtalált leírók halmaza. Az alábbiakban a \cite{OpenCV}-ben található, valamint az epipoláris egyenesekkel történő szűréseket mutatom be.
+	
+	\subsection{Arányteszt alapú párosítás-szűrés}
+	Ez a heurisztikus módszer azon a feltételezésen alapul, hogy a helyes párosítás esetén $d$ sokkal közelebb van a párjához, mint más vektorokhoz. Hamis párosításnál azonban semmi nem indokolja, hogy a legjobb párosítás lényegesen jobb legyen a többinél, mondjuk a második legjobbnál.
+	
+	Éppen ezért ez a szűrés azokat a párosításokat tartja meg, amelyeknél a legjobb megtalált $B$-beli vektor ($b_{best}$) és a második legjobb vektor ($b_{best2}$) közötti távolságok aránya nagy:
+	\begin{equation}
+	\frac{\|d-b_{best}\|}{\|d-b_{best2}\|}\ll 1
+	\end{equation}
+	
+	A gyakorlatban az aránynak a küszöbértékét $0,6..0,8$ közé szokás választani.
+	
+	\subsection{Keresztellenőrzéses szűrés}
+	\label{match-cross}
+	Ez a módszer azt a feltételezést használja, hogy ha $d$ és $e$ pontok párok a két képen, akkor nincs olyan más vektor $e$-n kívül az ő halmazában, ami $d$-hez közelebb lenne, viszont $e$-hez sem találni $d$-nél közelebb lévő vektort. Ez a szűrés akkor fogadja el a párt, ha kölcsönösen a legközelebb helyezkednek el egymáshoz.
+	
+	\subsection{Epipoláris egyenes használata}
+	\label{match-epilines}
+	Amennyiben ismerjük a két képhez tartozó kamerapozíciót, az első képen megtalált összes ponthoz definiálható a második képen egy síkbeli egyenes, amely egyenes mentén a pont párja elhelyezkedhet. Ezt hívjuk epipoláris egyenesnek. Ennek az információnak a birtokában a párosításnál vehetjük eleve csak az epipoláris egyenesre illeszkedő pontokat, és azokhoz párosítjuk a $d$ leírót, vagy a párosítás után eldobhatjuk azokat a párokat, ahol a megtalált kulcspont nem illeszkedik az egyenesre, így kevesebb párt kapunk majd, viszont gyorsabb a számítás.
+	
+	\subsection{Homográfia-alapú szűrés}
+	\label{match-homogr}
+	A homográfia megfeleltetés két kép pontjai között. Amennyiben a képek egy sík tárgyról (pl. könyvborítóról) készültek és egy adott tárgypontnak a képi koordinátái ismertek az egyik képen, a homográfia segítségével meghatározhatók ugyanannak a tárgypontnak a képi koordinátái a másik képen is. 
+	A homográfia meghatározható véges sok pontpár segítségével. A hibás párosításokat RANSAC algoritmussal kiszűrhetjük, amikor a párosításokra homográfiát illesztünk, így az algoritmus nagy mennyiségű hibás adat esetén is jól működik.
+	A módszer hátránya, hogy csak sík objektumokra használható.

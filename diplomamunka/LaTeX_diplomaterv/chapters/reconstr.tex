@@ -1,0 +1,103 @@
+\chapter{3D rekonstrukció}
+
+	A 3D rekonstrukció során egy térbeli objektum pontjainak koordinátáit kívánjuk meghatározni. Ez sok esetben különböző nézőpontból készült képek alapján történik. A problémát megoldó algoritmusokat a szakirodalomban \textit{Structure from Motion (SfM)}, vagy \textit{Multi-View Stereo (MVS)} algoritmusoknak hívják. Amennyiben a kamera külső paraméterei ismertek, a probléma lineáris legkisebb négyzetek módszerével megoldható. A külső paraméterek hiányában a feladat nemlineáris legkisebb négyzetek problémává alakítható, amelyet célszerű Levenberg-Marquardt algoritmussal megoldani. Ennek a nemlineáris problémának a megoldását \textit{bundle adjustment}-nek hívják.
+	
+	A 3D rekonstrukció kimenete általában egy pontfelhő. Amennyiben csak kulcspontok párosítását használjuk, és azok térbeli helyzetét határozzuk meg, ún. ritka pontfelhőt kapunk. Ha teljes 3D-s modellt akarunk kapni, vagyis a teljes megfigyelt környezetet vissza akarjuk állítani, akkor sűrű pontfelhőre van szükségünk. Jelen alkalmazásban a ritka pontfelhő elegendő.
+	 
+\section{Többnézetes háromszögelés}	 	
+\label{muli-view-triang} 
+	Mivel számunkra ismertek a kamera külső (és belső) paraméterei, ezért a feladat egy (túlhatározott) lineáris egyenletrendszer megoldása. A probléma precíz megfogalmazása a következő: Adott egy ismeretlen helyzetű 3D-s tárgypont, amelyről $N$ darab képet készítettünk ismert térbeli helyzetből. A tárgypontnak megfelelő képi pontokat az összes képen ismerjük. Keressük azt a 3D-s pontot, amelyet a kamerák képsíkjaira visszavetítve az ismert képi pontoktól való távolságok négyzetösszege minimális.
+	
+	A \eqref{eq:cam-trf-basic} egyenlet alapján írható:
+	
+	\begin{equation}
+	\label{eq:mvs-trf-basic}
+	w_i \left[ \begin{array}{c} u_i \\ v_i \\ 1 \end{array} \right] = \mathbf{P}_i \left[ \begin{array}{c} x \\ y \\ z \\ 1 \end{array} \right] , \quad \mathbf{P}_i \in \mathbb{R}^{3 \times 4}, \quad i = 1..N
+	\end{equation}
+	
+	Az \eqref{eq:mvs-trf-basic} egyenlet minden képre felírható, ismertek $\mathbf{P}_i$, $u_i$, $v_i$, és keressük $x$, $y$ és $z$ értékét. Ha bevezetjük, hogy:
+	
+	\begin{equation}
+	\mathbf{P}_i \eqqcolon \left[ \begin{array}{cc} 
+	\mathbf{p}_{1i} & a_{1i} \\
+	\mathbf{p}_{2i} & a_{2i} \\
+	\mathbf{p}_{3i} & a_{3i} \\
+	 \end{array} \right], \quad 
+	 \mathbf{p}_{1i}, \,
+	 \mathbf{p}_{2i}, \, 
+	 \mathbf{p}_{3i} \in \mathbb{R}^{1 \times 3}
+	\end{equation}
+	
+	valamint:
+	
+	\begin{equation}
+	\mathbf{x} \coloneqq \left[ \begin{array}{ccc} x & y & z \end{array} \right]^T
+	\end{equation}
+	
+	Az \eqref{eq:mvs-trf-basic} egyenlet írható a következő formában:
+	
+	\begin{equation}
+	\begin{split}
+	w_i u_i &= \mathbf{p}_{1i}\mathbf{x} + a_{1i} \\
+	w_i v_i &= \mathbf{p}_{2i}\mathbf{x} + a_{2i} \\
+	w_i &= \mathbf{p}_{3i}\mathbf{x} + a_{3i}
+	\end{split}
+	\end{equation}
+	
+	A fenti két egyenletbe az alsót behelyettesítve adódik:
+	
+	\begin{equation}
+	\begin{split}
+	\left(\mathbf{p}_{3i}\mathbf{x} + a_{3i}\right)u_i &= \mathbf{p}_{1i}\mathbf{x} + a_{1i} \\
+	\left(\mathbf{p}_{3i}\mathbf{x} + a_{3i}\right)v_i &= \mathbf{p}_{2i}\mathbf{x} + a_{2i}
+	\end{split}
+	\end{equation}
+	
+	Ezt az egyenletet $\mathbf{x}$-rendezve és az összes képre felírva kapjuk, hogy:
+	
+	\begin{equation}
+	\mathbf{G}\mathbf{x}=\mathbf{b}
+	\end{equation}
+	
+	ahol:
+	
+	\begin{equation}
+	\mathbf{G} \coloneqq \left[
+	 \begin{array}{c}
+	 	\vdots \\ 
+	 	\mathbf{p}_{3i}u_i - \mathbf{p}_{1i} \\ 
+	 	\mathbf{p}_{3i}v_i - \mathbf{p}_{2i} \\
+	 	\vdots
+	\end{array}	 \right], 
+	\quad \mathbf{b} \coloneqq \left[ 
+	\begin{array}{c}
+		\vdots \\
+		a_{1i} - a_{3i} u_i \\ 
+		a_{2i} - a_{3i} v_i \\
+		\vdots
+\end{array}	 \right]
+	\end{equation}
+	
+	Innen a pszeudoinverz segítségével számolható az optimális megoldás:
+	
+	\begin{equation}
+	\hat{\mathbf{x}} = \left(\mathbf{G}^T\mathbf{G}\right)^{-1}\mathbf{G}^T\mathbf{b}
+	\end{equation}
+	
+	Fontos megjegyezni, hogy ez a megoldás nem a visszavetítési hibát minimalizálja, hanem az egyenletrendszer algebrai hibáját ($\hat{\mathbf{Gx}-b}$ mennyiséget). Amennyiben ez lényeges eltérést okoz, nemlineáris optimumkereséssel meghatározható a valódi optimum. Ezt az implementáció során elhanyagoltam.
+
+	\section{Leíró-párosító algoritmusok sajátosságaiból adódó problémák}
+	A feladat bonyolultsága fokozható, ha figyelembe vesszük, hogy a párosító algoritmusok téves párosításokat is tartalmaznak, valamint, hogy egy leíróhoz lehet, hogy csak kevés (egy vagy kettő) másikat sikerül párosítani még több kép esetén is. Minél több párt talál a párosító algoritmus egy leíróhoz, annál pontosabban határozható meg a hozzá tartozó kulcspont 3D pozíciója.
+	
+	A párosításokat értelmezhetjük ritka, nem összefüggő gráfként, ahol a csúcsok a kulcspontok és azok leírói, az élek pedig a párosításokat jelentik. Értelemszerűen ha feltételezzük, hogy minden párosítás helyes, akkor minden összefüggő részgráf egy-egy tárgyponthoz tartozó leírókat tartalmaz. 
+	
+	A tesztek alapján, amiket végeztem, azt lehet mondani, hogy 5 tesztkép esetén mindegyiket mindegyikkel párosítva a csomópontok több, mint feléből csak egyetlen él fut ki, azaz a hozzájuk tartozó leírókhoz a többi 4 képből csak egyen sikerült párt találni. A tesztek azt támasztják tehát alá, hogy a gráf kellően ritka.
+	
+\subsection{A ritkaság korrigálása}	
+	\label{extension_doc}
+	
+	A gráf sűrítése érdekében megtehetjük azt, hogy pl vesszük az összes olyan csúcs-hármast, amelyik majdnem teljes részgráfot (kvázi-klikket) alkot, vagyis a 3 élből csak egy hiányzik, és teljessé tesszük, bízva abban, hogy a párosító algoritmus valamilyen oknál fogva a behúzott élnek megfelelő párosítást nem találta helyesnek, pedig az. Ezt megtehetjük bármilyen csúcs-$n$-esre is.
+	
+\subsection{Téves párosítások szűrése}
+
+	A téves párosítások figyelembe vételéhez érdemes RANSAC elven működő algoritmust alkalmazni. Ekkor a meghatározandó modell a 3D pozíció lesz. A 3D pozíciót visszavetítve a képekre az illeszkedés mértékét definiálhatjuk az így kapott képi pontok és az eredetileg detektált pontok közti négyzetes távolságösszegként.

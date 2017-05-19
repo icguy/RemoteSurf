@@ -1,0 +1,38 @@
+\BOOKMARK [0][-]{chapter*.2}{Kivonat}{}% 1
+\BOOKMARK [0][-]{chapter*.3}{Abstract}{}% 2
+\BOOKMARK [0][-]{chapter.1}{Bevezet\351s, feladatkituz\351s}{}% 3
+\BOOKMARK [0][-]{chapter.2}{Kameramodell, t\351r\351rz\351kel\351s kamer\341val}{}% 4
+\BOOKMARK [1][-]{section.2.1}{Kameramodell, kamerakalibr\341ci\363}{chapter.2}% 5
+\BOOKMARK [1][-]{section.2.2}{K\374lso param\351terek meghat\341roz\341sa, PnP probl\351ma}{chapter.2}% 6
+\BOOKMARK [1][-]{section.2.3}{RANSAC algoritmus}{chapter.2}% 7
+\BOOKMARK [0][-]{chapter.3}{Koordin\341ta-rendszerek, K\351z-szem kalibr\341ci\363}{}% 8
+\BOOKMARK [1][-]{section.3.1}{Kabsch algoritmus}{chapter.3}% 9
+\BOOKMARK [1][-]{section.3.2}{A rot\341ci\363k becsl\351se}{chapter.3}% 10
+\BOOKMARK [1][-]{section.3.3}{A transzl\341ci\363k becsl\351se}{chapter.3}% 11
+\BOOKMARK [0][-]{chapter.4}{Kulcspontkeres\351s \351s -p\341ros\355t\341s}{}% 12
+\BOOKMARK [1][-]{section.4.1}{Kulcspontkereso algoritmusok}{chapter.4}% 13
+\BOOKMARK [2][-]{subsection.4.1.1}{SIFT kulcspontkeres\351s}{section.4.1}% 14
+\BOOKMARK [2][-]{subsection.4.1.2}{SURF kulcspont-keres\351s}{section.4.1}% 15
+\BOOKMARK [1][-]{section.4.2}{Le\355r\363-p\341ros\355t\363 algoritmusok, p\341ros\355t\341s-szur\351sek}{chapter.4}% 16
+\BOOKMARK [2][-]{subsection.4.2.1}{Ar\341nyteszt alap\372 p\341ros\355t\341s-szur\351s}{section.4.2}% 17
+\BOOKMARK [2][-]{subsection.4.2.2}{Keresztellenorz\351ses szur\351s}{section.4.2}% 18
+\BOOKMARK [2][-]{subsection.4.2.3}{Epipol\341ris egyenes haszn\341lata}{section.4.2}% 19
+\BOOKMARK [2][-]{subsection.4.2.4}{Homogr\341fia-alap\372 szur\351s}{section.4.2}% 20
+\BOOKMARK [0][-]{chapter.5}{3D rekonstrukci\363}{}% 21
+\BOOKMARK [1][-]{section.5.1}{T\366bbn\351zetes h\341romsz\366gel\351s}{chapter.5}% 22
+\BOOKMARK [1][-]{section.5.2}{Le\355r\363-p\341ros\355t\363 algoritmusok saj\341toss\341gaib\363l ad\363d\363 probl\351m\341k}{chapter.5}% 23
+\BOOKMARK [2][-]{subsection.5.2.1}{A ritkas\341g korrig\341l\341sa}{section.5.2}% 24
+\BOOKMARK [2][-]{subsection.5.2.2}{T\351ves p\341ros\355t\341sok szur\351se}{section.5.2}% 25
+\BOOKMARK [0][-]{chapter.6}{Megval\363s\355t\341s}{}% 26
+\BOOKMARK [1][-]{section.6.1}{A szoftver feladatai}{chapter.6}% 27
+\BOOKMARK [1][-]{section.6.2}{Kiv\341lasztott implement\341ci\363}{chapter.6}% 28
+\BOOKMARK [2][-]{subsection.6.2.1}{Kulcspontkeres\351s \351s -p\341ros\355t\341s implement\341ci\363ja}{section.6.2}% 29
+\BOOKMARK [2][-]{subsection.6.2.2}{A k\351z-szem kalibr\341ci\363 implement\341ci\363ja}{section.6.2}% 30
+\BOOKMARK [2][-]{subsection.6.2.3}{3D rekonstrukci\363 \351s a k\351z-szem kalibr\341ci\363 implement\341ci\363ja}{section.6.2}% 31
+\BOOKMARK [2][-]{subsection.6.2.4}{A poz\355ci\363 \351s orient\341ci\363 meghat\341roz\341s\341nak implement\341ci\363ja}{section.6.2}% 32
+\BOOKMARK [1][-]{section.6.3}{A robotir\341ny\355t\363 rendszer fel\351p\355t\351se}{chapter.6}% 33
+\BOOKMARK [1][-]{section.6.4}{A PLC \351s robotprogram}{chapter.6}% 34
+\BOOKMARK [1][-]{section.6.5}{A PC program}{chapter.6}% 35
+\BOOKMARK [0][-]{chapter.7}{Eredm\351nyek}{}% 36
+\BOOKMARK [0][-]{chapter.8}{\311rt\351kel\351s, tov\341bbfejleszt\351si lehetos\351gek}{}% 37
+\BOOKMARK [0][-]{chapter*.23}{Irodalomjegyz\351k}{}% 38

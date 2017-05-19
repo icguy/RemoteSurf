@@ -1,0 +1,17 @@
+%----------------------------------------------------------------------------
+% Abstract in hungarian
+%----------------------------------------------------------------------------
+\chapter*{Kivonat}\addcontentsline{toc}{chapter}{Kivonat}
+
+Az előre nem definiált környezetben, például háztartásokban működő robotok egyik nem megoldott feladata tárgyak megtalálása ebben a tetszőleges környezetben. Jelen diplomatervben egy robotikai alkalmazás működését mutatom be, amely ezt a feladatot hívatott megoldani. A szoftver feladata egy robotkar mozgatása, és az arra szerelt kamera képe alapján egy előzetesen betanított tárgy ismeretlen térbeli helyzetének meghatározása. A póz becslése ismert térbeli pozíciójú pontok, és a nekik megfelelő képi pontok alapján PnP algoritmussal történik. A képi pontok megtalálását SURF kulcspontkereső algoritmussal végzi a szoftver. A betanítás során az ismert térbeli pozíció meghatározását, a 3D rekonstrukciót több, ismert nézőpontból elkészített kép alapján többnézetes háromszögeléssel végzi a szoftver. A dolgozatban kitérek a robotirányító rendszer szoftveres és hardveres felépítésére, valamint a kéz-szem kalibráció implementálására is, végül pedig a megvalósítás eredményeinek elemzésére.
+\vfill
+
+%----------------------------------------------------------------------------
+% Abstract in english
+%----------------------------------------------------------------------------
+\chapter*{Abstract}\addcontentsline{toc}{chapter}{Abstract}
+
+Finding objects in an arbitrary environtment is one of the unsolved problems about robots operating in such environments, eg. households. In this thesis I present a robotics application, which is supposed to solve this problem. The software is controlling a robotic arm, and estimates the spatial position and orientation of 
+an object for which it has been trained previously. The estimation is done using images retrieved from a camera mounted on the end effector of the robot. The software uses PnP algorithm which estimates the spatial pose from object points with known 3D coordinates and the corresponding image points. The image points are found with SURF keypoint detector. During training the algorithm, 3D reconstruction is done via multi-view triangulation using multiple images taken from known positions. Furthermore I describe the hardware and software architecture of the robot controlling system, and the implementation of the hand-eye calibration. Finally I analyze the results of the implementation.
+\vfill
+

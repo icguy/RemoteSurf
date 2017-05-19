@@ -1,0 +1,9 @@
+\chapter{Értékelés, továbbfejlesztési lehetőségek}
+
+A tesztek eredményein látszik, hogy a program viselkedése kevéssé robusztus, ugyanarra az elrendezésre nem tud reprodukálható eredményt mutatni. A \ref{fig:scatter1}, \ref{fig:scatter2} és \ref{fig:scatter3} ábrák alapján azt lehet mondani, hogy az inlierek számának növekedésével a hiba konzisztenssé válik, de a tárgy megfogásához még mindig közel sem elég kicsi.
+
+A hibáknak több oka is lehet. Mind a kéz-szem kalibrációnál, mind a 3D renkonstrukciónál problémát okoz, hogy a kamera látószöge és a robot munkatere kicsi. Nagyobb látószögű kamerát nem lehet használni, mert annak a torzítása is nagyobb. Nagyobb munkaterű robottal lehet ezen a hibán javítani.
+
+Probléma lehet a kalibráló objektum minősége is. Az általam használt sakktáblamintázat hagyományos nyomtatópapírra készült, és a tesztek során akaratlanul is meggyűrődött, így a sarkai elmozdultak a feltételezett helyükről. Egy nehezebben deformálódó, pontosabb kalibráló objektum használata sokat lendíthetne a pontosság növelésén.
+
+A kamerát technikai okokból nem tudtam a legnagyobb felbontásán használni, ez lehet, hogy segítene több kulcspontot detektálni a tárgyon és több párosítást használni. Természetesen ez valószínűleg a futásidő rovására menne. További probléma lehet még, hogy a labor megvilágítása nem kifejezetten erős, a képek zajosak, ez is zavarhatja a kulcspontpárosítást.

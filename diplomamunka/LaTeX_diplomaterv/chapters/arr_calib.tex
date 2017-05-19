@@ -1,0 +1,327 @@
+\chapter{Koordináta-rendszerek, Kéz-szem kalibráció}
+
+A robotikában különböző koordináta-rendszereket használunk. Jelen feladat során a következő koordináta-rendszereket használom:
+	\begin{itemize}
+	\item A robot bázis koordináta-rendszere, avagy világ koordináta-rendszer. A robot nulladik, álló szegmenséhez van rögzítve. Betűjele: $R$ (Robot)	
+	\item Megfogó vagy szerszám koordináta-rendszer, amely a robot utolsó szegmensének végén található. Betűjele: $T$ (Tool)
+	\item Kamera koordináta-rendszer. Ennek a koordináta-rendszernek az origóját a pinhole modell alapján a vetítési pontba képzeljük el, a \textit{z} tengelye egybeesik az optikai tengellyel és a kamera nézési irányába mutat. A valóságban az optikai tengely és a lencse síkjának metszéspontjában található az origó. Betűjele: $C$ (Camera)
+	\item Tárgy koordináta-rendszer. Ez az a koordináta-rendszer, amiben a megfigyelt tárgy pontjainak koordinátáit értelmezzük. Betűjele: $O$ (Object)
+	\end{itemize}
+	
+	A $B$ koordináta-rendszerből az $A$ koordináta-rendszerbe való transzformáció a következőképpen írható fel homogén koordinátákban:
+	
+	\begin{equation}
+	\label{eq:trf-kifejt}
+	\mathbf{T}_{AB} = 
+	\left[
+	\def\arraystretch{1.2}
+	\begin{array}{c|c}
+ 	\mathbf{R}_{AB} & \mathbf{t}_{AB} \\
+ 	\hline
+	\mathbf{0}^T & 1 \\
+	\end{array}	
+	\right] \in \mathbb{R}^{4 \times 4}
+	\end{equation}
+	
+	Itt $\mathbf{R}_{AB}$ 3x3-as rotációs mátrix, $\mathbf{t}_{AB}$ pedig oszlopvektor. A $\mathbf{t}_{AB}$ vektor az $A$ koordináta-rendszer origójából a $B$ koordináta-rendszer origójába mutat ($A$-ban felírva), míg $\mathbf{R}_{AB}$ oszlopai a $B$ koordináta-rendszer egységvektorai szintén $A$-ban felírva.
+	
+	A jelöléstechnikából következik, hogy ${\mathbf{T}_{AB}}^{-1} = \mathbf{T}_{BA}$
+
+	A kéz-szem kalibráció során a robot megfogójának és a kamerának a relatív helyzetét kívánjuk meghatározni, azaz $\mathbf{T}_{TC}$-t (vagy inverzét). Amennyiben ez ismert, a kamera helyzetét képesek vagyunk világ koordináta-rendszerben is megadni, ugyanis a megfogó és a világ koordináta-rendszer közti transzformációt a direkt kinematikai probléma megoldásával meghatározhatjuk.
+
+	A kalibrációhoz használt módszer a belső paraméterek kalibrálásánál alkalmazotthoz hasonló, egy kalibrációs objektumról képeket készítünk, amelyen megkeressük a tárgy ismert pozíciójú pontjait. Az így kapott összefüggésekből számítjuk először a kamera külső paramétereit, majd az egyéb ismert paraméterek felhasználásával a kamera relatív helyzetét.	
+	
+	A fent ismertetett koordináta-rendszerek közötti transzformációs lánc felírható:
+	
+	\begin{equation}\label{eq:trf-lanc1}
+	\mathbf{T}_{CO}\mathbf{T}_{OR}\mathbf{T}_{RT}\mathbf{T}_{TC} = \mathbf{I}
+	\end{equation}
+	
+	Az egyes transzformációknak speciális tulajdonságaik vannak, amit kalibráláskor ki lehet (sőt kell) használni. A kamera a végberendezésre szilárdan van rögzítve, nem mozdul el. A robot is rögzítve van a gépalaphoz, amihez képest a kalibráló tárgy nem mozog a kalibráció során. Ez azt jelenti, hogy a $\mathbf{T}_{OR}$ és $\mathbf{T}_{TC}$ mátrixok nem változnak, ha a robotkart mozgatjuk. Ezen felül ismert a robotkar pozíciója a bázis koordináta-rendszerben, hiszen megkaphatjuk a direkt geometriai feladat megoldásával. A PnP algoritmus továbbá megadja a kamera helyzetét a tárgy koordináta-rendszerben. Így $\mathbf{T}_{CO}$ és $\mathbf{T}_{RT}$ mátrixok ismertek minden kép esetében.
+	
+	A kalibráció két lépésben történik. Az első lépésben a rotációs mátrixokat számítjuk ki, a másodikban a transzlációs vektorokat.
+	
+	Először azonban a kalibrációhoz szükséges Kabsch algoritmus működését mutatom be.
+	
+	\section{Kabsch algoritmus}	
+
+	A Kabsch algoritmus \cite{Kabsch} két vektorhalmaz közti optimális forgatási mátrixot számítja ki. A probléma felvetése a következő. Adottak ${\mathbf{p}_i}^T \in \mathbb{R}^{1 \times 3}$ és ${\mathbf{q}_i}^T \in \mathbb{R}^{1 \times 3}$ vektorok, $i=1..N$. Keressük azt az $\hat{\mathbf{R}} \in \mathbb{R}^{3 \times 3}$ mátrixot, amelyre:
+	
+\begin{equation}
+\hat{\mathbf{R}} = \underset{\mathbf{R}}{ arg\,min} \; \sum_{i=1}^N \left\lVert\mathbf{p}_i	- \mathbf{R} \mathbf{q}_i\right\rVert^2
+\end{equation}
+	
+	Az algoritmus a vektorhalmazok közti koordinátánkénti kovariancia-mátrixot számítja ki, majd ennek SVD felbontásából határozza meg az optimális forgatást:
+	
+	\begin{equation}
+	\label{eq:kabsch-bigmat}
+	\mathbf{P} \coloneqq \left[ \begin{matrix}
+		\vdots \\
+		{\mathbf{t}_{RTi}}^T \\
+		\vdots
+		\end{matrix} \right] \in \mathbb{R}^{N \times 3} , \quad
+	\mathbf{Q} \coloneqq \left[ \begin{matrix}
+		\vdots \\
+		{\mathbf{t}_{OCi}}^T \\
+		\vdots
+		\end{matrix} \right] \in \mathbb{R}^{N \times 3} , \quad
+		i = 1..N
+	\end{equation}
+	\begin{equation}
+	\mathbf{A} = \mathbf{P}^T\mathbf{Q}
+	\end{equation}
+	\begin{equation}
+	\mathbf{U \Sigma V}^T = \mathbf{A}
+	\end{equation}
+	\begin{equation}
+	\hat{\mathbf{R}} = \mathbf{U}\left[
+\begin{matrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & det(\mathbf{UV}^T) \\
+\end{matrix}
+	 \right]\mathbf{V}^T
+	\end{equation}
+	
+	Érdemes megjegyezni, hogy a vektorhalmazok tömegközéppontja az origóban kell hogy legyen, amennyiben ez nem teljesül, könnyen korrigálható a vektorok eltolásával.
+	
+	\section{A rotációk becslése}
+	A \eqref{eq:trf-lanc1} egyenletet átalakítva kapjuk, hogy:
+	
+	\begin{equation}
+	\label{eq:trf-lanc2}
+	\mathbf{T}_{OC} = \mathbf{T}_{OR}\mathbf{T}_{RT}\mathbf{T}_{TC}
+	\end{equation}
+	
+	Ha az egész egyenletet beszorozzuk jobbról a nullvektorral:
+	
+	\begin{equation}
+	\mathbf{T}_{OC}\left[ \begin{array}{c} 0 \\ 0 \\ 0 \\ 1 \end{array}	 \right] = \mathbf{T}_{OR}\mathbf{T}_{RT}\mathbf{T}_{TC}\left[ \begin{array}{c} 0 \\ 0 \\ 0 \\ 1 \end{array}	\right]
+	\end{equation}	
+		
+	És elvégezzük a megfelelő szorzásokat, kapjuk:
+	
+	\begin{equation}
+	\left[
+	\begin{array}{c}
+		\mathbf{t}_{OC}\\
+		1
+	\end{array}
+	\right]	
+	 = \mathbf{T}_{OR} 
+	 \left[
+	\begin{array}{c}
+	\mathbf{R}_{RT}\mathbf{t}_{TC} + \mathbf{t}_{RT} \\ 1
+	\end{array}	
+	 \right]
+	\end{equation}
+	
+	Ebben az egyenletben számunkra ismeretlen a $\mathbf{T}_{OR}$ mátrix és a $\mathbf{t}_{TC}$ vektor. A kalibráció során készítünk $N$ darab képet, amelyekhez meghatározzuk a külső paramétereket, vagyis a $\mathbf{T}_{OC}$ mátrixot. Ezeket a képeket úgy készítjük el, hogy az $\mathbf{R}_{RT}$ mátrix állandó, vagyis két kép készítése között nem forgatjuk a kamerát, csak eltoljuk. Ekkor kiegészíthető a fenti egyenlet egy, a kép sorszámát jelölő indexszel:
+	
+	\begin{equation}
+	\label{eq:rot-est}
+	\left[
+	\begin{array}{c}
+		\mathbf{v}_{OCi}\\
+		1
+	\end{array}
+	\right]	
+	 = \mathbf{T}_{OR} 
+	 \left[
+	\begin{array}{c}
+	\mathbf{R}_{RT}\mathbf{t}_{TC} + \mathbf{t}_{RTi} \\ 1
+	\end{array}	
+	 \right] \quad i = 1..N
+	\end{equation}
+	
+	Azok az ismeretlenek, illetve paraméterek, amik nem kaptak indexet, azok állandóak a képek készítése során. Vegyük a fenti $N$ darab egyenlet átlagát:
+	
+	\begin{equation}
+	\label{eq:rot-est-avg}
+	\left[
+	\begin{array}{c}
+	 	\frac{\sum \mathbf{t}_{OCi}}{N}\\
+		1
+	\end{array}
+	\right]	
+	 = \mathbf{T}_{OR} 
+	 \left[
+	\begin{array}{c}
+	\mathbf{R}_{RT}\mathbf{t}_{TC} + \frac{\sum \mathbf{t}_{RTi}}{N} \\ 1
+	\end{array}	
+	 \right]
+	\end{equation}	
+	
+	Ha kivonjuk a \eqref{eq:rot-est-avg} egyenletet a \eqref{eq:rot-est} egyenletből, a következőt kapjuk:
+		
+	\begin{equation}
+	\label{eq:rot-trf1}
+	\left[
+	\begin{array}{c}
+	 	\mathbf{t}_{OCi} - \frac{\sum \mathbf{t}_{OCi}}{N}\\
+		0
+	\end{array}
+	\right]	
+	 = \mathbf{T}_{OR} 
+	 \left[
+	\begin{array}{c}
+	\mathbf{t}_{RTi} - \frac{\sum \mathbf{t}_{RTi}}{N} \\ 0
+	\end{array}	
+	 \right]
+	\end{equation}	
+	
+	Bevezetjük, hogy:
+	
+	\begin{equation*}
+	\begin{split}
+	 	\overline{\mathbf{t}_{OCi}} &\coloneqq \mathbf{t}_{OCi} - \frac{\sum \mathbf{t}_{OCi}}{N} \\
+	 	\overline{\mathbf{t}_{RTi}} &\coloneqq \mathbf{t}_{RTi} - \frac{\sum \mathbf{t}_{RTi}}{N} 
+	 	\end{split}
+	\end{equation*}
+	
+	Szemléletesen a felülvont változó az adott vektornak az összes vektor tömegközéppontjához képesti relatív helyzetét mutatja meg. Vegyük észre, hogy ezek kiszámíthatók, ismerjük őket. \eqref{eq:rot-trf1} írható a következő alakban is:
+	
+	\begin{equation}
+	\left[
+	\begin{array}{c}
+	 	\overline{\mathbf{t}_{OCi}}\\
+		0
+	\end{array}
+	\right]	
+	 = \left[
+	\def\arraystretch{1.2}
+	\begin{array}{c|c}
+ 	\mathbf{R}_{OR} & \mathbf{t}_{OR} \\
+ 	\hline
+	\mathbf{0}^T & 1 
+	\end{array}	
+	\right]
+	 \left[
+	\begin{array}{c}
+	\overline{\mathbf{t}_{RTi}} \\ 0
+	\end{array}	
+	 \right]
+	\end{equation}
+	
+	Ebből pedig:
+	
+	\begin{equation}
+ 	\overline{\mathbf{t}_{OCi}}	= \mathbf{R}_{OR} 	\overline{\mathbf{t}_{RTi}}
+	\end{equation}
+	
+	$\mathbf{R}_{OR}$ kiszámítása tehát ekvivalens az kapott vektorpárok közti optimális rotáció kiszámításával, amit Kabsch algoritmus számít ki.
+	
+	Ez után $\mathbf{R}_{TC}$ számítása történik. \eqref{eq:trf-lanc1} alapján: 
+	
+	\begin{equation}
+	\mathbf{R}_{TRi}\mathbf{R}_{RO}\mathbf{R}_{OCi} = \mathbf{R}_{TCi}\quad i = 1 .. N
+	\end{equation}
+	
+	A jobb oldalon található rotációs mátrixok "átlagát" kellene venni, ezt is a Kabsch algoritmussal lehet kiszámítani. Az algoritmusnak azonban vektorpárokra van szüksége, nem pedig mátrixokra. Ebben az esetben $3N$ darab vektorpár alapján végezzük a számítást, minden átlagolandó rotációhoz 3-3 vektorpár tartozik: egy ilyen párhármas egyik tagja a rotációs mátrix megfelelő oszlopvektora, a másik tagja pedig a neki megfelelő egységvektor ($\left[1\:0\:0 \right]^T $, $\left[0\: 1\: 0 \right]^T $, vagy $\left[0\: 0\: 1 \right]^T $). Ekkor a \eqref{eq:kabsch-bigmat}-ben definiált mátrixok a következő alakot öltik:
+	
+	\begin{equation}
+	\mathbf{P} \coloneqq \left[ \begin{matrix}
+		\vdots \\
+		\mathbf{R}_{TCi} \\
+		\vdots
+		\end{matrix} \right], \quad
+	\mathbf{Q} \coloneqq \left[ \begin{matrix}
+		\vdots \\
+		\mathbf{I} \\
+		\vdots
+		\end{matrix} \right], \quad
+		i = 1..N
+	\end{equation}
+	
+	ahol $\mathbf{I}$ a $3\times 3$-as egységmátrix.
+	
+	Így a rotációk átlagát véve a Kabsch algoritmussal megkaphatjuk az $\mathbf{R}_{TC}$ mátrixot.
+	
+	\section{A transzlációk becslése}
+	Ha kifejtjük a \eqref{eq:trf-lanc2} egyenletet \eqref{eq:trf-kifejt} szerint, kapjuk, hogy:
+	
+	\begin{equation}
+	\left[ 	\def\arraystretch{1.2} \begin{array}{c|c}
+ 	\mathbf{R}_{OC} & \mathbf{t}_{OC} \\ \hline
+	\mathbf{0}^T & 1 \\
+	\end{array}	\right] = 	
+	\left[ \def\arraystretch{1.2} \begin{array}{c|c}
+ 	\mathbf{R}_{OR} & \mathbf{t}_{OR} \\ \hline
+	\mathbf{0}^T & 1 \\
+	\end{array}	\right]	
+	\left[ \def\arraystretch{1.2} \begin{array}{c|c}
+ 	\mathbf{R}_{RT} & \mathbf{t}_{RT} \\ \hline
+	\mathbf{0}^T & 1 \\
+	\end{array}	\right]	
+	\left[ \def\arraystretch{1.2} \begin{array}{c|c}
+ 	\mathbf{R}_{TC} & \mathbf{t}_{TC} \\ \hline
+	\mathbf{0}^T & 1 \\
+	\end{array}	\right]
+	\end{equation}
+	
+	Összeszorozva a jobb oldalt a következő adódik:
+	
+	\begin{equation}	
+	\left[ \def\arraystretch{1.2} \begin{array}{c|c}
+ 	\mathbf{R}_{OC} & \mathbf{t}_{OC} \\ \hline
+	\mathbf{0}^T & 1 \\
+	\end{array}	\right] = 
+	\left[ \def\arraystretch{1.2} \begin{array}{c|c}
+ 	\mathbf{R}_{OR}\mathbf{R}_{RT}\mathbf{R}_{TC} & \mathbf{R}_{OR}\mathbf{R}_{RT}\mathbf{t}_{TC}+\mathbf{R}_{OR}\mathbf{t}_{RT} + \mathbf{t}_{OR} \\ \hline
+	\mathbf{0}^T & 1 \\
+	\end{array}	\right]
+	\end{equation}
+	
+	Az ebben a fázisban elkészített képek számát jelöljük $M$-mel. Ebből, ha bevezetjük az indexet a változó paraméterekhez , kapjuk, hogy:
+	
+	\begin{equation}
+	\mathbf{t}_{OCi} = \mathbf{R}_{OR}\mathbf{R}_{RTi}\mathbf{t}_{TC}+\mathbf{R}_{OR}\mathbf{t}_{RTi} + \mathbf{t}_{OR} \quad i=1..M
+	\end{equation}
+	
+	Vegyük észre, hogy most már a megfogó orientációját, azaz az $\mathbf{R}_{RTi}$ mátrixot is változtatjuk a képek készítése során. A fenti egyenletben a $\mathbf{t}_{TC}$ és $\mathbf{t}_{OR}$ vektorok az ismeretlenek. Átrendezve az egyenletet:
+	
+	\begin{equation}
+	{\mathbf{R}_{OR}}^{-1} \mathbf{t}_{OCi} -  \mathbf{t}_{RTi} =  \mathbf{R}_{RTi}\mathbf{t}_{TC}+{\mathbf{R}_{OR}}^{-1}\mathbf{t}_{OR}
+	\end{equation}
+	
+	Bevezetve:
+	
+	\begin{equation}
+	\begin{split}
+	\mathbf{p}_i &\coloneqq {\mathbf{R}_{OR}}^{-1} \mathbf{t}_{OCi} -  \mathbf{t}_{RTi} \\
+	\mathbf{A}_i &\coloneqq  \mathbf{R}_{RTi} \\
+	\mathbf{B} &\coloneqq  {\mathbf{R}_{OR}}^{-1}
+	\end{split}
+	\end{equation}
+	
+	Kapjuk, hogy:
+	
+	\begin{equation}
+	\mathbf{p}_i =  \mathbf{A}_i\mathbf{t}_{TC}+\mathbf{B}\mathbf{t}_{OR}
+	\end{equation}
+	
+	Ha az összes $M$ egyenletet egybefoglaljuk:
+	
+	\begin{equation}
+	\mathbf{Cx} = \mathbf{k}
+	\end{equation}
+	
+	ahol:
+	
+	\begin{equation}
+	\mathbf{x} \coloneqq \left[ \begin{matrix} \mathbf{t}_{TC} \\ \mathbf{t}_{OR}\end{matrix}	 \right], \quad
+	\mathbf{C} \coloneqq  \left[ \begin{array}{cc} \multicolumn{2}{c}{\vdots} \\ \mathbf{A}_i & \mathbf{B} \\ \multicolumn{2}{c}{\vdots}  \end{array} \right], \quad
+	\mathbf{k} \coloneqq  \left[ \begin{matrix} \vdots \\ \mathbf{p}_i \\ \vdots \end{matrix} \right] 
+	\end{equation}
+	\begin{equation*}
+	\mathbf{x} \in \mathbb{R}^{6 \times 1}, \quad
+	\mathbf{C} \in \mathbb{R}^{3M \times 6}, \quad
+	\mathbf{k} \in \mathbb{R}^{3M \times 1}, \quad
+	i = 1..M
+	\end{equation*}
+	
+	Innen a pszeudoinverz segítségével az optimális megoldás számolható:
+	
+	\begin{equation}
+	\hat{\mathbf{x}} = \left(\mathbf{C}^T \mathbf{C}\right)^{-1}\mathbf{C}^T\mathbf{k}
+	\end{equation}
