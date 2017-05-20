@@ -1,3 +1,5 @@
+from fileinput import filename
+
 import cv2
 import numpy as np
 import FeatureLoader
@@ -257,8 +259,8 @@ def getdatapts(data):
         err = np.sqrt(np.sum(np.square(goodpos - endpos)))
         goodrpy = Utils.getTransform(goodrot[2], goodrot[1], goodrot[0], 0, 0, 0)[:3, :3]
         endrpy = Utils.getTransform(endrot[0], endrot[1], endrot[2], 0, 0, 0)[:3, :3]
-        print goodrpy
-        print endrpy
+        # print goodrpy
+        # print endrpy
         errot_mat = np.diag(rotdiff(goodrpy, endrpy))
         errot = np.average(errot_mat)
         err_coord = goodpos - endpos
@@ -303,7 +305,7 @@ def procdata(data, filename = None):
         wspace = 0.31
     )
 
-    if file is None:
+    if filename is None:
         plt.show()
     else:
         plt.savefig(filename+".eps", format = "eps")
@@ -325,11 +327,11 @@ if __name__ == '__main__':
     print "data6"
     procdata(data6, "err3")
 
-    # print "data1"
-    # procdata(data1)
-    # print "data2"
-    # procdata(data2)
-    # print "data3"
-    # procdata(data3)
+    print "data1"
+    procdata(data1)
+    print "data2"
+    procdata(data2)
+    print "data3"
+    procdata(data3)
     print "hai"
     # __find_object()
