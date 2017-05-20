@@ -1,5 +1,3 @@
-%TODO screenshot a progiról
-
 \chapter{Megvalósítás}
 \section{A szoftver feladatai}
 A konkrét implementáció a BME IIT robotlaborjában történt egy Mitsubishi robotkaron. A komplett, több komponensből álló szoftver feladatai a következők:
@@ -48,9 +46,15 @@ Ahogy a kéz-szem kalibrációnál, úgy a 3D rekonstrukciónál is különböz�
 
 A pozíció és orientáció meghatározása a PnP algoritmus RANSAC elvű megvalósításával történik. Amennyiben ismerjük a kamera pozícióját a tárgy koordináta-rendszerében, a \eqref{eq:trf-lanc1} egyenlet alapján kiszámolhatjuk a tárgy és a robot koordináta-rendszerek közti transzformációt, $\mathbf{T}_{OR}$-t. Ennek az ismeretében pedig a tárgyhoz képesti tetszőleges célkonfigurációba irányíthatjuk a robotkart.
 
-A tárgy pozíciójának meghatározásához a szoftver öt különböző nézőpontból készít képeket. Mindegyikhez megpróbálja meghatározni a kamera külső paramétereit, és végül a mellett a konfiguráció mellett dönt, amelyet a legtöbb inlier alapján sikerül meghatározni. Ez után kiszámítja azt a konfigurációt, amelyben a kamera egyenesen ránéz arra a gombra, amely a távirányító négy nyílbillentyűje között található. Ez a megfogási konfiguráció. A program azonban (lehetséges ütközéseket elkerülendő) a megfogási konfigurációhoz képest egy eltolt célkonfigurációba irányítja a robotot. A célkonfiguráció a világ koordináta-rendszerben pozitív $z$ irányban (fölfele) 20 cm-rel van eltolva a megfogási konfigurációhoz képest.
+A tárgy pozíciójának meghatározásához a szoftver öt különböző nézőpontból készít képeket. Mindegyikhez megpróbálja meghatározni a kamera külső paramétereit, és végül a mellett a konfiguráció mellett dönt, amelyet a legtöbb inlier alapján sikerül meghatározni. Ez után kiszámítja azt a konfigurációt, amelyben a kamera egyenesen ránéz a \ref{fig:cel-konf-cam} ábrán bekarikázott gombra, és majdnem érinti a távkapcsolót , ahogy az a \ref{fig:megfog-konf} ábrán látszik. Ez a megfogási konfiguráció. A program azonban (lehetséges ütközéseket elkerülendő) a megfogási konfigurációhoz képest egy eltolt célkonfigurációba irányítja a robotot. A célkonfiguráció a világ koordináta-rendszerben pozitív $z$ irányban (fölfele) 20 cm-rel van eltolva a megfogási konfigurációhoz képest. Ezt a \ref{fig:cel-konf} ábrán látjuk.
 
-%TODO képek megfogási- és célkonfigurációról
+\begin{figure}[H]
+\centering     %%% not \center
+\subfigure[Megfogási konfiguráció]{\label{fig:megfog-konf}\includegraphics[width=0.45\linewidth]{chapters/implementation/megfog.jpg}}
+\subfigure[Célkonfiguráció]{\label{fig:cel-konf}\includegraphics[width=0.45\linewidth]{chapters/implementation/cel.jpg}}
+\subfigure[A kamera képe a célkonfigurációban.]{\label{fig:cel-konf-cam}\includegraphics[width=0.45\linewidth]{chapters/implementation/cel_cam.png}}
+\caption{A célkonfiguráció meghatározása}
+\end{figure}
 
 \section{A robotirányító rendszer felépítése}
 	A komplett rendszer hardverkomponensei között lévő kommunikációs lánc a következő elemekből épül fel:

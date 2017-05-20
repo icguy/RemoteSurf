@@ -2,17 +2,17 @@
 
 A szoftver teszteléséhez a megtalálandó tárgy a \ref{fig:reconstr-img} ábrán látható TV-távirányító volt. A választás azért esett erre a tárgyra, mert kellően részletgazdag, és a mérete megfelelő a teszteléshez.
 
-%A tárgy pozíciójának meghatározásához a szoftver öt különböző nézőpontból készít képeket. Mindegyikhez megpróbálja meghatározni a kamera külső paramétereit, és végül a mellett a konfiguráció mellett dönt, amelyet a legtöbb inlier alapján sikerül meghatározni. Ez után kiszámítja azt a konfigurációt, amelyben a kamera egyenesen ránéz arra a gombra, amely a távirányító négy nyílbillentyűje között található. Ez lenne a megfogási pozíció. A program azonban (lehetséges ütközéseket elkerülendő) a megfogási konfigurációhoz képest egy eltolt célkonfigurációba irányítja a robotot. A célkonfiguráció a világ koordináta-rendszerben pozitív $z$ irányban (fölfele) 20 cm-rel van eltolva a megfogási konfigurációhoz képest.
-%
-%%TODO képek megfogási- és célkonfigurációról
-
 A tárgy pozíciójának meghatározását több elrendezésre is elvégeztem, elrendezésenként többször is lefuttatva a keresést. itt három ilyen teszt eredményét mutatom be, a tesztek során a keresést rendre 7, 7 és 6 alkalommal futtattam le. A megfogási konfiguráció ideális értékét kézzel állítottam be, ehhez képest mértem az ideális célkonfigurációt.
 
 A három elrendezés a következő volt:
 
-%TODO képek az elrendezésekről
-
-%A, B, C elrendezés
+\begin{figure}[H]
+\centering     %%% not \center
+\subfigure[1. elrendezés]{\label{fig:arr1}\includegraphics[height=0.56\linewidth]{chapters/results/arr1.jpg}}
+\subfigure[2. elrendezés]{\label{fig:arr2}\includegraphics[height=0.56\linewidth]{chapters/results/arr2.jpg}}
+\subfigure[3. elrendezés]{\label{fig:arr3}\includegraphics[width=0.45\linewidth]{chapters/results/arr3.jpg}}
+\caption{A különböző elrendezések}
+\end{figure}
 
 Az eredmények közlésénél a következő jelölést használom:
 
@@ -95,21 +95,19 @@ Az eredményeket a következő táblázatok mutatják.
 %1.31&	-1.03&	5.48&	5.73&	17.85&	30.25&	25.74&	24.61&	100\\
 %1.17&	-0.65&	4.08&	4.30&	15.56&	27.4&	22.42&	21.79&	190\\
 
-%TODO test2 elég szar
-
 \setlength\tabcolsep{6pt}
 \begin{table}[H]
 \centering
 \begin{tabular}{|rrr|r|rrr|r|c|}
 \hline 
 $\delta_x$ (cm) & $\delta_y$ (cm) & $\delta_z$ (cm) & $\delta$ (cm) & $\Delta_x$ (°) & $\Delta_y$ (°) & $\Delta_z$ (°) & $\Delta$ (°) & inlierek száma \\ \hline
-4.23&	1.07&	2.1&	4.84&	32.24&	21.74&	28.28&	27.42&	189\\
-0.46&	-1.5&	4.63&	4.89&	21.62&	21.62&	0.4&	14.55&	157\\
-0.81&	0.02&	4.08&	4.16&	6.6&	5.96&	2.99&	5.18&	76\\
-4.32&	1.06&	1.97&	4.86&	32.58&	22.76&	27.9&	27.75&	183\\
--0.15&	-0.64&	-1.61&	1.74&	44.05&	16.33&	41.91&	34.10&	130\\
--0.38&	-0.3&	-1.91&	1.97&	32.07&	3.97&	31.89&	22.65&	152\\
-0.33&	0.07&	2.25&	2.27&	10.13&	0.37&	10.14&	6.88&	101 \\
+ 4.23&	1.07&	2.1&	4.84&	28.28&	21.74&	32.24&	27.42&	189\\
+ 0.46&	-1.5&	4.63&	4.89&	0.4&	21.62&	21.62&	14.55&	157\\
+ 0.81&	0.02&	4.08&	4.16&	2.99&	5.96&	6.6&	5.18&	76\\
+ 4.32&	1.06&	1.97&	4.86&	27.9&	22.76&	32.58&	27.75&	183\\
+ -0.15&	-0.64&	-1.61&	1.74&	41.91&	16.33&	44.05&	34.10&	130\\
+ -0.38&	-0.3&	-1.91&	1.97&	31.89&	3.97&	32.07&	22.65&	152\\
+ 0.33&	0.07&	2.25&	2.27&	10.14&	0.37&	10.13&	6.88&	101\\
 \hline
 \end{tabular}
 \caption{Az 1. elrendezés eredményei}
@@ -120,13 +118,13 @@ $\delta_x$ (cm) & $\delta_y$ (cm) & $\delta_z$ (cm) & $\delta$ (cm) & $\Delta_x$
 \begin{tabular}{|rrr|r|rrr|r|c|}
 \hline 
 $\delta_x$ (cm) & $\delta_y$ (cm) & $\delta_z$ (cm) & $\delta$ (cm) & $\Delta_x$ (°) & $\Delta_y$ (°) & $\Delta_z$ (°) & $\Delta$ (°) & inlierek száma \\ \hline
-1.76&	-0.58&	-5.35&	5.66&	46.07&	72.06&	73.97&	64.04&	116\\
-0.16&	-2.24&	4.23&	4.79&	77.6&	60.79&	81.67&	73.35&	251\\
-4.24&	0.31&	3.56&	5.55&	61.48&	96.44&	81.65&	79.86&	187\\
-0.&	-2.25&	4.16&	4.73&	78.7&	60.98&	81.6&	73.76&	274\\
-0.14&	-0.75&	3.92&	3.99&	71.36&	86.41&	81.74&	79.84&	248\\
-0.03&	-2.61&	3.29&	4.20&	76.88&	65.43&	81.36&	74.56&	212\\
--0.11&	-0.72&	3.72&	3.79&	66.29&	84.23&	81.89&	77.47&	209\\
+ 1.76&	-0.58&	-5.35&	5.66&	11.25&	34.15&	35.77&	27.06&	116\\
+ 0.16&	-2.24&	4.23&	4.79&	27.93&	4.36&	28.2&	20.16&	251\\
+ 4.24&	0.31&	3.56&	5.55&	12.45&	19.&	22.76&	18.07&	187\\
+ 0.&	-2.25&	4.16&	4.73&	27.8&	3.06&	27.92&	19.59&	274\\
+ 0.14&	-0.75&	3.92&	3.99&	2.02&	8.85&	8.71&	6.52&	248\\
+ 0.03&	-2.61&	3.29&	4.20&	23.13&	4.56&	23.5&	17.06&	212\\
+ -0.11&	-0.72&	3.72&	3.79&	3.34&	13.95&	14.01&	10.44&	209\\
 \hline
 \end{tabular}
 \caption{A 2. elrendezés eredményei}
@@ -137,12 +135,12 @@ $\delta_x$ (cm) & $\delta_y$ (cm) & $\delta_z$ (cm) & $\delta$ (cm) & $\Delta_x$
 \begin{tabular}{|rrr|r|rrr|r|c|}
 \hline 
 $\delta_x$ (cm) & $\delta_y$ (cm) & $\delta_z$ (cm) & $\delta$ (cm) & $\Delta_x$ (°) & $\Delta_y$ (°) & $\Delta_z$ (°) & $\Delta$ (°) & inlierek száma \\ \hline
-4.64&	3.&	-6.46&	8.50&	14.34&	34.55&	32.73&	27.21&	61\\
-1.59&	-0.34&	3.19&	3.58&	14.79&	29.02&	28.64&	24.15&	115\\
-1.93&	-0.63&	-3.54&	4.08&	27.74&	21.12&	35.02&	27.96&	71\\
-4.28&	-0.52&	-5.48&	6.97&	53.73&	51.96&	36.13&	47.27&	29\\
-1.31&	-1.03&	5.48&	5.73&	17.85&	30.25&	25.74&	24.61&	100\\
-1.17&	-0.65&	4.08&	4.30&	15.56&	27.4&	22.42&	21.79&	190\\
+ 4.64&	3.&	-6.46&	8.50&	5.87&	39.6&	39.71&	28.39&	61\\
+ 1.59&	-0.34&	3.19&	3.58&	13.12&	16.53&	20.95&	16.87&	115\\
+ 1.93&	-0.63&	-3.54&	4.08&	26.85&	32.2&	39.79&	32.94&	71\\
+ 4.28&	-0.52&	-5.48&	6.97&	18.82&	75.&	75.08&	56.30&	29\\
+ 1.31&	-1.03&	5.48&	5.73&	10.83&	10.03&	14.32&	11.73&	100\\
+ 1.17&	-0.65&	4.08&	4.30&	4.02&	9.03&	9.64&	7.56&	190\\
 \hline
 \end{tabular}
 \caption{A 3. elrendezés eredményei}

@@ -40,5 +40,6 @@
 \select@language {magyar} \contentsline {section}{\numberline {6.4}A PLC \IeC {\'e}s robotprogram}{32}{section.6.4}
 \select@language {magyar} \contentsline {section}{\numberline {6.5}A PC program}{32}{section.6.5}
 \select@language {magyar} \contentsline {chapter}{\numberline {7}Eredm\IeC {\'e}nyek}{34}{chapter.7}
-\select@language {magyar} \contentsline {chapter}{\numberline {8}\IeC {\'E}rt\IeC {\'e}kel\IeC {\'e}s, tov\IeC {\'a}bbfejleszt\IeC {\'e}si lehet\IeC {\H o}s\IeC {\'e}gek}{37}{chapter.8}
-\select@language {magyar} \contentsline {chapter}{Irodalomjegyz\IeC {\'e}k}{39}{chapter*.23}
+\select@language {magyar} \contentsline {chapter}{\numberline {8}\IeC {\'E}rt\IeC {\'e}kel\IeC {\'e}s, tov\IeC {\'a}bbfejleszt\IeC {\'e}si lehet\IeC {\H o}s\IeC {\'e}gek}{38}{chapter.8}
+\select@language {magyar} \contentsline {chapter}{Mell\IeC {\'e}klet}{39}{chapter*.24}
+\select@language {magyar} \contentsline {chapter}{Irodalomjegyz\IeC {\'e}k}{41}{chapter*.26}
